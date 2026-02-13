@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\epic_cool_game\\epic_cool_game.csproj",
+      "projectUniqueName": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\terminalfactory\\epic_cool_game.csproj",
       "projectName": "epic_cool_game",
-      "projectPath": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\epic_cool_game\\epic_cool_game.csproj",
+      "projectPath": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\terminalfactory\\epic_cool_game.csproj",
       "packagesPath": "C:\\Users\\ezra.2158527\\.nuget\\packages\\",
-      "outputPath": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\epic_cool_game\\obj\\",
+      "outputPath": "\\\\P301-WIN-S301\\0436DATA\\USERS\\STUDENTS\\2028\\Ezra.2158527\\Visual Studio 2022\\dotnet\\terminalfactory\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ezra.2158527\\AppData\\Roaming\\NuGet\\NuGet.Config"
