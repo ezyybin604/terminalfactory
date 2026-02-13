@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("epic_cool_game")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ce3107fb1f3b1c930aefe38be6e81d531c329312")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+55b7929063573fde66b7409f4e5a16e371aa9833")]
 [assembly: System.Reflection.AssemblyProductAttribute("epic_cool_game")]
 [assembly: System.Reflection.AssemblyTitleAttribute("epic_cool_game")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
