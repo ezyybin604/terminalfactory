@@ -42,6 +42,8 @@ class Game
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/factory.chunkSize));
         int h = (int)Math.Ceiling((double)((Console.WindowHeight-2)/factory.chunkSize));
+        w++;
+        h++;
         for (int x=0;x<w;x++)
         {
             for (int y=0;y<h;y++)
@@ -50,12 +52,32 @@ class Game
             }
         }
     }
+    Tile giveMeTheTile(int x, int y)
+    {
+        Point chunk = new Point((int)Math.Floor((double)(x/factory.chunkSize)), (int)Math.Floor((double)(y/factory.chunkSize)));
+        Point index = new Point(x-(chunk.x*factory.chunkSize), y-(chunk.y*factory.chunkSize));
+        return factory.world[chunk.x][chunk.y].data[index.x][index.y];
+    }
     void displayStuff()
     {
         Console.Clear();
         Console.WriteLine("Insert tips/controls/tutorial");
         Console.WriteLine(new string('~', Console.WindowWidth));
-        // uhhh finish world render stuff later
+        List<string> lineResult = new List<string>();
+        for (int i=0;i<Console.WindowHeight-2;i++)
+        {
+            lineResult.Clear();
+            for (int x=0;x<Console.WindowWidth;x++)
+            {
+                Tile t = giveMeTheTile(x, i);
+                lineResult.Add(t.type.ToString());
+            }
+            for (int o=0;o<lineResult.Count;o++)
+            {
+                Console.Write(lineResult[i]);
+            }
+            Console.WriteLine();
+        }
     }
     public static void Main()
     {
