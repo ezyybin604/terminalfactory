@@ -77,7 +77,7 @@ class Factory // factory data
             {
                 chunk.data[i][o] = new Tile();
                 chunk.data[i][o].type = ' ';
-                if (x == 0 && i == 0)
+                if (y == 0 && i == 0)
                 {
                     chunk.data[i][o].type = ']';
                 }
@@ -144,10 +144,10 @@ class Factory // factory data
         }
         for (int i=0;i<shape.Count;i++)
         {
-            if (shape[i].x < chunkSize && shape[i].y < chunkSize)
-            {
+            //if (shape[i].x < chunkSize && shape[i].y < chunkSize)
+            //{
                 chunk.data[shape[i].x][shape[i].y] = copy;
-            }
+            //}
         }
 
         if (!world.Keys.Contains(x))

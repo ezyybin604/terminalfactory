@@ -48,6 +48,7 @@ class Game
         {
             for (int y=0;y<h;y++)
             {
+                Console.WriteLine(String.Format("{0}, {1}", x, y));
                 factory.generateChunk(x, y);
             }
         }
@@ -67,9 +68,10 @@ class Game
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             lineResult.Clear();
+            Tile t;
             for (int x=0;x<Console.WindowWidth;x++)
             {
-                Tile t = giveMeTheTile(x, i);
+                t = giveMeTheTile(x, i);
                 lineResult.Add(t.type.ToString());
             }
             for (int o=0;o<lineResult.Count;o++)
@@ -106,8 +108,9 @@ Nobody follows, so to keep secrecy while you travel.
 
 (Press ENTER to start)");
             }
-            Console.ReadLine();
+            //Console.ReadLine();
             game.generateNeeded();
+            Console.ReadLine();
             game.displayStuff();
             Console.ReadLine();
         }
