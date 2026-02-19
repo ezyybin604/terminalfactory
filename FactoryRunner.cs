@@ -6,7 +6,7 @@ Tile types:
 f: finite resource
 i: infinite resource
 b: bush
-' ': grass/empty
+'`': grass/empty
 1: machine block tier 1
 2: machine block tier 2
 3: machine block tier 3
@@ -76,78 +76,82 @@ class Factory // factory data
             for (int o=0;o<chunkSize;o++)
             {
                 chunk.data[i][o] = new Tile();
-                chunk.data[i][o].type = ' ';
-                if (y == 0 && i == 0)
+                chunk.data[i][o].type = '`';
+                if (x == 0 && i == 0)
                 {
                     chunk.data[i][o].type = ']';
                 }
             }
         }
-        int fx = (int)(rng.NextDouble()*10);
-        int fy = (int)(rng.NextDouble()*10);
-        List<Point> shape;
-        Tile copy = new Tile();
-        switch ((int)Math.Floor(rng.NextSingle()*8))
+        for (int cnt=0;cnt<2;cnt++)
         {
-            case 0:
-                // Water springs (diamond shape, 2-4 radius determining tier of water 2=pond, 4=ocean 3=mountain spring)
-                int water = generateIntRange(2, 4);
-                shape = pointShapeGenerator(water, "diamond");
-                copy.type = 'i';
-                copy.prog = 0;
-                if (water == 2)
-                {
-                    copy.subtype = "water2";
-                } else if (water == 3)
-                {
-                    copy.subtype = "water3";
-                } else if (water == 4)
-                {
-                    copy.subtype = "water1";
-                }
-                break;
-            case 1:
-                // Oil (diamond shape, 3 radius)
-                shape = pointShapeGenerator(3, "diamond");
-                copy.type = 'i';
-                copy.subtype = "oil";
-                break;
-            case 2:
-                // Bush Group (scatter 3-8 randomly in 4x4 area)
-                shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 8));
-                copy.type = 'b';
-                copy.subtype = "fr" + generateIntRange(1, 5).ToString();
-                break;
-            case 3:
-                // Sand (small diamond shape 1 out)
-                shape = pointShapeGenerator(1, "diamond");
-                copy.type = 'f';
-                copy.subtype = "sand";
-                copy.prog = 4096;
-                break;
-            case 4:
-                // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
-                shape = pointShapeGenerator(3, "scatter", generateIntRange(5, 12));
-                string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone"];
-                copy.subtype = sbt[generateIntRange(0, 4)];
-                copy.type = 'i';
-                if (copy.subtype == "stone" || copy.subtype == "bone")
-                {
+            int fx = (int)(rng.NextDouble()*10);
+            int fy = (int)(rng.NextDouble()*10);
+            List<Point> shape;
+            Tile copy = new Tile();
+            switch ((int)Math.Floor(rng.NextSingle()*8))
+            {
+                case 0:
+                    // Water springs (diamond shape, 2-4 radius determining tier of water 2=pond, 4=ocean 3=mountain spring)
+                    int water = generateIntRange(2, 4);
+                    shape = pointShapeGenerator(water, "diamond");
+                    copy.type = 'i';
+                    copy.prog = 0;
+                    if (water == 2)
+                    {
+                        copy.subtype = "water2";
+                    } else if (water == 3)
+                    {
+                        copy.subtype = "water3";
+                    } else if (water == 4)
+                    {
+                        copy.subtype = "water1";
+                    }
+                    break;
+                case 1:
+                    // Oil (diamond shape, 3 radius)
+                    shape = pointShapeGenerator(3, "diamond");
+                    copy.type = 'i';
+                    copy.subtype = "oil";
+                    break;
+                case 2:
+                    // Bush Group (scatter 3-8 randomly in 4x4 area)
+                    shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 8));
+                    copy.type = 'b';
+                    copy.subtype = "fr" + generateIntRange(1, 5).ToString();
+                    break;
+                case 3:
+                    // Sand (small diamond shape 1 out)
+                    shape = pointShapeGenerator(1, "diamond");
                     copy.type = 'f';
-                    copy.prog = generateIntRange(4, 128);
+                    copy.subtype = "sand";
+                    copy.prog = 4096;
+                    break;
+                case 4:
+                    // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
+                    shape = pointShapeGenerator(3, "scatter", generateIntRange(5, 12));
+                    string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone"];
+                    copy.subtype = sbt[generateIntRange(0, 4)];
+                    copy.type = 'i';
+                    if (copy.subtype == "stone" || copy.subtype == "bone")
+                    {
+                        copy.type = 'f';
+                        copy.prog = generateIntRange(4, 128);
+                    }
+                    break;
+                default:
+                    copy.type = ' ';
+                    shape = [new Point(0, 0)];
+                    break;
+            }
+            for (int i=0;i<shape.Count;i++)
+            {
+                Point pointGo = new Point(shape[i].x + fx, shape[i].y + fy);
+                if (shape[i].x < chunkSize && shape[i].y < chunkSize && chunk.data[pointGo.x][pointGo.y].type != ']')
+                {
+                    chunk.data[pointGo.x][pointGo.y] = copy;
                 }
-                break;
-            default:
-                copy.type = ' ';
-                shape = [new Point(0, 0)];
-                break;
-        }
-        for (int i=0;i<shape.Count;i++)
-        {
-            //if (shape[i].x < chunkSize && shape[i].y < chunkSize)
-            //{
-                chunk.data[shape[i].x][shape[i].y] = copy;
-            //}
+            }
         }
 
         if (!world.Keys.Contains(x))
@@ -160,6 +164,5 @@ class Factory // factory data
         }
     }
     // add world storage, uhhh figure that out later
-    // also make a worldgen function
     // add world tick function to tick the world
 }
