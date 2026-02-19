@@ -109,34 +109,33 @@ class Factory // factory data
                     }
                     break;
                 case 1:
-                    // Oil (diamond shape, 3 radius)
-                    shape = pointShapeGenerator(3, "diamond");
-                    copy.type = 'i';
-                    copy.subtype = "oil";
-                    break;
-                case 2:
                     // Bush Group (scatter 3-8 randomly in 4x4 area)
                     shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 8));
                     copy.type = 'b';
                     copy.subtype = "fr" + generateIntRange(1, 5).ToString();
                     break;
-                case 3:
-                    // Sand (small diamond shape 1 out)
-                    shape = pointShapeGenerator(1, "diamond");
-                    copy.type = 'f';
-                    copy.subtype = "sand";
-                    copy.prog = 4096;
-                    break;
-                case 4:
+                case 3: case 4: case 2:
                     // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
-                    shape = pointShapeGenerator(3, "scatter", generateIntRange(5, 12));
-                    string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone"];
-                    copy.subtype = sbt[generateIntRange(0, 4)];
+                    shape = pointShapeGenerator(5, "scatter", generateIntRange(8, 20));
+                    string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone", "oil", "sand"];
+                    copy.subtype = sbt[generateIntRange(0, 7)];
                     copy.type = 'i';
-                    if (copy.subtype == "stone" || copy.subtype == "bone")
+                    if (copy.subtype == "stone" || copy.subtype == "bone" ||  copy.subtype == "sand")
                     {
                         copy.type = 'f';
                         copy.prog = generateIntRange(4, 128);
+                        if (copy.subtype == "sand")
+                        {
+                            copy.prog = 4096;
+                        }
+                    }
+                    if (copy.subtype == "sand")
+                    {
+                        shape = pointShapeGenerator(1, "diamond");
+                    }
+                    if (copy.subtype == "oil")
+                    {
+                        shape = pointShapeGenerator(3, "diamond");
                     }
                     break;
                 default:
@@ -147,9 +146,12 @@ class Factory // factory data
             for (int i=0;i<shape.Count;i++)
             {
                 Point pointGo = new Point(shape[i].x + fx, shape[i].y + fy);
-                if (shape[i].x < chunkSize && shape[i].y < chunkSize && chunk.data[pointGo.x][pointGo.y].type != ']')
+                if (pointGo.x < chunkSize && pointGo.y < chunkSize)
                 {
-                    chunk.data[pointGo.x][pointGo.y] = copy;
+                    if (chunk.data[pointGo.x][pointGo.y].type != ']')
+                    {
+                        chunk.data[pointGo.x][pointGo.y] = copy;
+                    }
                 }
             }
         }

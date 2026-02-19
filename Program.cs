@@ -1,6 +1,7 @@
 
 using System;
 using System.IO.Compression;
+using System.Reflection.Metadata;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -126,6 +127,7 @@ class Game // impliment cursor/scrolling tomorrowwwwww
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             int idx = 0;
+            bool continueText = false;
             for (int x=0;x<Console.WindowWidth;x++)
             {
                 Tile t = giveMeTheTile(x, i);
@@ -136,37 +138,54 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                 }
                 if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
                 {
+                    if (continueText)
+                    {
+                        idx++;
+                    }
                     lineResult[idx] = "/" + subtColor[t.subtype];
                     idx++;
                     state = "natrualColor";
+                    continueText = false;
                 }
                 if (t.type == ']')
                 {
+                    if (continueText)
+                    {
+                        idx++;
+                    }
                     lineResult[idx] = "/gray";
                     idx++;
+                    continueText = false;
                 }
-                lineResult[idx] = t.type.ToString();
+                char addChar = t.type;
                 if (state == "natrualColor")
                 {
                     if (t.subtype.Contains("water"))
                     {
-                        lineResult[idx] = "░";
+                        addChar = '░';
                     } else if (t.subtype == "stone")
                     {
-                        lineResult[idx] = "s";
+                        addChar = 's';
                     } else if (t.subtype == "bone")
                     {
-                        lineResult[idx] = "3";
-                    }
-                     else if (t.subtype == "oil")
+                        addChar = '3';
+                    } else if (t.subtype == "oil")
                     {
-                        lineResult[idx] = "o";
+                        addChar = 'o';
                     }
                 }
-                idx++;
+                if (!continueText)
+                {
+                    lineResult[idx] = addChar.ToString();
+                } else
+                {
+                    lineResult[idx] += addChar.ToString();
+                }
+                continueText = true;
             }
             lineResult[idx] = "/end";
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(lineResult.Join(","));
             for (int o=0;lineResult[o] != "/end";o++)
             {
                 string yes = lineResult[o];
@@ -217,7 +236,6 @@ Nobody follows, so to keep secrecy while you travel.
             //Console.ReadLine();
             game.initalizeColorThingysProbably();
             game.generateNeeded();
-            Console.ReadLine();
             game.displayStuff();
             Console.ReadLine();
         }
