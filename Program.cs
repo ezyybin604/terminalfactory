@@ -1,5 +1,6 @@
 
 using System;
+using System.IO.Compression;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -32,12 +33,37 @@ public struct Chunk
     public int y;
     // [x][y]
     public Tile[][] data;
+    public string customToString()
+    {
+        string result = "[";
+        for (int i=0;i<data.Length;i++)
+        {
+            result += "[";
+            for (int z=0;z<data[i].Length;z++) {
+                result += String.Format("\"{0}\"", data[i][z].type.ToString());
+                if (z+1 < data[i].Length)
+                {
+                    result += ",";
+                }
+            }
+            result += "]";
+            if (i+1 < data.Length)
+            {
+                result += ",\n";
+            }
+        }
+        result += "]";
+        return result;
+    }
 }
 
-class Game
+class Game // impliment cursor/scrolling tomorrowwwwww
 {
     Point scroll = new Point();
     Factory factory = new Factory();
+    Dictionary<string, string> subtColor = new Dictionary<string, string>();
+    Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
+    char[] natrualTiles = ['f', 'i', ']', 'b'];
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/factory.chunkSize));
@@ -58,25 +84,105 @@ class Game
         Point index = new Point(x-(chunk.x*factory.chunkSize), y-(chunk.y*factory.chunkSize));
         return factory.world[chunk.x][chunk.y].data[index.x][index.y];
     }
+    void initalizeColorThingysProbably()
+    {
+        subtColor.Add("water1", "blue");
+        subtColor.Add("water2", "blue");
+        subtColor.Add("water3", "blue");
+        subtColor.Add("oil", "darkgray");
+        subtColor.Add("diamond", "cyan");
+        subtColor.Add("iron", "white");
+        subtColor.Add("copper", "darkyellow");
+        subtColor.Add("carbon", "darkgray");
+        subtColor.Add("stone", "gray");
+        subtColor.Add("bone", "white");
+        subtColor.Add("sand", "yellow");
+
+        subtColor.Add("fr1", "red"); // strawberry
+        subtColor.Add("fr2", "yellow"); // abiu
+        subtColor.Add("fr3", "darkyellow"); // dates
+        subtColor.Add("fr4", "magenta"); // dragonfruit
+        subtColor.Add("fr5", "darkgreen"); // jackfruit
+
+        strColor.Add("blue", ConsoleColor.Cyan);
+        strColor.Add("darkgray", ConsoleColor.DarkGray);
+        strColor.Add("cyan", ConsoleColor.Cyan);
+        strColor.Add("darkyellow", ConsoleColor.DarkYellow);
+        strColor.Add("gray", ConsoleColor.Gray);
+        strColor.Add("yellow", ConsoleColor.Yellow);
+        strColor.Add("green", ConsoleColor.Green);
+        strColor.Add("white", ConsoleColor.White);
+        strColor.Add("red", ConsoleColor.Red);
+        strColor.Add("magenta", ConsoleColor.Magenta);
+        strColor.Add("darkgreen", ConsoleColor.DarkGreen);
+    }
     void displayStuff()
     {
         Console.Clear();
         Console.WriteLine("Insert tips/controls/tutorial");
         Console.WriteLine(new string('~', Console.WindowWidth));
-        List<string> lineResult = new List<string>();
+        string[] lineResult = new string[(Console.WindowWidth*2)+1];
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            lineResult.Clear();
+            int idx = 0;
             for (int x=0;x<Console.WindowWidth;x++)
             {
                 Tile t = giveMeTheTile(x, i);
-                lineResult.Add(t.type.ToString());
+                string state = "";
+                if (t.subtype == null)
+                {
+                    t.subtype = "";
+                }
+                if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
+                {
+                    lineResult[idx] = "/" + subtColor[t.subtype];
+                    idx++;
+                    state = "natrualColor";
+                }
+                if (t.type == ']')
+                {
+                    lineResult[idx] = "/gray";
+                    idx++;
+                }
+                lineResult[idx] = t.type.ToString();
+                if (state == "natrualColor")
+                {
+                    if (t.subtype.Contains("water"))
+                    {
+                        lineResult[idx] = "░";
+                    } else if (t.subtype == "stone")
+                    {
+                        lineResult[idx] = "s";
+                    } else if (t.subtype == "bone")
+                    {
+                        lineResult[idx] = "3";
+                    }
+                     else if (t.subtype == "oil")
+                    {
+                        lineResult[idx] = "o";
+                    }
+                }
+                idx++;
             }
-            for (int o=0;o<lineResult.Count;o++)
+            lineResult[idx] = "/end";
+            Console.ForegroundColor = ConsoleColor.Green;
+            for (int o=0;lineResult[o] != "/end";o++)
             {
-                Console.Write(lineResult[i]);
+                string yes = lineResult[o];
+                if (yes[0] == '/' && yes.Length > 1)
+                {
+                    yes = yes.Substring(1);
+                    Console.ForegroundColor = strColor[yes];
+                } else
+                {
+                    Console.Write(lineResult[o]);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
             }
-            Console.WriteLine();
+            if (i+1 < Console.WindowHeight-2)
+            {
+                Console.WriteLine();
+            }
         }
     }
     public static void Main()
@@ -105,8 +211,9 @@ pump out continous food and water for the dragon.
 Nobody follows, so to keep secrecy while you travel.
 
 (Press ENTER to start)");
+                Console.ReadLine();
             }
-            Console.ReadLine();
+            game.initalizeColorThingysProbably();
             game.generateNeeded();
             game.displayStuff();
             Console.ReadLine();
