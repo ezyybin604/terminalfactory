@@ -58,13 +58,14 @@ public struct Chunk
     }
 }
 
-class Game // impliment cursor/scrolling tomorrowwwwww
+class Game
 {
     Point scroll = new Point();
     Factory factory = new Factory();
     Dictionary<string, string> subtColor = new Dictionary<string, string>();
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b'];
+    string _stdin;
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/factory.chunkSize));
@@ -75,7 +76,6 @@ class Game // impliment cursor/scrolling tomorrowwwwww
         {
             for (int y=0;y<h;y++)
             {
-                Console.WriteLine(String.Format("{0}, {1}", x, y));
                 factory.generateChunk(x, y);
             }
         }
@@ -121,15 +121,22 @@ class Game // impliment cursor/scrolling tomorrowwwwww
     void displayStuff()
     {
         Console.Clear();
-        Console.WriteLine("Insert tips/controls/tutorial");
+        Console.WriteLine("stdin:"+_stdin);
         Console.WriteLine(new string('~', Console.WindowWidth));
-        string[] lineResult = new string[(Console.WindowWidth*2)+1];
+        string[] lineResult;
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             int idx = 0;
             bool continueText = false;
+            bool color = false;
+            bool colorNow;
+            string currentColor = "";
+            string prevColor;
+            lineResult = new string[(Console.WindowWidth*2)+1];
             for (int x=0;x<Console.WindowWidth;x++)
             {
+                colorNow = color;
+                prevColor = currentColor;
                 Tile t = giveMeTheTile(x, i);
                 string state = "";
                 if (t.subtype == null)
@@ -138,24 +145,35 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                 }
                 if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
                 {
-                    if (continueText)
+                    if (continueText && !color)
                     {
                         idx++;
                     }
-                    lineResult[idx] = "/" + subtColor[t.subtype];
-                    idx++;
+                    currentColor = subtColor[t.subtype];
                     state = "natrualColor";
-                    continueText = false;
+                    //continueText = false;
+                    color = true;
+                    colorNow = false;
                 }
                 if (t.type == ']')
                 {
-                    if (continueText)
+                    if (continueText && !color)
                     {
                         idx++;
                     }
-                    lineResult[idx] = "/gray";
+                    currentColor = "gray";
+                    //continueText = false;
+                    color = true;
+                    colorNow = false;
+                }
+                if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
+                {
+                    if (lineResult[idx] != null)
+                    {
+                        idx++;
+                    }
+                    lineResult[idx] = "/" + currentColor;
                     idx++;
-                    continueText = false;
                 }
                 char addChar = t.type;
                 if (state == "natrualColor")
@@ -174,7 +192,13 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                         addChar = 'o';
                     }
                 }
-                if (!continueText)
+                if (colorNow && color)
+                {
+                    color = false;
+                    currentColor = "";
+                    idx++;
+                }
+                if (lineResult[idx] == null)
                 {
                     lineResult[idx] = addChar.ToString();
                 } else
@@ -183,9 +207,14 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                 }
                 continueText = true;
             }
+            if (lineResult[idx] != null)
+            {
+                idx++;
+            }
             lineResult[idx] = "/end";
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(lineResult.Join(","));
+            Console.ResetColor();
+            //Console.WriteLine(String.Join(",", lineResult));
             for (int o=0;lineResult[o] != "/end";o++)
             {
                 string yes = lineResult[o];
@@ -196,6 +225,7 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                 } else
                 {
                     Console.Write(lineResult[o]);
+                    //Thread.Sleep(100);
                     Console.ForegroundColor = ConsoleColor.Green;
                 }
             }
@@ -204,6 +234,12 @@ class Game // impliment cursor/scrolling tomorrowwwwww
                 Console.WriteLine();
             }
         }
+    }
+    void inputStuff()
+    {
+        // impliment cursor/scrolling tomorrowwwwww
+        // do thread stuff in main function
+        // input function?
     }
     public static void Main()
     {
@@ -233,10 +269,18 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
                 Console.ReadLine();
             }
-            //Console.ReadLine();
             game.initalizeColorThingysProbably();
             game.generateNeeded();
-            game.displayStuff();
+            bool quit = false;
+            while (!quit)
+            {
+                //Console.WriteLine("stuff is happening");
+                game.inputStuff();
+                game.displayStuff();
+                Thread.Sleep(1000);
+            }
+            Console.Clear();
+            Console.WriteLine("bye");
             Console.ReadLine();
         }
     }
