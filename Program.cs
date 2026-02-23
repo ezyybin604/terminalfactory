@@ -1,9 +1,5 @@
 
 using System;
-using System.Diagnostics.Contracts;
-using System.IO.Compression;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices.Swift;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
