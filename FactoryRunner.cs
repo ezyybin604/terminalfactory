@@ -268,7 +268,7 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     idx++;
                 }
-                if (!colorLoop && currentColor != "")
+                if (!colorLoop && currentColor != "" && color && !colorNow)
                 {
                     lineResult[idx] = "/" + currentColor;
                     idx++;

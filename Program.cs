@@ -61,7 +61,7 @@ class TopBar
 {
     public bool showTips = true;
     public string tip = "default tip";
-    public int lastTipChange = DateTime.Now.Second;
+    public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
 }
 
@@ -127,13 +127,11 @@ class Game
         Console.SetCursorPosition(0, 0);
         Console.WriteLine(new string(' ', Console.WindowWidth));
         Console.SetCursorPosition(0, 0);
-        Console.Write(" ");
 
-        //Console.WriteLine("stdin:"+stdin);
         Console.WriteLine(topbar.tip);
         Console.WriteLine(new string('~', Console.WindowWidth));
 
-        Console.SetCursorPosition(0, 0);
+        //Console.SetCursorPosition(0, 0);
     }
     void displayStuff()
     {
@@ -147,26 +145,42 @@ class Game
         Console.SetCursorPosition(0, 2);
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            factory.displayLine(i, cursor);
+            factory.displayLine(i+scroll.y, cursor);
         }
     }
     void updateScreen()
     {
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            if (linesToUpdate.Contains(i))
+            if (linesToUpdate.Contains(i+scroll.y))
             {
                 Console.SetCursorPosition(0, i+2);
-                factory.displayLine(i, cursor);
+                factory.displayLine(i+scroll.y, cursor);
             }
         }
-        Console.SetCursorPosition(0, 1);
         linesToUpdate.Clear();
     }
     void adjustCamera()
     {
         // do that laerkjesnf
         // finish later
+        while (!(scroll.x <= cursor.x))
+        {
+            scroll.x--;
+        }
+        while (!(cursor.x <= scroll.x+Console.WindowWidth-1))
+        {
+            scroll.x++;
+        }
+
+        while (!(scroll.y <= cursor.y))
+        {
+            scroll.y--;
+        }
+        while (!(cursor.y <= scroll.y+Console.WindowHeight-1))
+        {
+            scroll.y++;
+        }
     }
     void useInput(ConsoleKeyInfo key)
     {
@@ -220,7 +234,7 @@ class Game
         ConsoleKeyInfo input;
         while (scene != "end")
         {
-            input = Console.ReadKey();
+            input = Console.ReadKey(true);
             readkeylog.Add(input);
         }
     }
@@ -228,16 +242,21 @@ class Game
     {
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
         Point windowSize = new Point();
-        generateNeeded();
-        displayStuff();
+        Point previousCamera = new Point(-1, 0);
         while (scene != "end")
         {
+            if (!previousCamera.Equals(scroll))
+            {
+                generateNeeded();
+                displayStuff();
+                previousCamera = scroll;
+            }
             time = DateTime.Now;
-            if (time.Second-5 > topbar.lastTipChange)
+            if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange)
             {
                 int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
                 topbar.tip = topbar.tips[scene][itip];
-                topbar.lastTipChange = time.Second;
+                topbar.lastTipChange = time.Ticks;
             }
             windowSize = new Point(Console.WindowWidth, Console.WindowHeight);
             if (!windowSize.Equals(windowSizePrevious))
@@ -255,7 +274,7 @@ class Game
             updateScreen();
             updateBar();
             Thread.Sleep(50);
-            //topbar.tip = 
+            topbar.tip = String.Format("({0}, {1})", scroll.x, scroll.y);
         }
     }
     public static void Main()
