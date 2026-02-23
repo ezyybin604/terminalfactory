@@ -1,10 +1,13 @@
 
 using System;
+using System.Diagnostics.Contracts;
 using System.IO.Compression;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices.Swift;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
+// https://github.com/ezyybin604/terminalfactory/
 
 public struct Tile
 {
@@ -58,14 +61,26 @@ public struct Chunk
     }
 }
 
+class TopBar
+{
+    public bool showTips = true;
+    public string tip = "default tip";
+    public int lastTipChange = DateTime.Now.Second;
+    public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
+}
+
 class Game
 {
+    // 4 Scenes: game,end,(invintory/inv caus i dont know how to spell),pause,craft
+    string scene = "game";
+    Thread? gameThread;
     Point scroll = new Point();
+    Point cursor = new Point();
     Factory factory = new Factory();
-    Dictionary<string, string> subtColor = new Dictionary<string, string>();
-    Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
-    char[] natrualTiles = ['f', 'i', ']', 'b'];
-    string _stdin;
+    List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
+    DateTime time = DateTime.Now;
+    TopBar topbar = new TopBar();
+    HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/factory.chunkSize));
@@ -80,166 +95,172 @@ class Game
             }
         }
     }
-    Tile giveMeTheTile(int x, int y)
+    void initStuff()
     {
-        Point chunk = new Point((int)Math.Floor((double)(x/factory.chunkSize)), (int)Math.Floor((double)(y/factory.chunkSize)));
-        Point index = new Point(x-(chunk.x*factory.chunkSize), y-(chunk.y*factory.chunkSize));
-        return factory.world[chunk.x][chunk.y].data[index.x][index.y];
+        factory.initFactory();
+        topbar.tips.Add("game", [
+            "Use WASD to move",
+            "Press P to pause"
+        ]);
+        topbar.tips.Add("pause", [
+            "Use WS to change selection",
+            "Press Z to select"
+        ]);
+        topbar.tips.Add("inv", [
+            "Use WS to change selection",
+            "Press Z to select",
+            "Press A to enter crafts menu",
+            "Press X to go back"
+        ]);
+        topbar.tips.Add("craft", [
+            "Use WS to change selection",
+            "Press Z to select",
+            "Press X to go back"
+        ]);
+        topbar.tips.Add("end", ["now go away"]);
+
+        gameThread = new Thread(runTheGameIg);
     }
-    void initalizeColorThingysProbably()
+    void menuDisplay()
     {
-        subtColor.Add("water1", "blue");
-        subtColor.Add("water2", "blue");
-        subtColor.Add("water3", "blue");
-        subtColor.Add("oil", "darkgray");
-        subtColor.Add("diamond", "cyan");
-        subtColor.Add("iron", "white");
-        subtColor.Add("copper", "darkyellow");
-        subtColor.Add("carbon", "darkgray");
-        subtColor.Add("stone", "gray");
-        subtColor.Add("bone", "white");
-        subtColor.Add("sand", "yellow");
+        // do this later
+    }
+    void updateBar()
+    {
+        Console.ResetColor();
+        Console.SetCursorPosition(0, 0);
+        Console.WriteLine(new string(' ', Console.WindowWidth));
+        Console.SetCursorPosition(0, 0);
+        Console.Write(" ");
 
-        subtColor.Add("fr1", "red"); // strawberry
-        subtColor.Add("fr2", "yellow"); // abiu
-        subtColor.Add("fr3", "darkyellow"); // dates
-        subtColor.Add("fr4", "magenta"); // dragonfruit
-        subtColor.Add("fr5", "darkgreen"); // jackfruit
+        //Console.WriteLine("stdin:"+stdin);
+        Console.WriteLine(topbar.tip);
+        Console.WriteLine(new string('~', Console.WindowWidth));
 
-        strColor.Add("blue", ConsoleColor.Cyan);
-        strColor.Add("darkgray", ConsoleColor.DarkGray);
-        strColor.Add("cyan", ConsoleColor.Cyan);
-        strColor.Add("darkyellow", ConsoleColor.DarkYellow);
-        strColor.Add("gray", ConsoleColor.Gray);
-        strColor.Add("yellow", ConsoleColor.Yellow);
-        strColor.Add("green", ConsoleColor.Green);
-        strColor.Add("white", ConsoleColor.White);
-        strColor.Add("red", ConsoleColor.Red);
-        strColor.Add("magenta", ConsoleColor.Magenta);
-        strColor.Add("darkgreen", ConsoleColor.DarkGreen);
+        Console.SetCursorPosition(0, 0);
     }
     void displayStuff()
     {
         Console.Clear();
-        Console.WriteLine("stdin:"+_stdin);
-        Console.WriteLine(new string('~', Console.WindowWidth));
-        string[] lineResult;
+        updateBar();
+        if (scene == "pause" || scene == "inv")
+        {
+            menuDisplay();
+            return;
+        }
+        Console.SetCursorPosition(0, 2);
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            int idx = 0;
-            bool continueText = false;
-            bool color = false;
-            bool colorNow;
-            string currentColor = "";
-            string prevColor;
-            lineResult = new string[(Console.WindowWidth*2)+1];
-            for (int x=0;x<Console.WindowWidth;x++)
-            {
-                colorNow = color;
-                prevColor = currentColor;
-                Tile t = giveMeTheTile(x, i);
-                string state = "";
-                if (t.subtype == null)
-                {
-                    t.subtype = "";
-                }
-                if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
-                {
-                    if (continueText && !color)
-                    {
-                        idx++;
-                    }
-                    currentColor = subtColor[t.subtype];
-                    state = "natrualColor";
-                    //continueText = false;
-                    color = true;
-                    colorNow = false;
-                }
-                if (t.type == ']')
-                {
-                    if (continueText && !color)
-                    {
-                        idx++;
-                    }
-                    currentColor = "gray";
-                    //continueText = false;
-                    color = true;
-                    colorNow = false;
-                }
-                if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
-                {
-                    if (lineResult[idx] != null)
-                    {
-                        idx++;
-                    }
-                    lineResult[idx] = "/" + currentColor;
-                    idx++;
-                }
-                char addChar = t.type;
-                if (state == "natrualColor")
-                {
-                    if (t.subtype.Contains("water"))
-                    {
-                        addChar = '░';
-                    } else if (t.subtype == "stone")
-                    {
-                        addChar = 's';
-                    } else if (t.subtype == "bone")
-                    {
-                        addChar = '3';
-                    } else if (t.subtype == "oil")
-                    {
-                        addChar = 'o';
-                    }
-                }
-                if (colorNow && color)
-                {
-                    color = false;
-                    currentColor = "";
-                    idx++;
-                }
-                if (lineResult[idx] == null)
-                {
-                    lineResult[idx] = addChar.ToString();
-                } else
-                {
-                    lineResult[idx] += addChar.ToString();
-                }
-                continueText = true;
-            }
-            if (lineResult[idx] != null)
-            {
-                idx++;
-            }
-            lineResult[idx] = "/end";
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.ResetColor();
-            //Console.WriteLine(String.Join(",", lineResult));
-            for (int o=0;lineResult[o] != "/end";o++)
-            {
-                string yes = lineResult[o];
-                if (yes[0] == '/' && yes.Length > 1)
-                {
-                    yes = yes.Substring(1);
-                    Console.ForegroundColor = strColor[yes];
-                } else
-                {
-                    Console.Write(lineResult[o]);
-                    //Thread.Sleep(100);
-                    Console.ForegroundColor = ConsoleColor.Green;
-                }
-            }
-            if (i+1 < Console.WindowHeight-2)
-            {
-                Console.WriteLine();
-            }
+            factory.displayLine(i, cursor);
         }
     }
-    void inputStuff()
+    void updateScreen()
     {
-        // impliment cursor/scrolling tomorrowwwwww
-        // do thread stuff in main function
-        // input function?
+        for (int i=0;i<Console.WindowHeight-2;i++)
+        {
+            if (linesToUpdate.Contains(i))
+            {
+                Console.SetCursorPosition(0, i+2);
+                factory.displayLine(i, cursor);
+            }
+        }
+        Console.SetCursorPosition(0, 1);
+        linesToUpdate.Clear();
+    }
+    void adjustCamera()
+    {
+        // do that laerkjesnf
+        // finish later
+    }
+    void useInput(ConsoleKeyInfo key)
+    {
+        char ch = key.KeyChar;
+        if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+        {
+            return;
+        }
+        switch (scene)
+        {
+            case "game":
+                switch (ch)
+                {
+                    case 'a':
+                        cursor.x--;
+                        linesToUpdate.Add(cursor.y);
+                        adjustCamera();
+                        break;
+                    case 's':
+                        cursor.y++;
+                        linesToUpdate.Add(cursor.y);
+                        linesToUpdate.Add(cursor.y-1);
+                        adjustCamera();
+                        break;
+                    case 'w':
+                        cursor.y--;
+                        linesToUpdate.Add(cursor.y);
+                        linesToUpdate.Add(cursor.y+1);
+                        adjustCamera();
+                        break;
+                    case 'd':
+                        cursor.x++;
+                        linesToUpdate.Add(cursor.y);
+                        adjustCamera();
+                        break;
+                    case 'p':
+                        scene = "pause";
+                        displayStuff();
+                        break;
+                    case 'i':
+                        scene = "inv";
+                        displayStuff();
+                        break;
+                }
+                break;
+        }
+        cursor.x = Math.Max(cursor.x, 0);
+    }
+    void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
+    {
+        ConsoleKeyInfo input;
+        while (scene != "end")
+        {
+            input = Console.ReadKey();
+            readkeylog.Add(input);
+        }
+    }
+    void runTheGameIg()
+    {
+        Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
+        Point windowSize = new Point();
+        generateNeeded();
+        displayStuff();
+        while (scene != "end")
+        {
+            time = DateTime.Now;
+            if (time.Second-5 > topbar.lastTipChange)
+            {
+                int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
+                topbar.tip = topbar.tips[scene][itip];
+                topbar.lastTipChange = time.Second;
+            }
+            windowSize = new Point(Console.WindowWidth, Console.WindowHeight);
+            if (!windowSize.Equals(windowSizePrevious))
+            {
+                windowSizePrevious = windowSize;
+                generateNeeded();
+                adjustCamera();
+                displayStuff();
+            }
+            while (readkeylog.Count > 0)
+            {
+                useInput(readkeylog[0]);
+                readkeylog.RemoveAt(0);
+            }
+            updateScreen();
+            updateBar();
+            Thread.Sleep(50);
+            //topbar.tip = 
+        }
     }
     public static void Main()
     {
@@ -269,19 +290,16 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
                 Console.ReadLine();
             }
-            game.initalizeColorThingysProbably();
-            game.generateNeeded();
-            bool quit = false;
-            while (!quit)
+            Console.Title = "terminalfactory";
+            game.initStuff();
+            if (game.gameThread != null)
             {
-                //Console.WriteLine("stuff is happening");
-                game.inputStuff();
-                game.displayStuff();
-                Thread.Sleep(1000);
+                game.gameThread.Start();
+                game.inputSutff();
             }
             Console.Clear();
             Console.WriteLine("bye");
-            Console.ReadLine();
+            Thread.Sleep(1000);
         }
     }
 }

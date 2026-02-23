@@ -21,15 +21,18 @@ b: bush
 M: machine
 */
 
-class Factory // factory data
+class Factory // factory data / big verbose stuff related to factory
 {
+    Dictionary<string, string> subtColor = new Dictionary<string, string>();
+    Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
+    char[] natrualTiles = ['f', 'i', ']', 'b'];
     Random rng = new Random();
     public string savefile = "defualt.tf";
     public int chunkSize = 16;
     // [x][y]
     public Dictionary<int, Dictionary<int, Chunk>> world = new Dictionary<int, Dictionary<int, Chunk>>();
 
-    private double generateRange(double min, double max)
+    public double generateRange(double min, double max)
     {
         return (rng.NextDouble()*(max-min))+min;
     }
@@ -163,6 +166,193 @@ class Factory // factory data
         if (!world[x].Keys.Contains(y))
         {
             world[x].Add(y, chunk);
+        }
+    }
+
+    public void initFactory()
+    {
+        subtColor.Add("water1", "blue");
+        subtColor.Add("water2", "blue");
+        subtColor.Add("water3", "blue");
+        subtColor.Add("oil", "darkgray");
+        subtColor.Add("diamond", "cyan");
+        subtColor.Add("iron", "white");
+        subtColor.Add("copper", "darkyellow");
+        subtColor.Add("carbon", "darkgray");
+        subtColor.Add("stone", "gray");
+        subtColor.Add("bone", "white");
+        subtColor.Add("sand", "yellow");
+
+        subtColor.Add("fr1", "red"); // strawberry
+        subtColor.Add("fr2", "yellow"); // abiu
+        subtColor.Add("fr3", "darkyellow"); // dates
+        subtColor.Add("fr4", "magenta"); // dragonfruit
+        subtColor.Add("fr5", "darkgreen"); // jackfruit
+
+        strColor.Add("blue", ConsoleColor.Cyan);
+        strColor.Add("darkgray", ConsoleColor.DarkGray);
+        strColor.Add("cyan", ConsoleColor.Cyan);
+        strColor.Add("darkyellow", ConsoleColor.DarkYellow);
+        strColor.Add("gray", ConsoleColor.Gray);
+        strColor.Add("yellow", ConsoleColor.Yellow);
+        strColor.Add("green", ConsoleColor.Green);
+        strColor.Add("white", ConsoleColor.White);
+        strColor.Add("red", ConsoleColor.Red);
+        strColor.Add("magenta", ConsoleColor.Magenta);
+        strColor.Add("darkgreen", ConsoleColor.DarkGreen);
+    }
+    Tile giveMeTheTile(int x, int y)
+    {
+        Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
+        Point index = new Point(x-(chunk.x*chunkSize), y-(chunk.y*chunkSize));
+        return world[chunk.x][chunk.y].data[index.x][index.y];
+    }
+    public void displayLine(int y, Point cursor)
+    {
+        string[] lineResult;
+        int idx = 0;
+        bool continueText = false;
+        bool color = false;
+        bool colorNow;
+        string currentColor = "";
+        string prevColor;
+        int invertedColor = 0;
+        lineResult = new string[(Console.WindowWidth*2)+2];
+        for (int x=0;x<Console.WindowWidth;x++)
+        {
+            colorNow = color;
+            prevColor = currentColor;
+            Tile t = giveMeTheTile(x, y);
+            string state = "";
+            if (t.subtype == null)
+            {
+                t.subtype = "";
+            }
+            if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
+            {
+                if (continueText && !color)
+                {
+                    idx++;
+                }
+                currentColor = subtColor[t.subtype];
+                state = "natrualColor";
+                //continueText = false;
+                color = true;
+                colorNow = false;
+            }
+            if (t.type == ']')
+            {
+                if (continueText && !color)
+                {
+                    idx++;
+                }
+                currentColor = "gray";
+                //continueText = false;
+                color = true;
+                colorNow = false;
+            }
+            bool colorLoop = false;
+            if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
+            {
+                if (lineResult[idx] != null)
+                {
+                    idx++;
+                }
+                colorLoop = true;
+                lineResult[idx] = "/" + currentColor;
+                idx++;
+            }
+            if (y == cursor.y && x == cursor.x)
+            {
+                if (lineResult[idx] != null)
+                {
+                    idx++;
+                }
+                if (!colorLoop && currentColor != "")
+                {
+                    lineResult[idx] = "/" + currentColor;
+                    idx++;
+                }
+                invertedColor = 2;
+                lineResult[idx] = "/invert";
+                //idx++;
+            }
+            char addChar = t.type;
+            if (state == "natrualColor")
+            {
+                if (t.subtype.Contains("water"))
+                {
+                    addChar = '░';
+                } else if (t.subtype == "stone")
+                {
+                    addChar = 's';
+                } else if (t.subtype == "bone")
+                {
+                    addChar = '3';
+                } else if (t.subtype == "oil")
+                {
+                    addChar = 'o';
+                }
+            }
+            if (colorNow && color)
+            {
+                color = false;
+                currentColor = "";
+                idx++;
+            }
+            if (lineResult[idx] == null || invertedColor > 0)
+            {
+                if (lineResult[idx] != null)
+                {
+                    idx++;
+                }
+                if (invertedColor > 0)
+                {
+                    invertedColor--;
+                }
+                lineResult[idx] = addChar.ToString();
+            } else
+            {
+                lineResult[idx] += addChar.ToString();
+            }
+            continueText = true;
+            invertedColor = Math.Max(invertedColor, 0);
+            if (invertedColor > 0)
+            {
+                currentColor = "";
+            }
+        }
+        if (lineResult[idx] != null)
+        {
+            idx++;
+        }
+        lineResult[idx] = "/end";
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.ResetColor();
+        //Console.WriteLine(String.Join(",", lineResult));
+        for (int o=0;lineResult[o] != "/end";o++)
+        {
+            string yes = lineResult[o];
+            if (yes[0] == '/' && yes.Length > 1)
+            {
+                yes = yes.Substring(1);
+                if (yes == "invert")
+                {
+                    ConsoleColor bg = Console.ForegroundColor;
+                    ConsoleColor fg = Console.BackgroundColor;
+                    Console.BackgroundColor = bg;
+                    Console.ForegroundColor = fg;
+                } else
+                {
+                    Console.ForegroundColor = strColor[yes];
+                }
+            } else
+            {
+                Console.Write(lineResult[o]);
+                //Thread.Sleep(100);
+                Console.ResetColor();
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
         }
     }
     // add world storage, uhhh figure that out later
