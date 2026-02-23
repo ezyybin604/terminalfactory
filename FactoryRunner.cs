@@ -28,7 +28,7 @@ class Factory // factory data / big verbose stuff related to factory
     char[] natrualTiles = ['f', 'i', ']', 'b'];
     Random rng = new Random();
     public string savefile = "defualt.tf";
-    public int chunkSize = 16;
+    public const int chunkSize = 16;
     // [x][y]
     public Dictionary<int, Dictionary<int, Chunk>> world = new Dictionary<int, Dictionary<int, Chunk>>();
 
@@ -201,13 +201,25 @@ class Factory // factory data / big verbose stuff related to factory
         strColor.Add("magenta", ConsoleColor.Magenta);
         strColor.Add("darkgreen", ConsoleColor.DarkGreen);
     }
+    public void invertColors()
+    { // hheheheeheh
+        ConsoleColor bg = Console.ForegroundColor;
+        ConsoleColor fg = Console.BackgroundColor;
+        Console.BackgroundColor = bg;
+        Console.ForegroundColor = fg;
+    }
     Tile giveMeTheTile(int x, int y)
     {
         Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
-        Point index = new Point(x-(chunk.x*chunkSize), y-(chunk.y*chunkSize));
+        Point index = new Point(x%chunkSize, y%chunkSize);
+        if (y < 0)
+        {
+            index.y+=chunkSize;
+            index.y%=chunkSize;
+        }
         return world[chunk.x][chunk.y].data[index.x][index.y];
     }
-    public void displayLine(int y, Point cursor)
+    public void displayLine(int y, Point cursor, Point scroll)
     {
         string[] lineResult;
         int idx = 0;
@@ -222,7 +234,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             colorNow = color;
             prevColor = currentColor;
-            Tile t = giveMeTheTile(x, y);
+            Tile t = giveMeTheTile(x+scroll.x, y);
             string state = "";
             if (t.subtype == null)
             {
@@ -236,7 +248,6 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 currentColor = subtColor[t.subtype];
                 state = "natrualColor";
-                //continueText = false;
                 color = true;
                 colorNow = false;
             }
@@ -247,7 +258,6 @@ class Factory // factory data / big verbose stuff related to factory
                     idx++;
                 }
                 currentColor = "gray";
-                //continueText = false;
                 color = true;
                 colorNow = false;
             }
@@ -262,7 +272,7 @@ class Factory // factory data / big verbose stuff related to factory
                 lineResult[idx] = "/" + currentColor;
                 idx++;
             }
-            if (y == cursor.y && x == cursor.x)
+            if (y == cursor.y && x+scroll.x == cursor.x)
             {
                 if (lineResult[idx] != null)
                 {
@@ -327,9 +337,9 @@ class Factory // factory data / big verbose stuff related to factory
             idx++;
         }
         lineResult[idx] = "/end";
-        Console.ForegroundColor = ConsoleColor.Green;
         Console.ResetColor();
         //Console.WriteLine(String.Join(",", lineResult));
+        Console.ForegroundColor = ConsoleColor.Green;
         for (int o=0;lineResult[o] != "/end";o++)
         {
             string yes = lineResult[o];
@@ -338,10 +348,7 @@ class Factory // factory data / big verbose stuff related to factory
                 yes = yes.Substring(1);
                 if (yes == "invert")
                 {
-                    ConsoleColor bg = Console.ForegroundColor;
-                    ConsoleColor fg = Console.BackgroundColor;
-                    Console.BackgroundColor = bg;
-                    Console.ForegroundColor = fg;
+                    invertColors();
                 } else
                 {
                     Console.ForegroundColor = strColor[yes];

@@ -63,6 +63,14 @@ class TopBar
     public string tip = "default tip";
     public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
+    public int menuSelection = 0;
+}
+
+// in-ven-tory
+class Slot
+{
+    int num;
+    string item = "";
 }
 
 class Game
@@ -76,18 +84,23 @@ class Game
     List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
     TopBar topbar = new TopBar();
+    public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
+    Slot[] inventory = new Slot[150];
     HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
+    string currentTipText = "";
     void generateNeeded()
     {
-        int w = (int)Math.Ceiling((double)(Console.WindowWidth/factory.chunkSize));
-        int h = (int)Math.Ceiling((double)((Console.WindowHeight-2)/factory.chunkSize));
-        w++;
-        h++;
+        int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
+        int h = (int)Math.Ceiling((double)((Console.WindowHeight-2)/Factory.chunkSize));
+        w+=2;
+        h+=2;
+        int sx = (int)Math.Floor((double)(scroll.x/Factory.chunkSize));
+        int sy = (int)Math.Floor((double)(scroll.y/Factory.chunkSize));
         for (int x=0;x<w;x++)
         {
             for (int y=0;y<h;y++)
             {
-                factory.generateChunk(x, y);
+                factory.generateChunk(x+sx, y+sy);
             }
         }
     }
@@ -103,10 +116,11 @@ class Game
             "Press Z to select"
         ]);
         topbar.tips.Add("inv", [
-            "Use WS to change selection",
-            "Press Z to select",
+            "Use RF to change selection",
+            "Press W to select (use item)",
             "Press A to enter crafts menu",
-            "Press X to go back"
+            "Press S to go back",
+            "Press H to delete item"
         ]);
         topbar.tips.Add("craft", [
             "Use WS to change selection",
@@ -115,37 +129,59 @@ class Game
         ]);
         topbar.tips.Add("end", ["now go away"]);
 
+        menus.Add("pause", [
+            "Resume Game|resume",
+            "Save|save",
+            "Quit (go away)|quit"
+        ]);
+        menus.Add("craft", []); // figure this one out later
+        menus.Add("inv", []); // dynamic menu, based off inventory variable
+
         gameThread = new Thread(runTheGameIg);
     }
     void menuDisplay()
     {
-        // do this later
+        for (int i=0;i<menus[scene].Length;i++)
+        {
+            string[] si = menus[scene][i].Split("|");
+            Console.ResetColor();
+            if (i == topbar.menuSelection)
+            {
+                factory.invertColors();
+            }
+            Console.WriteLine(si[0]);
+        }
     }
     void updateBar()
     {
-        Console.ResetColor();
-        Console.SetCursorPosition(0, 0);
-        Console.WriteLine(new string(' ', Console.WindowWidth));
-        Console.SetCursorPosition(0, 0);
-
-        Console.WriteLine(topbar.tip);
-        Console.WriteLine(new string('~', Console.WindowWidth));
-
-        //Console.SetCursorPosition(0, 0);
+        string tipText = "";
+        tipText = topbar.tip;
+        if (tipText != currentTipText)
+        {
+            Console.ResetColor();
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine(tipText);
+        } else
+        {
+            Console.WriteLine();
+        }
     }
     void displayStuff()
     {
         Console.Clear();
         updateBar();
-        if (scene == "pause" || scene == "inv")
+        Console.WriteLine(new string('~', Console.WindowWidth));
+        Console.SetCursorPosition(0, 2);
+        if (scene != "game")
         {
             menuDisplay();
             return;
         }
-        Console.SetCursorPosition(0, 2);
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            factory.displayLine(i+scroll.y, cursor);
+            factory.displayLine(i+scroll.y, cursor, scroll);
         }
     }
     void updateScreen()
@@ -155,15 +191,14 @@ class Game
             if (linesToUpdate.Contains(i+scroll.y))
             {
                 Console.SetCursorPosition(0, i+2);
-                factory.displayLine(i+scroll.y, cursor);
+                factory.displayLine(i+scroll.y, cursor, scroll);
             }
         }
         linesToUpdate.Clear();
     }
     void adjustCamera()
     {
-        // do that laerkjesnf
-        // finish later
+        cursor.x = Math.Max(cursor.x, 0);
         while (!(scroll.x <= cursor.x))
         {
             scroll.x--;
@@ -177,10 +212,12 @@ class Game
         {
             scroll.y--;
         }
-        while (!(cursor.y <= scroll.y+Console.WindowHeight-1))
+        while (!(cursor.y <= scroll.y+Console.WindowHeight-3))
         {
             scroll.y++;
         }
+
+        generateNeeded();
     }
     void useInput(ConsoleKeyInfo key)
     {
@@ -218,16 +255,17 @@ class Game
                         break;
                     case 'p':
                         scene = "pause";
+                        topbar.menuSelection = 0;
                         displayStuff();
                         break;
                     case 'i':
                         scene = "inv";
+                        topbar.menuSelection = 0;
                         displayStuff();
                         break;
                 }
                 break;
         }
-        cursor.x = Math.Max(cursor.x, 0);
     }
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
@@ -274,7 +312,7 @@ class Game
             updateScreen();
             updateBar();
             Thread.Sleep(50);
-            topbar.tip = String.Format("({0}, {1})", scroll.x, scroll.y);
+            //topbar.tip = String.Format("({0}, {1}), ({2}, {3})", scroll.x, scroll.y, cursor.x, cursor.y);
         }
     }
     public static void Main()
