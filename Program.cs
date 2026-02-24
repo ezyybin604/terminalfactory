@@ -139,17 +139,60 @@ class Game
 
         gameThread = new Thread(runTheGameIg);
     }
+    void displayMenuLine(int i)
+    {
+        string[] si = menus[scene][i].Split("|");
+        Console.ResetColor();
+        Console.SetCursorPosition(0, i+2);
+        Console.Write(new string(' ', Console.WindowWidth));
+        Console.ForegroundColor = ConsoleColor.DarkRed;
+        if (i == topbar.menuSelection)
+        {
+            factory.invertColors();
+            si[0] = "- " + si[0];
+        }
+        Console.SetCursorPosition(0, i+2);
+        Console.WriteLine(si[0]);
+    }
     void menuDisplay()
+    {
+        Console.SetCursorPosition(0, 2);
+        for (int i=0;i<menus[scene].Length;i++)
+        {
+            displayMenuLine(i);
+        }
+    }
+    void updateMenu()
     {
         for (int i=0;i<menus[scene].Length;i++)
         {
-            string[] si = menus[scene][i].Split("|");
-            Console.ResetColor();
-            if (i == topbar.menuSelection)
+            if (linesToUpdate.Contains(i))
             {
-                factory.invertColors();
+                displayMenuLine(i);
             }
-            Console.WriteLine(si[0]);
+        }
+        linesToUpdate.Clear();
+    }
+    void selectItemMenu()
+    {
+        string[] st = menus[scene][topbar.menuSelection].Split("|");
+        switch (scene)
+        {
+            case "pause":
+                switch (st[1])
+                {
+                    case "resume":
+                        scene = "game";
+                        displayStuff();
+                        break;
+                    case "save":
+                        // finish later
+                        break;
+                    case "quit":
+                        scene = "end";
+                        break;
+                }
+                break;
         }
     }
     void updateBar()
@@ -170,15 +213,16 @@ class Game
     }
     void displayStuff()
     {
+        linesToUpdate.Clear();
         Console.Clear();
         updateBar();
         Console.WriteLine(new string('~', Console.WindowWidth));
-        Console.SetCursorPosition(0, 2);
         if (scene != "game")
         {
             menuDisplay();
             return;
         }
+        Console.SetCursorPosition(0, 2);
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             factory.displayLine(i+scroll.y, cursor, scroll);
@@ -265,12 +309,35 @@ class Game
                         break;
                 }
                 break;
+            case "pause":
+                switch (ch)
+                {
+                    case 'w':
+                        linesToUpdate.Add(topbar.menuSelection);
+                        topbar.menuSelection--;
+                        linesToUpdate.Add(topbar.menuSelection);
+                        updateMenu();
+                        break;
+                    case 's':
+                        linesToUpdate.Add(topbar.menuSelection);
+                        topbar.menuSelection++;
+                        linesToUpdate.Add(topbar.menuSelection);
+                        updateMenu();
+                        break;
+                    case 'z':
+                        selectItemMenu();
+                        break;
+                    default:
+                        break;
+                }
+                topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus["pause"].Length-1);
+                break;
         }
     }
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
         ConsoleKeyInfo input;
-        while (scene != "end")
+        while (true)
         {
             input = Console.ReadKey(true);
             readkeylog.Add(input);
@@ -314,6 +381,14 @@ class Game
             Thread.Sleep(50);
             //topbar.tip = String.Format("({0}, {1}), ({2}, {3})", scroll.x, scroll.y, cursor.x, cursor.y);
         }
+        bye();
+    }
+    void bye()
+    {
+        Console.Clear();
+        Console.WriteLine("bye");
+        Thread.Sleep(1000);
+        Environment.Exit(0);
     }
     public static void Main()
     {
@@ -350,9 +425,7 @@ Nobody follows, so to keep secrecy while you travel.
                 game.gameThread.Start();
                 game.inputSutff();
             }
-            Console.Clear();
-            Console.WriteLine("bye");
-            Thread.Sleep(1000);
+            game.bye();
         }
     }
 }
