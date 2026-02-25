@@ -112,6 +112,7 @@ class Factory // factory data / big verbose stuff related to factory
                     // Bush Group (scatter 3-8 randomly in 4x4 area)
                     shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 8));
                     copy.type = 'b';
+                    copy.prog = 10; // regen over time
                     copy.subtype = "fr" + generateIntRange(1, 5).ToString();
                     break;
                 case 3: case 4: case 2:

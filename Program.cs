@@ -1,5 +1,6 @@
 
 using System;
+using System.Dynamic;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -154,6 +155,10 @@ class Game
     {
         string[] si = menus[scene][i].Split("|");
         Console.ResetColor();
+        if (i+2 > Console.WindowHeight-1)
+        {
+            return;
+        }
         Console.SetCursorPosition(0, i+2);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.ForegroundColor = ConsoleColor.DarkRed;
@@ -167,6 +172,10 @@ class Game
     }
     void menuDisplay()
     {
+        if (scene == "inv")
+        {
+            updateInventory();
+        }
         Console.SetCursorPosition(0, 2);
         for (int i=0;i<menus[scene].Length;i++)
         {
@@ -228,12 +237,12 @@ class Game
         Console.Clear();
         updateBar();
         Console.WriteLine(new string('~', Console.WindowWidth));
+        Console.SetCursorPosition(0, 2);
         if (scene != "game")
         {
             menuDisplay();
             return;
         }
-        Console.SetCursorPosition(0, 2);
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             factory.displayLine(i+scroll.y, cursor, scroll);
@@ -281,10 +290,14 @@ class Game
         {
             menus["inv"][i] = "";
             Slot slot = inventory[i];
-            if (slot.num < 1)
+            if (slot.num > 0)
             {
                 invlist.Add(slot.item);
             }
+        }
+        for (int i=0;i<invlist.Count;i++)
+        {
+            menus["inv"][i] = invlist[i];
         }
     }
     void useInput(ConsoleKeyInfo key)
@@ -334,62 +347,62 @@ class Game
                         break;
                     case 'k':
                         // break/collect
-                            int i=0;
-                            Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
-                            string info = gd.getInfo(curs.type.ToString() + "." + curs.subtype)[1];
-                            if (info == "")
+                        int i=0;
+                        Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
+                        string info = gd.getInfo(curs.type.ToString() + "." + curs.subtype)[1];
+                        if (info == "")
+                        {
+                            info = gd.getInfo(curs.type.ToString())[1];
+                        }
+                        if (info != "")
+                        {
+                            while (inventory[i].num < 1 &&
+                                !(inventory[i].item == "" ||
+                                inventory[i].item == info)
+                                && inventory[i].num < 1000
+                                && i < inventory.Length)
                             {
-                                info = gd.getInfo(curs.type.ToString())[1];
+                                i++;
                             }
-                            if (info != "")
+                            if (i < inventory.Length)
                             {
-                                while (inventory[i].num < 1 &&
-                                    !(inventory[i].item == "" ||
-                                    inventory[i].item == info)
-                                    && inventory[i].num < 1000
-                                    && i < inventory.Length)
+                                bool giveitem = true;
+                                if (curs.type == 'i')
                                 {
-                                    i++;
-                                }
-                                if (i < inventory.Length)
+                                    // idk dont do anything
+                                } else if (curs.type == 'f')
                                 {
-                                    bool giveitem = true;
-                                    if (curs.type == 'i')
-                                    {
-                                        break;
-                                    } else if (curs.type == 'f')
-                                    {
-                                        curs.prog--;
-                                        if (curs.prog < 1)
-                                        {
-                                            curs.subtype = "";
-                                            curs.type = '`';
-                                        }
-                                    } else if (curs.type == 'b')
-                                    {
-                                        if (curs.prog < 1)
-                                        {
-                                            giveitem = false;
-                                        } else
-                                        {
-                                            curs.prog--;
-                                        }
-                                    } else
+                                    curs.prog--;
+                                    if (curs.prog < 1)
                                     {
                                         curs.subtype = "";
                                         curs.type = '`';
                                     }
-                                    if (giveitem)
+                                } else if (curs.type == 'b')
+                                {
+                                    if (curs.prog < 1)
                                     {
-                                        if (inventory[i].item == "")
-                                        {
-                                            inventory[i].item = info;
-                                        }
-                                        inventory[i].num++;
+                                        giveitem = false;
+                                    } else
+                                    {
+                                        curs.prog--;
                                     }
-                                    factory.setTile(cursor.x, cursor.y, curs);
+                                } else
+                                {
+                                    curs.subtype = "";
+                                    curs.type = '`';
                                 }
+                                if (giveitem)
+                                {
+                                    if (inventory[i].item == "")
+                                    {
+                                        inventory[i].item = info;
+                                    }
+                                    inventory[i].num++;
+                                }
+                                factory.setTile(cursor.x, cursor.y, curs);
                             }
+                        }
                         break;
                     case 'o':
                         // place
@@ -443,6 +456,9 @@ class Game
         } else if (scene == "craft")
         {
             // do later, craft ingredienterwkjsn
+        } else
+        {
+            topbar.manualTip = false;
         } // maybe inv later but idk what that could be
         if (topbar.manualTip)
         {
@@ -521,7 +537,8 @@ class Game
         {
             Console.WriteLine("No savefile found.");
             Console.Write("Skip intro? (y/n):");
-            if (!(Console.ReadKey().KeyChar == 'y'))
+            char res = '\0';
+            if (!((res = Console.ReadKey().KeyChar) == 'y'))
             {
                 Console.Clear();
                 Console.WriteLine(@"
