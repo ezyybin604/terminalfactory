@@ -7,17 +7,14 @@ f: finite resource
 i: infinite resource
 b: bush
 '`': grass/empty
-1: machine block tier 1
-2: machine block tier 2
-3: machine block tier 3
+m: Machine block (T1, T2, T3)
 *: energy port
 +: add/input
 -: get/output
-=: pipe
+p: pipe (subtype determines direction)
 #: cable
 ]: trough
 @: world interactor
-+: machine frame
 M: machine
 */
 
@@ -120,8 +117,8 @@ class Factory // factory data / big verbose stuff related to factory
                 case 3: case 4: case 2:
                     // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
                     shape = pointShapeGenerator(5, "scatter", generateIntRange(8, 20));
-                    string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone", "oil", "sand"];
-                    copy.subtype = sbt[generateIntRange(0, 7)];
+                    string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone", "oil", "sand", "coal"];
+                    copy.subtype = sbt[generateIntRange(0, 8)];
                     copy.type = 'i';
                     if (copy.subtype == "stone" || copy.subtype == "bone" ||  copy.subtype == "sand")
                     {
@@ -208,7 +205,7 @@ class Factory // factory data / big verbose stuff related to factory
         Console.BackgroundColor = bg;
         Console.ForegroundColor = fg;
     }
-    Tile giveMeTheTile(int x, int y)
+    public Tile giveMeTheTile(int x, int y)
     {
         Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
         Point index = new Point(x%chunkSize, y%chunkSize);
@@ -218,6 +215,17 @@ class Factory // factory data / big verbose stuff related to factory
             index.y%=chunkSize;
         }
         return world[chunk.x][chunk.y].data[index.x][index.y];
+    }
+    public void setTile(int x, int y, Tile tl)
+    {
+        Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
+        Point index = new Point(x%chunkSize, y%chunkSize);
+        if (y < 0)
+        {
+            index.y+=chunkSize;
+            index.y%=chunkSize;
+        }
+        world[chunk.x][chunk.y].data[index.x][index.y] = tl;
     }
     public void displayLine(int y, Point cursor, Point scroll)
     {

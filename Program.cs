@@ -64,19 +64,21 @@ class TopBar
     public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
     public int menuSelection = 0;
+    public bool manualTip;
 }
 
 // in-ven-tory
 class Slot
 {
-    int num;
-    string item = "";
+    public int num;
+    public string item = "";
 }
 
 class Game
 {
     // 4 Scenes: game,end,(invintory/inv caus i dont know how to spell),pause,craft
     string scene = "game";
+    GameData gd = new GameData("gamedata");
     Thread? gameThread;
     Point scroll = new Point();
     Point cursor = new Point();
@@ -88,6 +90,7 @@ class Game
     Slot[] inventory = new Slot[150];
     HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     string currentTipText = "";
+    List<string> invlist = new List<string>();
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
@@ -109,7 +112,10 @@ class Game
         factory.initFactory();
         topbar.tips.Add("game", [
             "Use WASD to move",
-            "Press P to pause"
+            "Press P to pause",
+            "Press K to break/collect",
+            "Press O to place",
+            "Press I to open inventory"
         ]);
         topbar.tips.Add("pause", [
             "Use WS to change selection",
@@ -135,9 +141,14 @@ class Game
             "Quit (go away)|quit"
         ]);
         menus.Add("craft", []); // figure this one out later
-        menus.Add("inv", []); // dynamic menu, based off inventory variable
+        menus.Add("inv", new string[150]); // dynamic menu, based off inventory variable
 
         gameThread = new Thread(runTheGameIg);
+
+        for (int i=0;i<inventory.Length;i++)
+        {
+            inventory[i] = new Slot();
+        }
     }
     void displayMenuLine(int i)
     {
@@ -263,6 +274,19 @@ class Game
 
         generateNeeded();
     }
+    void updateInventory()
+    {
+        invlist.Clear();
+        for (int i=0;i<inventory.Length;i++)
+        {
+            menus["inv"][i] = "";
+            Slot slot = inventory[i];
+            if (slot.num < 1)
+            {
+                invlist.Add(slot.item);
+            }
+        }
+    }
     void useInput(ConsoleKeyInfo key)
     {
         char ch = key.KeyChar;
@@ -305,7 +329,70 @@ class Game
                     case 'i':
                         scene = "inv";
                         topbar.menuSelection = 0;
+                        updateInventory();
                         displayStuff();
+                        break;
+                    case 'k':
+                        // break/collect
+                            int i=0;
+                            Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
+                            string info = gd.getInfo(curs.type.ToString() + "." + curs.subtype)[1];
+                            if (info == "")
+                            {
+                                info = gd.getInfo(curs.type.ToString())[1];
+                            }
+                            if (info != "")
+                            {
+                                while (inventory[i].num < 1 &&
+                                    !(inventory[i].item == "" ||
+                                    inventory[i].item == info)
+                                    && inventory[i].num < 1000
+                                    && i < inventory.Length)
+                                {
+                                    i++;
+                                }
+                                if (i < inventory.Length)
+                                {
+                                    bool giveitem = true;
+                                    if (curs.type == 'i')
+                                    {
+                                        break;
+                                    } else if (curs.type == 'f')
+                                    {
+                                        curs.prog--;
+                                        if (curs.prog < 1)
+                                        {
+                                            curs.subtype = "";
+                                            curs.type = '`';
+                                        }
+                                    } else if (curs.type == 'b')
+                                    {
+                                        if (curs.prog < 1)
+                                        {
+                                            giveitem = false;
+                                        } else
+                                        {
+                                            curs.prog--;
+                                        }
+                                    } else
+                                    {
+                                        curs.subtype = "";
+                                        curs.type = '`';
+                                    }
+                                    if (giveitem)
+                                    {
+                                        if (inventory[i].item == "")
+                                        {
+                                            inventory[i].item = info;
+                                        }
+                                        inventory[i].num++;
+                                    }
+                                    factory.setTile(cursor.x, cursor.y, curs);
+                                }
+                            }
+                        break;
+                    case 'o':
+                        // place
                         break;
                 }
                 break;
@@ -334,6 +421,34 @@ class Game
                 break;
         }
     }
+    void unnessaryFunctionForDecidingManualTips()
+    {
+        if (scene == "game")
+        {
+            //string tip = "";
+            Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
+            string info = gd.getInfo(curs.type.ToString() + "." + curs.subtype)[0];
+            if (info == "")
+            {
+                info = gd.getInfo(curs.type.ToString())[0];
+            }
+            if (info == "")
+            {
+                topbar.manualTip = false;
+            } else
+            {
+                topbar.manualTip = true;
+                topbar.tip = info;
+            }
+        } else if (scene == "craft")
+        {
+            // do later, craft ingredienterwkjsn
+        } // maybe inv later but idk what that could be
+        if (topbar.manualTip)
+        {
+            topbar.lastTipChange = DateTime.MinValue.Ticks;
+        }
+    }
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
         ConsoleKeyInfo input;
@@ -348,8 +463,14 @@ class Game
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
         Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);
+        string previousScene = scene;
         while (scene != "end")
         {
+            if (previousScene != scene)
+            {
+                previousScene = scene;
+                topbar.lastTipChange = DateTime.MinValue.Ticks;
+            }
             if (!previousCamera.Equals(scroll))
             {
                 generateNeeded();
@@ -357,7 +478,8 @@ class Game
                 previousCamera = scroll;
             }
             time = DateTime.Now;
-            if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange)
+            unnessaryFunctionForDecidingManualTips();
+            if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange && !topbar.manualTip)
             {
                 int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
                 topbar.tip = topbar.tips[scene][itip];
@@ -392,6 +514,7 @@ class Game
     }
     public static void Main()
     {
+        Console.Clear();
         Game game = new Game();
         game.factory = new Factory();
         if (!File.Exists(game.factory.savefile))
@@ -419,11 +542,23 @@ Nobody follows, so to keep secrecy while you travel.
                 Console.ReadLine();
             }
             Console.Title = "terminalfactory";
-            game.initStuff();
-            if (game.gameThread != null)
+            while (game.gd.state == "prep")
             {
-                game.gameThread.Start();
-                game.inputSutff();
+                Console.Clear();
+                Console.WriteLine("Preparing.");
+                Thread.Sleep(100);
+            }
+            if (game.gd.state == "done")
+            {
+                game.initStuff();
+                if (game.gameThread != null)
+                {
+                    game.gameThread.Start();
+                    game.inputSutff();
+                }
+            } else
+            {
+                Console.WriteLine("An error happened with GameData: " + game.gd.state);
             }
             game.bye();
         }

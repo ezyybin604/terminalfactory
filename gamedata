@@ -1,0 +1,55 @@
+# gamedata for terminalfactory
+# !s signal a section
+# double !!s means stop
+# *=* are a recipe, can be all kinds of abstract
+# also whats the icon vscode is telling me this file is
+!blockinfo
+i=Infinite Resource (Unlabeled)
+]=Trough
+# inf
+i.oil=Oil
+i.water1=Ocean Water (Water T1)
+i.water2=Pond Water (Water T2)
+i.water3=Mountain Spring Water (Water T3)
+i.diamond=Diamond Ore,diamond
+i.iron=Iron Ore,iron
+i.copper=Copper Ore,copper
+i.carbon=Carbon Deposit,carbon
+i.coal=Coal Ore,coal
+# bush
+b=Bush. (this one is unlabeled uh oh)
+b.fr1=Strawberries (Food T1),fr1
+b.fr2=Abiu (Food T2),fr2
+b.fr3=Dates (Food T3),fr3
+b.fr4=Dragonfruit (Food T4),fr4
+b.fr5=Jackfruit (Food T5),fr5
+# finite
+f=Finite Resource (Unlabeld)
+f.stone=Stones,stone
+f.bone=Bones,bone
+f.sand=Sand,sand
+# machines
+m.1=Machine Block (T1),mab1
+m.2=Machine Block (T2),mab2
+m.3=Machine Block (T3),mab3
+*=Energy Port,energyport
++=Input,min
+-=Output,mout
+p=Pipe,pipe
+#=Cable,energycable
+@=World Interactor,worldintr
+# machine blocks (the machines)
+M=Unlabeled Machine
+M.puri=Purifier (Waterline T1 -> T2),puri
+M.dist=Distillery (Waterline T2 -> T3),dist
+M.carb=Carbonator (Waterline T3 -> T4),carb
+M.lasr=Laser Purifier (Waterline T4 -> T5),lasr
+M.cgen=Coal Generator,cgen
+M.ogen=Oil Generator,ogen
+M.pump=Pump,pump
+M.mine=Miner,miner
+M.asmb=Assembler,asmb
+M.niem=Network Interface for Energy Management (NIEM),niem
+M.comp=Composter,comp
+M.stor=Storage Unit,stor
+!! 
