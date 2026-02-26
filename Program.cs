@@ -82,9 +82,9 @@ class Game
     /*
         - craft menu
         - saving (save data serialize)
-        - placing tile
         - world ticking
         - machine forming
+        - fix the delete item case
     */
     string scene = "game";
     Thread? gameThread;
