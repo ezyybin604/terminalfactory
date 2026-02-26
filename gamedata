@@ -17,6 +17,7 @@ i.iron=Iron Ore,iron
 i.copper=Copper Ore,copper
 i.carbon=Carbon Deposit,carbon
 i.coal=Coal Ore,coal
+i.drags=Dragon Scale,dgscale
 # bush
 b=Bush. (this one is unlabeled uh oh)
 b.fr1=Strawberries (Food T1),fr1
@@ -108,4 +109,20 @@ b.fr3=darkyellow
 b.fr4=magenta
 #jackfruit
 b.fr5=darkgreen
+!! 
+
+!itemNames
+# do this one later
+!! 
+
+# copyright from microsoft ai incoming
+!craftingRecipe
+# materials
+x2,sand=glass
+x1,glass,x4,iron=maciron
+x4,dgscale,x2,maciron=frium
+# machines
+x64,iron=mab1
+x32,maciron=mab2
+x16,frium=mab3
 !! 

@@ -1,6 +1,5 @@
 
 using System;
-using System.Dynamic;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -73,6 +72,13 @@ class Slot
 {
     public int num;
     public string item = "";
+    public Slot Copy()
+    {
+        Slot slot = new Slot();
+        slot.item = item;
+        slot.num = num;
+        return slot;
+    }
 }
 
 class Game
@@ -84,7 +90,7 @@ class Game
         - saving (save data serialize)
         - world ticking
         - machine forming
-        - fix the delete item case
+        - item names
     */
     string scene = "game";
     Thread? gameThread;
@@ -179,7 +185,7 @@ class Game
             si[0] = "- " + si[0];
         }
         Console.SetCursorPosition(0, i+2);
-        Console.WriteLine(si[0]);
+        Console.Write(si[0]);
     }
     void menuDisplay()
     {
@@ -187,7 +193,6 @@ class Game
         {
             updateInventory();
         }
-        Console.SetCursorPosition(0, 2);
         for (int i=0;i<menus[scene].Length;i++)
         {
             displayMenuLine(i);
@@ -226,29 +231,28 @@ class Game
                 break;
         }
     }
-    void updateBar()
+    void updateBar(bool forceReplace=false)
     {
         string tipText = "";
         tipText = topbar.tip;
-        if (tipText != currentTipText)
+        if (tipText != currentTipText || forceReplace)
         {
             Console.ResetColor();
             Console.SetCursorPosition(0, 0);
             Console.WriteLine(new string(' ', Console.WindowWidth));
             Console.SetCursorPosition(0, 0);
-            Console.WriteLine(tipText);
-        } else
-        {
-            Console.WriteLine();
+            Console.Write(tipText);
+            currentTipText = tipText;
         }
     }
     void displayStuff()
     {
         linesToUpdate.Clear();
         Console.Clear();
-        updateBar();
+        Console.ResetColor();
+        updateBar(true);
+        Console.SetCursorPosition(0, 1);
         Console.WriteLine(new string('~', Console.WindowWidth));
-        Console.SetCursorPosition(0, 2);
         if (scene != "game")
         {
             menuDisplay();
@@ -302,7 +306,11 @@ class Game
         {
             if (invcopy[i].num > 0)
             {
-                if (x != i) { inventory[x] = invcopy[i]; }
+                if (x != i) { inventory[x] = invcopy[i].Copy(); }
+                if (i > x)
+                {
+                    inventory[i].num = 0;
+                }
                 x++;
             }
         }
@@ -314,13 +322,13 @@ class Game
         invlist.Clear();
         for (int i=0;i<inventory.Length;i++)
         {
-            menus["inv"][i] = "";
             Slot slot = inventory[i];
             if (slot.num > 0)
             {
                 invlist.Add(String.Format("x{0}, {1}", slot.num, slot.item));
             }
         }
+        menus["inv"] = new string[invlist.Count];
         for (int i=0;i<invlist.Count;i++)
         {
             menus["inv"][i] = invlist[i];
@@ -462,14 +470,10 @@ class Game
                     case 'w':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
-                        linesToUpdate.Add(topbar.menuSelection);
-                        updateMenu();
                         break;
                     case 's':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
-                        linesToUpdate.Add(topbar.menuSelection);
-                        updateMenu();
                         break;
                     case 'z':
                         selectItemMenu();
@@ -485,14 +489,10 @@ class Game
                     case 'r':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
-                        linesToUpdate.Add(topbar.menuSelection);
-                        updateMenu();
                         break;
                     case 'f':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
-                        linesToUpdate.Add(topbar.menuSelection);
-                        updateMenu();
                         break;
                     case 'w':
                         usingItem = topbar.menuSelection;
@@ -511,15 +511,21 @@ class Game
                         inventory[topbar.menuSelection].num = 0;
                         fixInventory();
                         usingItem = null;
-                        topbar.menuSelection = Math.Min(topbar.menuSelection, menus["inv"].Length);
+                        topbar.menuSelection = Math.Min(topbar.menuSelection, menus["inv"].Length-1);
                         if (inventory[0].num < 1)
                         {
                             scene = "game";
-                            displayStuff();
                         }
+                        displayStuff();
                         break;
                 }
                 break;
+        }
+        if (scene != "game")
+        {
+            topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
+            linesToUpdate.Add(topbar.menuSelection);
+            updateMenu();
         }
     }
     void unnessaryFunctionForDecidingManualTips()
