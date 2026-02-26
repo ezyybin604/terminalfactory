@@ -12,17 +12,19 @@ m: Machine block (T1, T2, T3)
 +: add/input
 -: get/output
 p: pipe (subtype determines direction)
-#: cable
+~: cable
 ]: trough
 @: world interactor
 M: machine
+h: handle this pipe, make it face towards any adjacent things
+o: building stone
 */
 
 class Factory // factory data / big verbose stuff related to factory
 {
-    Dictionary<string, string> subtColor = new Dictionary<string, string>();
+    public GameData gd = new GameData("gamedata");
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
-    char[] natrualTiles = ['f', 'i', ']', 'b'];
+    char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
     public string savefile = "defualt.tf";
     public const int chunkSize = 16;
@@ -169,24 +171,6 @@ class Factory // factory data / big verbose stuff related to factory
 
     public void initFactory()
     {
-        subtColor.Add("water1", "blue");
-        subtColor.Add("water2", "blue");
-        subtColor.Add("water3", "blue");
-        subtColor.Add("oil", "darkgray");
-        subtColor.Add("diamond", "cyan");
-        subtColor.Add("iron", "white");
-        subtColor.Add("copper", "darkyellow");
-        subtColor.Add("carbon", "darkgray");
-        subtColor.Add("stone", "gray");
-        subtColor.Add("bone", "white");
-        subtColor.Add("sand", "yellow");
-
-        subtColor.Add("fr1", "red"); // strawberry
-        subtColor.Add("fr2", "yellow"); // abiu
-        subtColor.Add("fr3", "darkyellow"); // dates
-        subtColor.Add("fr4", "magenta"); // dragonfruit
-        subtColor.Add("fr5", "darkgreen"); // jackfruit
-
         strColor.Add("blue", ConsoleColor.Cyan);
         strColor.Add("darkgray", ConsoleColor.DarkGray);
         strColor.Add("cyan", ConsoleColor.Cyan);
@@ -249,13 +233,14 @@ class Factory // factory data / big verbose stuff related to factory
             {
                 t.subtype = "";
             }
-            if (subtColor.ContainsKey(t.subtype) && natrualTiles.Contains(t.type)) // for natrually generating stuff only
+            string subtc = gd.autoTilePick(t, 0, "tileRecolors");// add gd.autotilepick
+            if (subtc != "" && natrualTiles.Contains(t.type)) // for natrually generating stuff only
             {
                 if (continueText && !color)
                 {
                     idx++;
                 }
-                currentColor = subtColor[t.subtype];
+                currentColor = subtc;
                 state = "natrualColor";
                 color = true;
                 colorNow = false;
@@ -312,6 +297,10 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     addChar = 'o';
                 }
+            }
+            if (t.type == 'o')
+            {
+                addChar = 'b';
             }
             if (colorNow && color)
             {

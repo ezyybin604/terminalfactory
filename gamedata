@@ -1,6 +1,7 @@
 # gamedata for terminalfactory
 # !s signal a section
 # double !!s means stop
+# !!! means add contents from existing section
 # *=* are a recipe, can be all kinds of abstract
 # also whats the icon vscode is telling me this file is
 !blockinfo
@@ -28,6 +29,7 @@ f=Finite Resource (Unlabeld)
 f.stone=Stones,stone
 f.bone=Bones,bone
 f.sand=Sand,sand
+o=Building Stone,stone
 # machines
 m.1=Machine Block (T1),mab1
 m.2=Machine Block (T2),mab2
@@ -36,7 +38,7 @@ m.3=Machine Block (T3),mab3
 +=Input,min
 -=Output,mout
 p=Pipe,pipe
-#=Cable,energycable
+~=Cable,energycable
 @=World Interactor,worldintr
 # machine blocks (the machines)
 M=Unlabeled Machine
@@ -52,4 +54,58 @@ M.asmb=Assembler,asmb
 M.niem=Network Interface for Energy Management (NIEM),niem
 M.comp=Composter,comp
 M.stor=Storage Unit,stor
+!! 
+
+!itemToBlock
+# machines again
+puri=M.puri
+dist=M.dist
+carb=M.carb
+lasr=M.lasr
+cgen=M.cgen
+ogen=M.ogen
+pump=M.pump
+miner=M.mine
+asmb=M.asmb
+niem=M.niem
+comp=M.comp
+stor=M.stor
+# machine stuff
+worldintr=@
+pipe=h
+mab1=m.1
+mab2=m.2
+mab3=m.3
+energyport=*
+min=+
+mout=-
+energycable=~
+# build
+stone=o
+!! 
+
+!tileRecolors
+i.water1=blue
+i.water2=blue
+i.water3=blue
+i.oil=darkgray
+i.coal=darkgray
+i.diamond=cyan
+i.iron=white
+i.copper=darkyellow
+i.carbon=darkgray
+f.stone=gray
+f.bone=white
+f.sand=yellow
+o=darkgray
+#strawberry
+b.fr1=red
+#abiu
+b.fr2=yellow
+#dates
+b.fr3=darkyellow
+#dragonfruit
+b.fr4=magenta
+#jackfruit
+b.fr5=darkgreen
 !! 

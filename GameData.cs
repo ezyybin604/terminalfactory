@@ -6,9 +6,26 @@ class GameData
 {
     public string state = "prep";
     private Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
-    public string[] getInfo(string id, string infokey="blockinfo") // "*=*,*" | getInfo(*) = *,*
+    public string getindex(string[] strings, int idx)
     {
-        return getFromKey(infokey, id).Split(",");
+        if (idx > strings.Length-1)
+        {
+            return "";
+        }
+        return strings[idx];
+    }
+    public string[] autoTilePick(Tile tile, string infokey="blockinfo")
+    {
+        string info = getFromKey(infokey, tile.type.ToString() + "." + tile.subtype);
+        if (info == "")
+        {
+            info = getFromKey(infokey, tile.type.ToString());
+        }
+        return info.Split(",");
+    }
+    public string autoTilePick(Tile tile, int idx=0, string infokey="blockinfo")
+    {
+        return getindex(autoTilePick(tile, infokey), idx);
     }
     public string getFromKey(string catg, string key)
     {
