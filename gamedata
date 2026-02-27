@@ -55,6 +55,8 @@ M.asmb=Assembler,asmb
 M.niem=Network Interface for Energy Management (NIEM),niem
 M.comp=Composter,comp
 M.stor=Storage Unit,stor
+M.sltr=Salter,sltr
+M.mixr=Mixer,mixr
 !! 
 
 !itemToBlock
@@ -71,6 +73,8 @@ asmb=M.asmb
 niem=M.niem
 comp=M.comp
 stor=M.stor
+sltr=M.sltr
+mixr=M.mixr
 # machine stuff
 worldintr=@
 pipe=h
@@ -118,11 +122,34 @@ b.fr5=darkgreen
 # copyright from microsoft ai incoming
 !craftingRecipe
 # materials
-x2,sand=glass
-x1,glass,x4,iron=maciron
-x4,dgscale,x2,maciron=frium
+glass=x2,sand
+maciron=x1,glass,x4,iron
+frium=x4,dgscale,x2,maciron
+refdia=x64,diamond
 # machines
-x64,iron=mab1
-x32,maciron=mab2
-x16,frium=mab3
+mab1=x64,iron
+mab2=x48,maciron
+mab3=x24,frium
+worldintr=x8,circ,x30,sand
+pipe=x4,iron
+energycable=x4,copper
+energyport=x64,copper,x4,circ
+min=x16,iron,x32,copper
+mout=x16,iron,x32,copper
+circ=x16,copper,iron
+#machines (real more circuits=more tier)
+miner=x8,circ
+comp=x12,circ,x24,fr1
+pump=x16,circ
+stor=x16,circ,x64,glass
+cgen=x24,circ,x128,coal
+asmb=x24,circ
+ogen=x48,circ,x16,frium
+mixr=x64,circ,copper
+niem=x128,circ
+sltr=x192,circ
+puri=x256,circ
+dist=x512,circ
+carb=x2048,circ,carbon
+lasr=x8192,circ,x128,glass
 !! 

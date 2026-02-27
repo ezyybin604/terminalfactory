@@ -23,6 +23,14 @@ class GameData
         }
         return info.Split(",");
     }
+    public string[] getKeys(string catg)
+    {
+        // c# overcomplicating things for no reason :skull:
+        Dictionary<string, string>.KeyCollection why = data[catg].Keys;
+        string[] outa = new string[why.Count];
+        why.CopyTo(outa, 0);
+        return outa;
+    }
     public string autoTilePick(Tile tile, int idx=0, string infokey="blockinfo")
     {
         return getindex(autoTilePick(tile, infokey), idx);

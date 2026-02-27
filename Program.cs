@@ -64,6 +64,7 @@ class TopBar
     public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
     public int menuSelection = 0;
+    public int menuScroll = 0;
     public bool manualTip;
 }
 
@@ -86,11 +87,13 @@ class Game
     // 4 Scenes: game,end,(invintory/inv caus i dont know how to spell),pause,craft
     // todo:
     /*
-        - craft menu
+        - craft process
         - saving (save data serialize)
         - world ticking
         - machine forming
         - item names
+        - make adjustCamera not a disaster
+        - make the menu camera not crash
     */
     string scene = "game";
     Thread? gameThread;
@@ -157,7 +160,8 @@ class Game
             "Save|save",
             "Quit (go away)|quit"
         ]);
-        menus.Add("craft", []); // figure this one out later
+        menus.Add("craft", []);
+        menus.Add("craft_desc", []);
         menus.Add("inv", new string[inventory.Length]); // dynamic menu, based off inventory variable
 
         gameThread = new Thread(runTheGameIg);
@@ -171,12 +175,13 @@ class Game
     void displayMenuLine(int i)
     {
         string[] si = menus[scene][i].Split("|");
+        int gi = i+2-topbar.menuScroll;
         Console.ResetColor();
-        if (i+2 > Console.WindowHeight-1)
+        if (gi > Console.WindowHeight-1)
         {
             return;
         }
-        Console.SetCursorPosition(0, i+2);
+        Console.SetCursorPosition(0, gi);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.ForegroundColor = ConsoleColor.DarkRed;
         if (i == topbar.menuSelection)
@@ -184,7 +189,7 @@ class Game
             factory.invertColors();
             si[0] = "- " + si[0];
         }
-        Console.SetCursorPosition(0, i+2);
+        Console.SetCursorPosition(0, gi);
         Console.Write(si[0]);
     }
     void menuDisplay()
@@ -193,9 +198,9 @@ class Game
         {
             updateInventory();
         }
-        for (int i=0;i<menus[scene].Length;i++)
+        for (int i=0;i<menus[scene].Length-topbar.menuScroll;i++)
         {
-            displayMenuLine(i);
+            displayMenuLine(i+topbar.menuScroll);
         }
     }
     void updateMenu()
@@ -277,7 +282,26 @@ class Game
     }
     void adjustCamera()
     {
+        if (scene != "game")
+        {
+            int prevScroll = topbar.menuScroll;
+            //topbar.menuScroll = -(Math.Clamp(topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3)-topbar.menuSelection);
+            while (!(topbar.menuScroll <= topbar.menuSelection))
+            {
+                topbar.menuScroll--;
+            }
+            while (!(topbar.menuSelection <= topbar.menuScroll+Console.WindowHeight-3))
+            {
+                topbar.menuScroll++;
+            }
+            if (prevScroll != topbar.menuScroll)
+            {
+                menuDisplay();
+            }
+            return;
+        }
         cursor.x = Math.Max(cursor.x, 0);
+        // gotta fix this distaster
         while (!(scroll.x <= cursor.x))
         {
             scroll.x--;
@@ -385,6 +409,40 @@ class Game
                 }
                 factory.setTile(cursor.x, cursor.y, curs);
             }
+        }
+    }
+    // make this more general-purpose later /w any catagory (so i can make different machine recipe groups or whatever)
+    // leave this message for the recipe determiner ^^^^
+    void updateRecipeMenu(string catg="craftingRecipe")
+    {
+        string[] ent = factory.gd.getKeys(catg);
+        List<string> result = new List<string>();
+        // i tried foreach loops for once, but then decided they didnt provide the control i was used to
+        menus["craft"] = new string[ent.Length];
+        menus["craft_desc"] = new string[ent.Length];
+        for (int i=0;i<ent.Length;i++)
+        {
+            string[] ing = factory.gd.getFromKey(catg, ent[i]).Split(",");
+            int numitem = 0;
+            List<string> res = new List<string>();
+            for (int x=0;x<ing.Length;x++)
+            {
+                string cur = ing[x];
+                if (cur[0] == 'x')
+                {
+                    cur = cur[1..];
+                    int curp;
+                    if (int.TryParse(cur, out curp))
+                    {
+                        numitem = curp;
+                    }
+                } else
+                {
+                    res.Add("x" + numitem.ToString() + " " + cur);
+                }
+            }
+            menus["craft"][i] = ent[i];
+            menus["craft_desc"][i] = String.Join(", ", res);
         }
     }
     void useInput(ConsoleKeyInfo key)
@@ -501,6 +559,7 @@ class Game
                         break;
                     case 'a':
                         scene = "craft";
+                        updateRecipeMenu();
                         displayStuff();
                         break;
                     case 's':
@@ -520,11 +579,37 @@ class Game
                         break;
                 }
                 break;
+            case "craft":
+                switch (ch)
+                {
+                    case 'w':
+                        linesToUpdate.Add(topbar.menuSelection);
+                        topbar.menuSelection--;
+                        adjustCamera();
+                        break;
+                    case 's':
+                        linesToUpdate.Add(topbar.menuSelection);
+                        topbar.menuSelection++;
+                        adjustCamera();
+                        break;
+                    case 'x':
+                        scene = "inv";
+                        displayStuff();
+                        break;
+                    case 'z':
+                        // craft process goes here (doit)
+                        break;
+                }
+                break;
         }
         if (scene != "game")
         {
             topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
             linesToUpdate.Add(topbar.menuSelection);
+            if (scene == "craft")
+            {
+                unnessaryFunctionForDecidingManualTips();
+            }
             updateMenu();
         }
     }
@@ -544,7 +629,13 @@ class Game
             }
         } else if (scene == "craft")
         {
-            // do later, craft ingredienterwkjsn
+            topbar.manualTip = false;
+            if (linesToUpdate.Count > 0)
+            {
+                topbar.lastTipChange = time.Ticks;
+                //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
+                topbar.tip = menus["craft_desc"][topbar.menuSelection];
+            }
         } else
         {
             topbar.manualTip = false;
@@ -575,6 +666,7 @@ class Game
             {
                 previousScene = scene;
                 topbar.lastTipChange = DateTime.MinValue.Ticks;
+                topbar.menuScroll = 0;
             }
             if (!previousCamera.Equals(scroll))
             {
