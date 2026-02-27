@@ -116,7 +116,51 @@ b.fr5=darkgreen
 !! 
 
 !itemNames
-# do this one later
+glass=Glass
+maciron=Machine Iron
+frium=Fermium
+refdia=Refined Diamond
+mab1=Machine Block T1
+mab2=Machine Block T2
+mab3=Machine Block T3
+worldintr=World Interactor
+pipe=Pipe
+energycable=Cable
+energyport=Energy Port
+min=Machine Input
+mout=Machine Output
+circ=Circuit
+#mahine
+puri=Purifier
+dist=Distillery
+carb=Carbonator
+lasr=Laser Purifier
+cgen=Coal Generator
+ogen=Oil Generator
+pump=Pump
+miner=Miner
+asmb=Assembler
+niem=Network Interface for Energy Management
+comp=Composter
+stor=Storage Unit
+sltr=Salter
+mixr=Mixer
+#other
+copper=Copper
+iron=Iron
+coal=Coal
+dgscale=Dragon Scale
+stone=Stone
+sand=Sand
+bone=Bone
+carbon=Carbon
+diamond=Diamond
+#fruit
+fr1=Strawberry
+fr2=Abiu
+fr3=Date
+fr4=Dragonfruit
+fr5=Jackfruit
 !! 
 
 # copyright from microsoft ai incoming

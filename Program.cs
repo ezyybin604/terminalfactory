@@ -5,6 +5,16 @@ namespace terminalfactory;
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
 // https://github.com/ezyybin604/terminalfactory/
 
+// todo:
+/*
+    - craft process
+    - saving (save data serialize)
+    - world ticking
+    - machine forming
+    - recipeVerify function
+    - make adjustCamera not a disaster (extra low priority)
+*/
+
 public struct Tile
 {
     public char type;
@@ -85,16 +95,6 @@ class Slot
 class Game
 {
     // 4 Scenes: game,end,(invintory/inv caus i dont know how to spell),pause,craft
-    // todo:
-    /*
-        - craft process
-        - saving (save data serialize)
-        - world ticking
-        - machine forming
-        - item names
-        - make adjustCamera not a disaster
-        - make the menu camera not crash
-    */
     string scene = "game";
     Thread? gameThread;
     Point scroll = new Point();
@@ -349,7 +349,7 @@ class Game
             Slot slot = inventory[i];
             if (slot.num > 0)
             {
-                invlist.Add(String.Format("x{0}, {1}", slot.num, slot.item));
+                invlist.Add(String.Format("x{0}, {1}", slot.num, factory.gd.getFromKey("itemNames", slot.item)));
             }
         }
         menus["inv"] = new string[invlist.Count];
@@ -438,12 +438,31 @@ class Game
                     }
                 } else
                 {
-                    res.Add("x" + numitem.ToString() + " " + cur);
+                    res.Add("x" + numitem.ToString() + " " + factory.gd.getFromKey("itemNames", cur));
                 }
             }
-            menus["craft"][i] = ent[i];
+            menus["craft"][i] = factory.gd.getFromKey("itemNames", ent[i]);
             menus["craft_desc"][i] = String.Join(", ", res);
         }
+    }
+    bool verifyRecipe(Slot[] inv, string catg, string result)
+    {
+        List<Slot> recipe = new List<Slot>();
+        string[] ing = factory.gd.getFromKey(catg, result).Split(",");
+        int numitem = 0;
+        for (int i=0;i<ing.Length;i++)
+        {
+            string cur = ing[i];
+            if (cur[0] == 'x')
+            {
+                cur = cur[1..];
+                int.TryParse(cur, out numitem);
+            } else
+            {
+                // finis thla=sg later mmmmmmmmmmmmmmm
+            }
+        }
+        return false;
     }
     void useInput(ConsoleKeyInfo key)
     {
@@ -585,12 +604,10 @@ class Game
                     case 'w':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
-                        adjustCamera();
                         break;
                     case 's':
                         linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
-                        adjustCamera();
                         break;
                     case 'x':
                         scene = "inv";
@@ -610,6 +627,7 @@ class Game
             {
                 unnessaryFunctionForDecidingManualTips();
             }
+            adjustCamera();
             updateMenu();
         }
     }
