@@ -11,8 +11,8 @@ namespace terminalfactory;
     - saving (save data serialize)
     - world ticking
     - machine forming
-    - recipeVerify function
-    - make adjustCamera not a disaster (extra low priority)
+    - make a function that deletes recipe materials from inventory
+    - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
 public struct Tile
@@ -90,6 +90,12 @@ class Slot
         slot.num = num;
         return slot;
     }
+    public Slot(string ite, int nu)
+    {
+        item = ite;
+        num = nu;
+    }
+    public Slot() {}
 }
 
 class Game
@@ -160,6 +166,7 @@ class Game
             "Save|save",
             "Quit (go away)|quit"
         ]);
+        menus.Add("craft_raw", []);
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
         menus.Add("inv", new string[inventory.Length]); // dynamic menu, based off inventory variable
@@ -420,6 +427,7 @@ class Game
         // i tried foreach loops for once, but then decided they didnt provide the control i was used to
         menus["craft"] = new string[ent.Length];
         menus["craft_desc"] = new string[ent.Length];
+        menus["craft_raw"] = new string[ent.Length];
         for (int i=0;i<ent.Length;i++)
         {
             string[] ing = factory.gd.getFromKey(catg, ent[i]).Split(",");
@@ -441,6 +449,7 @@ class Game
                     res.Add("x" + numitem.ToString() + " " + factory.gd.getFromKey("itemNames", cur));
                 }
             }
+            menus["craft_raw"][i] = ent[i];
             menus["craft"][i] = factory.gd.getFromKey("itemNames", ent[i]);
             menus["craft_desc"][i] = String.Join(", ", res);
         }
@@ -448,6 +457,7 @@ class Game
     bool verifyRecipe(Slot[] inv, string catg, string result)
     {
         List<Slot> recipe = new List<Slot>();
+        Dictionary<string, int> itemNumbers = new Dictionary<string, int>();
         string[] ing = factory.gd.getFromKey(catg, result).Split(",");
         int numitem = 0;
         for (int i=0;i<ing.Length;i++)
@@ -459,10 +469,25 @@ class Game
                 int.TryParse(cur, out numitem);
             } else
             {
-                // finis thla=sg later mmmmmmmmmmmmmmm
+                recipe.Add(new Slot(cur, numitem));
+                itemNumbers.Add(cur, 0);
             }
         }
-        return false;
+        for (int i=0;i<inv.Length;i++)
+        {
+            if (itemNumbers.Keys.Contains(inv[i].item))
+            {
+                itemNumbers[inv[i].item] += inv[i].num;
+            }
+        }
+        for (int i=0;i<recipe.Count;i++)
+        {
+            if (recipe[i].num > itemNumbers[recipe[i].item])
+            {
+                return false;
+            }
+        }
+        return true;
     }
     void useInput(ConsoleKeyInfo key)
     {
@@ -653,6 +678,10 @@ class Game
                 topbar.lastTipChange = time.Ticks;
                 //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
                 topbar.tip = menus["craft_desc"][topbar.menuSelection];
+                if (verifyRecipe(inventory, "craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
+                {
+                    topbar.tip += " RIGHT";
+                }
             }
         } else
         {
