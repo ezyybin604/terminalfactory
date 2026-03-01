@@ -360,6 +360,209 @@ class Factory // factory data / big verbose stuff related to factory
             }
         }
     }
+    public void breakTile(Point cursor, Inventory inventory)
+    {
+        int i=0;
+        Tile curs = giveMeTheTile(cursor.x, cursor.y);
+        string info = gd.autoTilePick(curs, 1, "blockinfo");
+        if (info != "")
+        {
+            while (!(inventory.data[i].item == "" || inventory.data[i].item == info)
+                && inventory.data[i].num < Inventory.MaxPerSlot+1
+                && i < Inventory.Length)
+            {
+                i++;
+            }
+            if (i < Inventory.Length)
+            {
+                bool giveitem = true;
+                if (curs.type == 'i')
+                {
+                    // idk dont do anything
+                } else if (curs.type == 'f')
+                {
+                    curs.prog--;
+                    if (curs.prog < 1)
+                    {
+                        curs.subtype = "";
+                        curs.type = '`';
+                    }
+                } else if (curs.type == 'b')
+                {
+                    if (curs.prog < 1)
+                    {
+                        giveitem = false;
+                    } else
+                    {
+                        curs.prog--;
+                    }
+                } else
+                {
+                    curs.subtype = "";
+                    curs.type = '`';
+                }
+                if (giveitem)
+                {
+                    if (inventory.data[i].item == "")
+                    {
+                        inventory.data[i].item = info;
+                    }
+                    inventory.data[i].num++;
+                }
+                setTile(cursor.x, cursor.y, curs);
+            }
+        }
+    }
     // add world storage, uhhh figure that out later
     // add world tick function to tick the world
+}
+
+class Inventory
+{
+    public GameData gd = new GameData();
+    public const int Length = 150;
+    public const int MaxPerSlot = 999;
+    public Slot[] data = new Slot[Length];
+    List<string> invlist = new List<string>();
+    public int fix()
+    {
+        Slot[] invcopy = data;
+        int x=0;
+        for (int i=0;i<data.Length;i++)
+        {
+            if (invcopy[i].num > 0)
+            {
+                if (x != i) { data[x] = invcopy[i].Copy(); }
+                if (i > x)
+                {
+                    data[i].num = 0;
+                }
+                x++;
+            }
+        }
+        return x; // returns "length" of inventory
+    }
+    public string[] getMenu()
+    {
+        invlist.Clear();
+        for (int i=0;i<data.Length;i++)
+        {
+            Slot slot = data[i];
+            if (slot.num > 0)
+            {
+                invlist.Add(String.Format("x{0}, {1}", slot.num, gd.getFromKey("itemNames", slot.item)));
+            }
+        }
+        string[] menuout = new string[invlist.Count];
+        for (int i=0;i<invlist.Count;i++)
+        {
+            menuout[i] = invlist[i];
+        }
+        return menuout;
+    }
+    public Slot[] getRecipe(string catg, string result)
+    {
+        List<Slot> recipe = new List<Slot>();
+        string[] ing = gd.getFromKey(catg, result).Split(",");
+        int numitem = 0;
+        for (int i=0;i<ing.Length;i++)
+        {
+            string cur = ing[i];
+            if (cur[0] == 'x')
+            {
+                cur = cur[1..];
+                int.TryParse(cur, out numitem);
+            } else
+            {
+                recipe.Add(new Slot(cur, numitem));
+            }
+        }
+        Slot[] copied = new Slot[recipe.Count];
+        recipe.CopyTo(copied);
+        return copied;
+    }
+    public bool verifyRecipe(string catg, string result)
+    {
+        return verifyRecipe(getRecipe(catg, result));
+    }
+    public bool verifyRecipe(Slot[] recipe)
+    {
+        Dictionary<string, int> itemNumbers = new Dictionary<string, int>();
+        foreach (Slot slot in recipe) // slot slot slot slot slot
+        {
+            itemNumbers.Add(slot.item, 0);
+        }
+        foreach (Slot slot in data)
+        {
+            if (itemNumbers.Keys.Contains(slot.item))
+            {
+                itemNumbers[slot.item] += slot.num;
+            }
+        }
+        foreach (Slot slot in recipe)
+        {
+            if (slot.num > itemNumbers[slot.item])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    public void removeItems(Slot[] items)
+    {
+        Dictionary<string, int> itm = new Dictionary<string, int>();
+        for (int i=0;i<items.Length;i++)
+        {
+            itm.Add(items[i].item, i);
+        }
+        foreach (Slot slot in data)
+        {
+            string item = slot.item;
+            if (itm.Keys.Contains(item))
+            {
+                if (slot.num >= itm[slot.item])
+                {
+                    int ridNumItem = Math.Min(slot.num, itm[slot.item]);
+                    slot.num -= ridNumItem; // doing this w/o the help of i/for is uncomfterbole
+                    itm[slot.item] -= ridNumItem;
+                }
+            }
+        }
+    }
+    int getFreeSlot(Slot item)
+    {
+        int i=0;
+        while (!(data[i].item == "" || data[i].item == item.item)
+            && data[i].num < MaxPerSlot
+            && i < Inventory.Length)
+        {
+            i++;
+        }
+        return i;
+    }
+    public bool addItem(Slot item)
+    {
+        int owedItem = item.num;
+        while (owedItem > 0)
+        {
+            int slot = getFreeSlot(item);
+            if (slot < Inventory.Length)
+            { // in range of array
+                int ridNumItem = Math.Min(MaxPerSlot-data[slot].num, owedItem);
+                owedItem -= ridNumItem;
+                data[slot].num += ridNumItem;
+                if (data[slot].item == "")
+                {
+                    data[slot].item = item.item;
+                }
+            } else if (owedItem == item.num)
+            {
+                return false;
+            } else
+            {
+                return true; // sry if this happens your items get voided
+            }
+        }
+        return true;
+    }
 }

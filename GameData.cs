@@ -43,6 +43,10 @@ class GameData
         }
         return "";
     }
+    public GameData()
+    {
+        state = "done";
+    }
     public GameData(string filename)
     {
         if (File.Exists(filename))

@@ -7,11 +7,11 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - craft process
+    - make updateMenu not completely bugged (or deal with whatever is happening in craft menu)
+    - items arent getting deleted from crafting
     - saving (save data serialize)
     - world ticking
     - machine forming
-    - make a function that deletes recipe materials from inventory
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
@@ -95,6 +95,11 @@ class Slot
         item = ite;
         num = nu;
     }
+    public Slot(string ite)
+    {
+        item = ite;
+        num = 1;
+    }
     public Slot() {}
 }
 
@@ -110,11 +115,10 @@ class Game
     DateTime time = DateTime.Now;
     TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
-    Slot[] inventory = new Slot[150];
+    Inventory inventory = new Inventory();
     HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     string currentTipText = "";
     int? usingItem = null;
-    List<string> invlist = new List<string>();
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
@@ -169,15 +173,16 @@ class Game
         menus.Add("craft_raw", []);
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
-        menus.Add("inv", new string[inventory.Length]); // dynamic menu, based off inventory variable
+        menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
 
         gameThread = new Thread(runTheGameIg);
         gameThread.Name = "Game Logic";
 
-        for (int i=0;i<inventory.Length;i++)
+        for (int i=0;i<Inventory.Length;i++)
         {
-            inventory[i] = new Slot();
+            inventory.data[i] = new Slot();
         }
+        inventory.gd = factory.gd;
     }
     void displayMenuLine(int i)
     {
@@ -197,13 +202,14 @@ class Game
             si[0] = "- " + si[0];
         }
         Console.SetCursorPosition(0, gi);
-        Console.Write(si[0]);
+        Console.WriteLine(si[0]);
     }
     void menuDisplay()
     {
         if (scene == "inv")
         {
-            updateInventory();
+            inventory.fix();
+            menus["inv"] = inventory.getMenu();
         }
         for (int i=0;i<menus[scene].Length-topbar.menuScroll;i++)
         {
@@ -253,21 +259,48 @@ class Game
             Console.SetCursorPosition(0, 0);
             Console.WriteLine(new string(' ', Console.WindowWidth));
             Console.SetCursorPosition(0, 0);
-            Console.Write(tipText);
+            string tipTextCopy = tipText;
+            char modifer = '\0';
+            if (tipTextCopy[0] == '/')
+            {
+                modifer = tipTextCopy[1];
+                tipTextCopy = tipTextCopy.Substring(2);
+            }
+            switch (modifer)
+            {
+                case 'd': // deny color
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                default:
+                    break;
+            }
+            if (tipTextCopy.Length > Console.WindowWidth)
+            {
+                Console.Write("TLDW");
+            } else
+            {
+                Console.Write(tipTextCopy);
+            }
             currentTipText = tipText;
         }
+    }
+    void lookThisOneIsJustToDrawTheBigLine()
+    {
+        Console.ResetColor();
+        Console.SetCursorPosition(0, 1);
+        Console.WriteLine(new string('~', Console.WindowWidth));
     }
     void displayStuff()
     {
         linesToUpdate.Clear();
-        Console.Clear();
         Console.ResetColor();
+        Console.Clear();
         updateBar(true);
-        Console.SetCursorPosition(0, 1);
-        Console.WriteLine(new string('~', Console.WindowWidth));
+        lookThisOneIsJustToDrawTheBigLine();
         if (scene != "game")
         {
             menuDisplay();
+            lookThisOneIsJustToDrawTheBigLine();
             return;
         }
         for (int i=0;i<Console.WindowHeight-2;i++)
@@ -329,95 +362,6 @@ class Game
 
         generateNeeded();
     }
-    int fixInventory()
-    {
-        Slot[] invcopy = inventory;
-        int x=0;
-        for (int i=0;i<inventory.Length;i++)
-        {
-            if (invcopy[i].num > 0)
-            {
-                if (x != i) { inventory[x] = invcopy[i].Copy(); }
-                if (i > x)
-                {
-                    inventory[i].num = 0;
-                }
-                x++;
-            }
-        }
-        updateInventory();
-        return x;
-    }
-    void updateInventory()
-    {
-        invlist.Clear();
-        for (int i=0;i<inventory.Length;i++)
-        {
-            Slot slot = inventory[i];
-            if (slot.num > 0)
-            {
-                invlist.Add(String.Format("x{0}, {1}", slot.num, factory.gd.getFromKey("itemNames", slot.item)));
-            }
-        }
-        menus["inv"] = new string[invlist.Count];
-        for (int i=0;i<invlist.Count;i++)
-        {
-            menus["inv"][i] = invlist[i];
-        }
-    }
-    void breakTile()
-    { // ill be real i just wanted the useinput function to not look as giant
-        int i=0;
-        Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
-        string info = factory.gd.autoTilePick(curs, 1, "blockinfo");
-        if (info != "")
-        {
-            while (!(inventory[i].item == "" || inventory[i].item == info)
-                && inventory[i].num < 1000
-                && i < inventory.Length)
-            {
-                i++;
-            }
-            if (i < inventory.Length)
-            {
-                bool giveitem = true;
-                if (curs.type == 'i')
-                {
-                    // idk dont do anything
-                } else if (curs.type == 'f')
-                {
-                    curs.prog--;
-                    if (curs.prog < 1)
-                    {
-                        curs.subtype = "";
-                        curs.type = '`';
-                    }
-                } else if (curs.type == 'b')
-                {
-                    if (curs.prog < 1)
-                    {
-                        giveitem = false;
-                    } else
-                    {
-                        curs.prog--;
-                    }
-                } else
-                {
-                    curs.subtype = "";
-                    curs.type = '`';
-                }
-                if (giveitem)
-                {
-                    if (inventory[i].item == "")
-                    {
-                        inventory[i].item = info;
-                    }
-                    inventory[i].num++;
-                }
-                factory.setTile(cursor.x, cursor.y, curs);
-            }
-        }
-    }
     // make this more general-purpose later /w any catagory (so i can make different machine recipe groups or whatever)
     // leave this message for the recipe determiner ^^^^
     void updateRecipeMenu(string catg="craftingRecipe")
@@ -454,43 +398,9 @@ class Game
             menus["craft_desc"][i] = String.Join(", ", res);
         }
     }
-    bool verifyRecipe(Slot[] inv, string catg, string result)
-    {
-        List<Slot> recipe = new List<Slot>();
-        Dictionary<string, int> itemNumbers = new Dictionary<string, int>();
-        string[] ing = factory.gd.getFromKey(catg, result).Split(",");
-        int numitem = 0;
-        for (int i=0;i<ing.Length;i++)
-        {
-            string cur = ing[i];
-            if (cur[0] == 'x')
-            {
-                cur = cur[1..];
-                int.TryParse(cur, out numitem);
-            } else
-            {
-                recipe.Add(new Slot(cur, numitem));
-                itemNumbers.Add(cur, 0);
-            }
-        }
-        for (int i=0;i<inv.Length;i++)
-        {
-            if (itemNumbers.Keys.Contains(inv[i].item))
-            {
-                itemNumbers[inv[i].item] += inv[i].num;
-            }
-        }
-        for (int i=0;i<recipe.Count;i++)
-        {
-            if (recipe[i].num > itemNumbers[recipe[i].item])
-            {
-                return false;
-            }
-        }
-        return true;
-    }
     void useInput(ConsoleKeyInfo key)
     {
+        bool forceDisplay = false; // (i have no idea what im doing send help)
         char ch = key.KeyChar;
         if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
         {
@@ -526,29 +436,30 @@ class Game
                     case 'p':
                         scene = "pause";
                         topbar.menuSelection = 0;
-                        displayStuff();
+                        forceDisplay = true;
                         break;
                     case 'i':
                         topbar.menuSelection = 0;
-                        fixInventory();
-                        updateInventory();
-                        if (inventory[0].num > 0)
+                        inventory.fix();
+                        menus["inv"] = inventory.getMenu();
+                        if (inventory.data[0].num > 0)
                         {
                             scene = "inv";
-                            displayStuff();
+                            forceDisplay = true;
                         }
                         break;
                     case 'k':
-                        breakTile();
+                        factory.breakTile(cursor, inventory);
                         linesToUpdate.Add(cursor.y);
                         break;
                     case 'o':
                         // place
                         if (usingItem != null)
                         {
-                            int invlen = fixInventory();
+                            int invlen = inventory.fix();
+                            menus["inv"] = inventory.getMenu();
                             Tile tile = new Tile();
-                            Slot slot = inventory[(int)usingItem];
+                            Slot slot = inventory.data[(int)usingItem];
                             string info = factory.gd.getFromKey("itemToBlock", slot.item);
                             if (slot.num > 0 && info != "")
                             {
@@ -558,7 +469,7 @@ class Game
                                 {
                                     tile.subtype = infol[1];
                                 }
-                                inventory[(int)usingItem].num--;
+                                inventory.data[(int)usingItem].num--;
                                 factory.setTile(cursor.x, cursor.y, tile);
                                 linesToUpdate.Add(cursor.y);
                             }
@@ -599,27 +510,29 @@ class Game
                     case 'w':
                         usingItem = topbar.menuSelection;
                         scene = "game";
-                        displayStuff();
+                        forceDisplay = true;
                         break;
                     case 'a':
                         scene = "craft";
+                        topbar.menuSelection = 0;
                         updateRecipeMenu();
-                        displayStuff();
+                        forceDisplay = true;
                         break;
                     case 's':
                         scene = "game";
-                        displayStuff();
+                        forceDisplay = true;
                         break;
                     case 'h':
-                        inventory[topbar.menuSelection].num = 0;
-                        fixInventory();
+                        inventory.data[topbar.menuSelection].num = 0;
+                        inventory.fix();
+                        menus["inv"] = inventory.getMenu();
                         usingItem = null;
                         topbar.menuSelection = Math.Min(topbar.menuSelection, menus["inv"].Length-1);
-                        if (inventory[0].num < 1)
+                        if (inventory.data[0].num < 1)
                         {
                             scene = "game";
                         }
-                        displayStuff();
+                        forceDisplay = true;
                         break;
                 }
                 break;
@@ -636,10 +549,23 @@ class Game
                         break;
                     case 'x':
                         scene = "inv";
-                        displayStuff();
+                        topbar.menuSelection = 0;
+                        forceDisplay = true;
                         break;
                     case 'z':
                         // craft process goes here (doit)
+                        string result = menus["craft_raw"][topbar.menuSelection];
+                        Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
+                        if (inventory.verifyRecipe(recipe))
+                        {
+                            if (inventory.addItem(new Slot(result)))
+                            {
+                                inventory.removeItems(recipe);
+                            }
+                        } else
+                        {
+                            topbar.tip = "/dNo. You can't do it. stop";
+                        }
                         break;
                 }
                 break;
@@ -654,6 +580,12 @@ class Game
             }
             adjustCamera();
             updateMenu();
+        }
+        if (forceDisplay)
+        {
+            topbar.menuScroll = 0;
+            topbar.menuSelection = 0;
+            displayStuff();
         }
     }
     void unnessaryFunctionForDecidingManualTips()
@@ -678,9 +610,9 @@ class Game
                 topbar.lastTipChange = time.Ticks;
                 //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
                 topbar.tip = menus["craft_desc"][topbar.menuSelection];
-                if (verifyRecipe(inventory, "craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
+                if (!inventory.verifyRecipe("craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
                 {
-                    topbar.tip += " RIGHT";
+                    topbar.tip = "/d" + topbar.tip;
                 }
             }
         } else
