@@ -7,8 +7,9 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - make updateMenu not completely bugged (or deal with whatever is happening in craft menu)
-    - items arent getting deleted from crafting
+    - pause broken???????????
+    - inventory slot max is not happening
+    - impliment the slot selector into breakTile
     - saving (save data serialize)
     - world ticking
     - machine forming
@@ -189,7 +190,7 @@ class Game
         string[] si = menus[scene][i].Split("|");
         int gi = i+2-topbar.menuScroll;
         Console.ResetColor();
-        if (gi > Console.WindowHeight-1)
+        if (gi > Console.WindowHeight-1 || gi < 2)
         {
             return;
         }
@@ -202,7 +203,7 @@ class Game
             si[0] = "- " + si[0];
         }
         Console.SetCursorPosition(0, gi);
-        Console.WriteLine(si[0]);
+        Console.Write(si[0]);
     }
     void menuDisplay()
     {
@@ -210,8 +211,9 @@ class Game
         {
             inventory.fix();
             menus["inv"] = inventory.getMenu();
-        }
-        for (int i=0;i<menus[scene].Length-topbar.menuScroll;i++)
+        } // prev for loop menus[scene].Length-topbar.menuScroll
+        int menuLength = Math.Min(Console.WindowHeight-2, menus[scene].Length);
+        for (int i=0;i<menuLength;i++)
         {
             displayMenuLine(i+topbar.menuScroll);
         }
@@ -549,7 +551,6 @@ class Game
                         break;
                     case 'x':
                         scene = "inv";
-                        topbar.menuSelection = 0;
                         forceDisplay = true;
                         break;
                     case 'z':
@@ -608,12 +609,12 @@ class Game
             if (linesToUpdate.Count > 0)
             {
                 topbar.lastTipChange = time.Ticks;
-                //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
                 topbar.tip = menus["craft_desc"][topbar.menuSelection];
                 if (!inventory.verifyRecipe("craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
                 {
                     topbar.tip = "/d" + topbar.tip;
                 }
+                //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
             }
         } else
         {
@@ -669,13 +670,13 @@ class Game
                 adjustCamera();
                 displayStuff();
             }
+            updateScreen();
+            updateBar();
             while (readkeylog.Count > 0)
             {
                 useInput(readkeylog[0]);
                 readkeylog.RemoveAt(0);
             }
-            updateScreen();
-            updateBar();
             Thread.Sleep(50);
         }
         bye();

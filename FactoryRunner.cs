@@ -368,7 +368,7 @@ class Factory // factory data / big verbose stuff related to factory
         if (info != "")
         {
             while (!(inventory.data[i].item == "" || inventory.data[i].item == info)
-                && inventory.data[i].num < Inventory.MaxPerSlot+1
+                && inventory.data[i].num < Inventory.MaxPerSlot
                 && i < Inventory.Length)
             {
                 i++;
@@ -513,7 +513,7 @@ class Inventory
         Dictionary<string, int> itm = new Dictionary<string, int>();
         for (int i=0;i<items.Length;i++)
         {
-            itm.Add(items[i].item, i);
+            itm.Add(items[i].item, items[i].num);
         }
         foreach (Slot slot in data)
         {
