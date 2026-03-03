@@ -1,5 +1,6 @@
 
 using System;
+using System.Numerics;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -10,7 +11,6 @@ namespace terminalfactory;
     - saving (save data serialize)
     - world ticking
     -> machine forming
-    - make machine points copies of cursor instead
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
@@ -19,7 +19,7 @@ public struct Tile
     public char type;
     public string subtype; ///machine type/resource in tile/fruit type
     public int prog; // Amount of tile in tile/machine progress/stored amount/energy amount
-    public string item; // machine output/storage type
+    //public string item; // machine output/storage type
 }
 public struct Point
 {
@@ -35,34 +35,15 @@ public struct Point
         x = 0;
         y = 0;
     }
-}
-public struct Chunk
-{
-    public int x;
-    public int y;
-    // [x][y]
-    public Tile[][] data;
-    public string customToString()
-    { // this is just for debug :skull: ("used" right after resetcolor in displayLine)
-        string result = "[";
-        for (int i=0;i<data.Length;i++)
-        {
-            result += "[";
-            for (int z=0;z<data[i].Length;z++) {
-                result += String.Format("\"{0}\"", data[i][z].type.ToString());
-                if (z+1 < data[i].Length)
-                {
-                    result += ",";
-                }
-            }
-            result += "]";
-            if (i+1 < data.Length)
-            {
-                result += ",\n";
-            }
-        }
-        result += "]";
-        return result;
+    public Point(Point point)
+    {
+        x = point.x;
+        y = point.y;
+    }
+    public void transform(Point point)
+    {
+        x += point.x;
+        y += point.y;
     }
 }
 
@@ -563,7 +544,7 @@ class Game
             linesToUpdate.Add(topbar.menuSelection);
             if (scene == "craft")
             {
-                unnessaryFunctionForDecidingManualTips();
+                unnessaryFunctionForDecidingTips();
             }
             adjustCamera();
             updateMenu();
@@ -575,11 +556,11 @@ class Game
             displayStuff();
         }
     }
-    void unnessaryFunctionForDecidingManualTips()
+    void unnessaryFunctionForDecidingTips()
     {
         if (scene == "game")
         {
-            Tile curs = factory.giveMeTheTile(cursor.x, cursor.y);
+            Tile curs = factory.giveMeTheTile(cursor);
             string info = factory.gd.autoTilePick(curs, 0);
             if (info == "")
             {
@@ -610,6 +591,12 @@ class Game
         {
             topbar.lastTipChange = DateTime.MinValue.Ticks;
         }
+        if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange && !topbar.manualTip)
+        {
+            int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
+            topbar.tip = topbar.tips[scene][itip];
+            topbar.lastTipChange = time.Ticks;
+        }
     }
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
@@ -626,6 +613,7 @@ class Game
         Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
+        int timer = 0;
         while (scene != "end")
         {
             if (previousScene != scene)
@@ -641,13 +629,7 @@ class Game
                 previousCamera = scroll;
             }
             time = DateTime.Now;
-            unnessaryFunctionForDecidingManualTips();
-            if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange && !topbar.manualTip)
-            {
-                int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
-                topbar.tip = topbar.tips[scene][itip];
-                topbar.lastTipChange = time.Ticks;
-            }
+            unnessaryFunctionForDecidingTips();
             windowSize = new Point(Console.WindowWidth, Console.WindowHeight);
             if (!windowSize.Equals(windowSizePrevious))
             {
@@ -656,13 +638,26 @@ class Game
                 adjustCamera();
                 displayStuff();
             }
-            updateScreen();
+            if (scene != "pause")
+            {
+                if (timer%10 == 0)
+                {
+                    factory.updateMachines();
+                }
+                // tick function goes here
+            }
+            if (scene == "game")
+            {
+                updateScreen();
+            }
             updateBar();
             while (readkeylog.Count > 0)
             {
                 useInput(readkeylog[0]);
                 readkeylog.RemoveAt(0);
             }
+            timer++;
+            timer = Math.Max(-1, timer);
             Thread.Sleep(50);
         }
         bye();
@@ -679,7 +674,6 @@ class Game
     {
         Console.Clear();
         Game game = new Game();
-        game.factory = new Factory();
         if (!File.Exists(game.factory.savefile))
         {
             Console.WriteLine("No savefile found.");
@@ -705,7 +699,14 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
                 Console.ReadLine();
             }
-            Console.Title = "terminalfactory";
+            try
+            {
+                Console.Title = "terminalfactory";
+            }
+            catch (PlatformNotSupportedException)
+            {
+                Console.Write("no");
+            }
             while (game.factory.gd.state == "prep")
             {
                 Console.Clear();
@@ -722,7 +723,8 @@ Nobody follows, so to keep secrecy while you travel.
                 }
             } else
             {
-                Console.WriteLine("An error happened with GameData: " + game.factory.gd.state);
+                Console.WriteLine("\nAn error happened with GameData: " + game.factory.gd.state);
+                Console.ReadLine();
             }
             game.bye();
         }

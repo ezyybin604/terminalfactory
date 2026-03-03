@@ -1,4 +1,6 @@
 
+using System.ComponentModel;
+
 namespace terminalfactory;
 
 /*
@@ -20,9 +22,16 @@ h: handle this pipe, make it face towards any adjacent things
 o: building stone
 */
 
+// Chunk: Tile[x][y] data;
+
 class Machine
-{ // finish later
-    //Point 
+{
+    public bool isFormed = false;
+    public Point[] inputs = new Point[4];
+    public Point[] outputs = new Point[4];
+    public Point? worldInteractor = null;
+    public Point? energyPort = null;
+    public bool runningRecipe = false;
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -35,8 +44,18 @@ class Factory // factory data / big verbose stuff related to factory
     public const int chunkSize = 16;
     public Inventory inventory = new Inventory();
     // [x][y]
-    public Dictionary<int, Dictionary<int, Chunk>> world = new Dictionary<int, Dictionary<int, Chunk>>();
-    List<Point> machines = new List<Point>();
+    public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
+    Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
+    Point[] machineArea = [
+        new Point(1, -1),
+        new Point(1, 1),
+        new Point(-1, 1),
+        new Point(-1, -1),
+        new Point(-1, 0),
+        new Point(1, 0),
+        new Point(0, -1),
+        new Point(0, 1)
+    ];
 
     public double generateRange(double min, double max)
     {
@@ -74,21 +93,18 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public void generateChunk(int x, int y)
     {
-        Chunk chunk = new Chunk();
-        chunk.x = x;
-        chunk.y = y;
+        Tile[][] chunk = new Tile[chunkSize][];
         // Generate chunk data herre
-        chunk.data = new Tile[chunkSize][];
         for (int i=0;i<chunkSize;i++)
         {
-            chunk.data[i] = new Tile[chunkSize];
+            chunk[i] = new Tile[chunkSize];
             for (int o=0;o<chunkSize;o++)
             {
-                chunk.data[i][o] = new Tile();
-                chunk.data[i][o].type = '`';
+                chunk[i][o] = new Tile();
+                chunk[i][o].type = '`';
                 if (x == 0 && i == 0)
                 {
-                    chunk.data[i][o].type = ']';
+                    chunk[i][o].type = ']';
                 }
             }
         }
@@ -158,9 +174,9 @@ class Factory // factory data / big verbose stuff related to factory
                 Point pointGo = new Point(shape[i].x + fx, shape[i].y + fy);
                 if (pointGo.x < chunkSize && pointGo.y < chunkSize)
                 {
-                    if (chunk.data[pointGo.x][pointGo.y].type != ']')
+                    if (chunk[pointGo.x][pointGo.y].type != ']')
                     {
-                        chunk.data[pointGo.x][pointGo.y] = copy;
+                        chunk[pointGo.x][pointGo.y] = copy;
                     }
                 }
             }
@@ -168,7 +184,7 @@ class Factory // factory data / big verbose stuff related to factory
 
         if (!world.Keys.Contains(x))
         {
-            world.Add(x, new Dictionary<int, Chunk>());
+            world.Add(x, new Dictionary<int, Tile[][]>());
         }
         if (!world[x].Keys.Contains(y))
         {
@@ -206,7 +222,11 @@ class Factory // factory data / big verbose stuff related to factory
             index.y+=chunkSize;
             index.y%=chunkSize;
         }
-        return world[chunk.x][chunk.y].data[index.x][index.y];
+        return world[chunk.x][chunk.y][index.x][index.y];
+    }
+    public Tile giveMeTheTile(Point point)
+    {
+        return giveMeTheTile(point.x, point.y);
     }
     public void setTile(int x, int y, Tile tl)
     {
@@ -217,7 +237,7 @@ class Factory // factory data / big verbose stuff related to factory
             index.y+=chunkSize;
             index.y%=chunkSize;
         }
-        world[chunk.x][chunk.y].data[index.x][index.y] = tl;
+        world[chunk.x][chunk.y][index.x][index.y] = tl;
     }
     public void displayLine(int y, Point cursor, Point scroll)
     {
@@ -343,7 +363,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         lineResult[idx] = "/end";
         Console.ResetColor();
-        //Console.WriteLine(String.Join(",", lineResult));
+        //Console.WriteLine(String.Join(",", lineResult)); // displayLine:debug
         Console.ForegroundColor = ConsoleColor.Green;
         for (int o=0;lineResult[o] != "/end";o++)
         {
@@ -369,8 +389,7 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public bool breakTile(Point cursor)
     {
-        int i=0;
-        Tile curs = giveMeTheTile(cursor.x, cursor.y);
+        Tile curs = giveMeTheTile(cursor);
         string info = gd.autoTilePick(curs, 1, "blockinfo");
         if (info != "")
         {
@@ -405,10 +424,6 @@ class Factory // factory data / big verbose stuff related to factory
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor.x, cursor.y, curs);
-                    if (curs.type == 'M')
-                    {
-                        machines.Remove(cursor);
-                    }
                     return true;
                 }
             }
@@ -417,10 +432,9 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public bool placeTile(int? usingItem, Point cursor)
     {
-        if (usingItem != null)
+        if (usingItem != null && cursor.x > 1)
         {
             int invlen = inventory.fix();
-            //menus["inv"] = inventory.getMenu();
             Tile tile = new Tile();
             Slot slot = inventory.data[(int)usingItem];
             string info = gd.getFromKey("itemToBlock", slot.item);
@@ -436,12 +450,49 @@ class Factory // factory data / big verbose stuff related to factory
                 setTile(cursor.x, cursor.y, tile);
                 if (tile.type == 'M')
                 {
-                    machines.Add(cursor);
+                    machines.Add(cursor, new Machine());
                 }
                 return true;
             }
         }
         return false;
+    }
+    public void updateMachines()
+    {
+        Dictionary<Point, Machine>.KeyCollection why = machines.Keys;
+        Point[] macp = new Point[why.Count];
+        why.CopyTo(macp, 0);
+        for (int i=0;i<macp.Length;i++)
+        {
+            updateMachine(macp[i]);
+        }
+    }
+    void updateMachine(Point mac)
+    {
+        /*
+            Stuff to 𝓱𝓪𝓷𝓭𝓵𝓮
+            bool isFormed = false;
+            Point[] inputs = new Point[4];
+            Point[] outputs = new Point[4];
+            Point? worldInteractor = null;
+            Point? energyPort = null;
+            bool runningRecipe = false
+        */
+        Machine mach = machines[mac];
+        Tile core = giveMeTheTile(mac);
+        if (core.type != 'M')
+        {
+            mach.isFormed = false;
+            machines.Remove(mac);
+            return;
+        }
+        mach.isFormed = true;
+        for (int i=0;i<machineArea.Length;i++)
+        {
+            Point tl = new Point(mac);
+            tl.transform(machineArea[i]);
+            // finish this part later <<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS ONE
+        }
     }
     // add world tick function to tick the world
 }

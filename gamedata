@@ -168,12 +168,12 @@ fr5=Jackfruit
 # materials
 glass=x2,sand
 maciron=x1,glass,x4,iron
-frium=x4,dgscale,x2,maciron
+frium=x1,dgscale,x2,maciron
 refdia=x64,diamond
 # machines
 mab1=x64,iron
 mab2=x48,maciron
-mab3=x24,frium
+mab3=x12,frium
 worldintr=x8,circ,x30,sand
 pipe=x4,iron
 energycable=x4,copper
@@ -200,4 +200,21 @@ lasr=x8192,circ,x128,glass
 
 !tags
 machineblock=@+-m*
+!! 
+
+!energyConsume
+puri=
+dist=
+carb=
+lasr=
+cgen=
+ogen=
+pump=
+mine=
+asmb=
+niem=
+comp=
+stor=
+sltr=
+mixr=
 !! 
