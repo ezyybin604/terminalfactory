@@ -197,3 +197,7 @@ dist=x512,circ
 carb=x2048,circ,carbon
 lasr=x8192,circ,x128,glass
 !! 
+
+!tags
+machineblock=@+-m*
+!! 

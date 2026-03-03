@@ -9,7 +9,8 @@ namespace terminalfactory;
 /*
     - saving (save data serialize)
     - world ticking
-    - machine forming
+    -> machine forming
+    - make machine points copies of cursor instead
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
@@ -67,7 +68,7 @@ public struct Chunk
 
 class TopBar
 {
-    public bool showTips = true;
+    //public bool showTips = true;
     public string tip = "default tip";
     public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
@@ -182,6 +183,7 @@ class Game
             inventory.data[i] = new Slot();
         }
         inventory.gd = factory.gd;
+        factory.inventory = inventory;
     }
     void displayMenuLine(int i)
     {
@@ -449,30 +451,16 @@ class Game
                         }
                         break;
                     case 'k':
-                        factory.breakTile(cursor, inventory);
-                        linesToUpdate.Add(cursor.y);
+                        if (factory.breakTile(cursor))
+                        {
+                            linesToUpdate.Add(cursor.y);
+                        }
                         break;
                     case 'o':
                         // place
-                        if (usingItem != null)
+                        if (factory.placeTile(usingItem, cursor))
                         {
-                            int invlen = inventory.fix();
-                            menus["inv"] = inventory.getMenu();
-                            Tile tile = new Tile();
-                            Slot slot = inventory.data[(int)usingItem];
-                            string info = factory.gd.getFromKey("itemToBlock", slot.item);
-                            if (slot.num > 0 && info != "")
-                            {
-                                string[] infol = info.Split(".");
-                                tile.type = infol[0][0];
-                                if (infol.Length == 2)
-                                {
-                                    tile.subtype = infol[1];
-                                }
-                                inventory.data[(int)usingItem].num--;
-                                factory.setTile(cursor.x, cursor.y, tile);
-                                linesToUpdate.Add(cursor.y);
-                            }
+                            linesToUpdate.Add(cursor.y);
                         }
                         break;
                 }

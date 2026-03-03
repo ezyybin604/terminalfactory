@@ -20,6 +20,11 @@ h: handle this pipe, make it face towards any adjacent things
 o: building stone
 */
 
+class Machine
+{ // finish later
+    //Point 
+}
+
 class Factory // factory data / big verbose stuff related to factory
 {
     public GameData gd = new GameData("gamedata");
@@ -28,8 +33,10 @@ class Factory // factory data / big verbose stuff related to factory
     Random rng = new Random();
     public string savefile = "defualt.tf";
     public const int chunkSize = 16;
+    public Inventory inventory = new Inventory();
     // [x][y]
     public Dictionary<int, Dictionary<int, Chunk>> world = new Dictionary<int, Dictionary<int, Chunk>>();
+    List<Point> machines = new List<Point>();
 
     public double generateRange(double min, double max)
     {
@@ -360,7 +367,7 @@ class Factory // factory data / big verbose stuff related to factory
             }
         }
     }
-    public void breakTile(Point cursor, Inventory inventory)
+    public bool breakTile(Point cursor)
     {
         int i=0;
         Tile curs = giveMeTheTile(cursor.x, cursor.y);
@@ -393,24 +400,49 @@ class Factory // factory data / big verbose stuff related to factory
                 curs.subtype = "";
                 curs.type = '`';
             }
-            /*if (giveitem)
-            {
-                if (inventory.data[i].item == "")
-                {
-                    inventory.data[i].item = info;
-                }
-                inventory.data[i].num++;
-            }*/
             if (giveitem)
             {
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor.x, cursor.y, curs);
+                    if (curs.type == 'M')
+                    {
+                        machines.Remove(cursor);
+                    }
+                    return true;
                 }
             }
         }
+        return false;
     }
-    // add world storage, uhhh figure that out later
+    public bool placeTile(int? usingItem, Point cursor)
+    {
+        if (usingItem != null)
+        {
+            int invlen = inventory.fix();
+            //menus["inv"] = inventory.getMenu();
+            Tile tile = new Tile();
+            Slot slot = inventory.data[(int)usingItem];
+            string info = gd.getFromKey("itemToBlock", slot.item);
+            if (slot.num > 0 && info != "")
+            {
+                string[] infol = info.Split(".");
+                tile.type = infol[0][0];
+                if (infol.Length == 2)
+                {
+                    tile.subtype = infol[1];
+                }
+                inventory.data[(int)usingItem].num--;
+                setTile(cursor.x, cursor.y, tile);
+                if (tile.type == 'M')
+                {
+                    machines.Add(cursor);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
     // add world tick function to tick the world
 }
 
