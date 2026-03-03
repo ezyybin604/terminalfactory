@@ -7,9 +7,6 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - pause broken???????????
-    - inventory slot max is not happening
-    - impliment the slot selector into breakTile
     - saving (save data serialize)
     - world ticking
     - machine forming
@@ -45,7 +42,7 @@ public struct Chunk
     // [x][y]
     public Tile[][] data;
     public string customToString()
-    {
+    { // this is just for debug :skull: ("used" right after resetcolor in displayLine)
         string result = "[";
         for (int i=0;i<data.Length;i++)
         {
@@ -171,6 +168,7 @@ class Game
             "Save|save",
             "Quit (go away)|quit"
         ]);
+        menus.Add("end", ["Why are you reading this exactly?"]);
         menus.Add("craft_raw", []);
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
@@ -683,6 +681,7 @@ class Game
     }
     void bye()
     {
+        Console.ResetColor();
         Console.Clear();
         Console.WriteLine("bye");
         Thread.Sleep(1000);

@@ -367,49 +367,46 @@ class Factory // factory data / big verbose stuff related to factory
         string info = gd.autoTilePick(curs, 1, "blockinfo");
         if (info != "")
         {
-            while (!(inventory.data[i].item == "" || inventory.data[i].item == info)
-                && inventory.data[i].num < Inventory.MaxPerSlot
-                && i < Inventory.Length)
+            bool giveitem = true;
+            if (curs.type == 'i')
             {
-                i++;
-            }
-            if (i < Inventory.Length)
+                // idk dont do anything
+            } else if (curs.type == 'f')
             {
-                bool giveitem = true;
-                if (curs.type == 'i')
-                {
-                    // idk dont do anything
-                } else if (curs.type == 'f')
-                {
-                    curs.prog--;
-                    if (curs.prog < 1)
-                    {
-                        curs.subtype = "";
-                        curs.type = '`';
-                    }
-                } else if (curs.type == 'b')
-                {
-                    if (curs.prog < 1)
-                    {
-                        giveitem = false;
-                    } else
-                    {
-                        curs.prog--;
-                    }
-                } else
+                curs.prog--;
+                if (curs.prog < 1)
                 {
                     curs.subtype = "";
                     curs.type = '`';
                 }
-                if (giveitem)
+            } else if (curs.type == 'b')
+            {
+                if (curs.prog < 1)
                 {
-                    if (inventory.data[i].item == "")
-                    {
-                        inventory.data[i].item = info;
-                    }
-                    inventory.data[i].num++;
+                    giveitem = false;
+                } else
+                {
+                    curs.prog--;
                 }
-                setTile(cursor.x, cursor.y, curs);
+            } else
+            {
+                curs.subtype = "";
+                curs.type = '`';
+            }
+            /*if (giveitem)
+            {
+                if (inventory.data[i].item == "")
+                {
+                    inventory.data[i].item = info;
+                }
+                inventory.data[i].num++;
+            }*/
+            if (giveitem)
+            {
+                if (inventory.addItem(new Slot(info)))
+                {
+                    setTile(cursor.x, cursor.y, curs);
+                }
             }
         }
     }
@@ -533,7 +530,7 @@ class Inventory
     {
         int i=0;
         while (!(data[i].item == "" || data[i].item == item.item)
-            && data[i].num < MaxPerSlot
+            || data[i].num >= MaxPerSlot
             && i < Inventory.Length)
         {
             i++;
