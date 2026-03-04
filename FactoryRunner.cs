@@ -27,8 +27,8 @@ o: building stone
 class Machine
 {
     public bool isFormed = false;
-    public Point[] inputs = new Point[4];
-    public Point[] outputs = new Point[4];
+    public List<Point> inputs = new List<Point>();
+    public Point? output = null;
     public Point? worldInteractor = null;
     public Point? energyPort = null;
     public bool runningRecipe = false;
@@ -46,6 +46,7 @@ class Factory // factory data / big verbose stuff related to factory
     // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
+    public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     Point[] machineArea = [
         new Point(1, -1),
         new Point(1, 1),
@@ -61,9 +62,41 @@ class Factory // factory data / big verbose stuff related to factory
     {
         return (rng.NextDouble()*(max-min))+min;
     }
+    private double floorRound(double d, double max)
+    {
+        double dd = Math.Floor(d);
+        if (max == dd)
+        {
+            return dd-1;
+        }
+        return dd;
+    }
     private int generateIntRange(int min, int max)
     {
-        return (int)Math.Round(generateRange(min, max));
+        return (int)floorRound(generateRange(min, max), max);
+    }
+    private int weightedRandom(int[] weights)
+    {
+        if (weights.Length < 1)
+        {
+            return 0;
+        }
+        int sum = weights.AsParallel().Sum();
+        int[] results = new int[sum];
+        int amount = 0;
+        int x = 0;
+        for (int i=0;i<sum;i++)
+        {
+            results[i] = x;
+            amount++;
+            if (weights[x] < amount+1)
+            {
+                amount = 0;
+                x++;
+            }
+        }
+        int rnd = generateIntRange(0, sum-1);
+        return results[rnd];
     }
     private List<Point> pointShapeGenerator(int size, string shape, int amount=0) // look idk what this actually looks like
     {
@@ -114,11 +147,11 @@ class Factory // factory data / big verbose stuff related to factory
             int fy = (int)(rng.NextDouble()*10);
             List<Point> shape;
             Tile copy = new Tile();
-            switch ((int)Math.Floor(rng.NextSingle()*8))
+            switch (weightedRandom([10, 20, 15, 30]))
             {
                 case 0:
                     // Water springs (diamond shape, 2-4 radius determining tier of water 2=pond, 4=ocean 3=mountain spring)
-                    int water = generateIntRange(2, 4);
+                    int water = weightedRandom([40, 10, 125])+2;
                     shape = pointShapeGenerator(water, "diamond");
                     copy.type = 'i';
                     copy.prog = 0;
@@ -135,16 +168,16 @@ class Factory // factory data / big verbose stuff related to factory
                     break;
                 case 1:
                     // Bush Group (scatter 3-8 randomly in 4x4 area)
-                    shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 8));
+                    shape = pointShapeGenerator(4, "scatter", generateIntRange(3, 5));
                     copy.type = 'b';
                     copy.prog = 10; // regen over time
-                    copy.subtype = "fr" + generateIntRange(1, 5).ToString();
+                    copy.subtype = "fr" + (weightedRandom([256, 128, 32, 16, 8])+1).ToString();
                     break;
-                case 3: case 4: case 2:
+                case 2:
                     // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
                     shape = pointShapeGenerator(5, "scatter", generateIntRange(8, 20));
                     string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone", "oil", "sand", "coal"];
-                    copy.subtype = sbt[generateIntRange(0, 8)];
+                    copy.subtype = sbt[weightedRandom([5, 20, 20, 5, 25, 5, 10, 25, 25])];
                     copy.type = 'i';
                     if (copy.subtype == "stone" || copy.subtype == "bone" ||  copy.subtype == "sand")
                     {
@@ -205,6 +238,7 @@ class Factory // factory data / big verbose stuff related to factory
         strColor.Add("red", ConsoleColor.Red);
         strColor.Add("magenta", ConsoleColor.Magenta);
         strColor.Add("darkgreen", ConsoleColor.DarkGreen);
+        strColor.Add("darkcyan", ConsoleColor.DarkCyan);
     }
     public void invertColors()
     { // hheheheeheh
@@ -239,6 +273,33 @@ class Factory // factory data / big verbose stuff related to factory
         }
         world[chunk.x][chunk.y][index.x][index.y] = tl;
     }
+    public void setTile(Point pt, Tile tl)
+    {
+        setTile(pt.x, pt.y, tl);
+    }
+    private int getArrow(Point dir) // ^v<>
+    {
+        if (dir.x == 0)
+        { // vertical
+            if (dir.y == -1)
+            {
+                return 1;
+            } else if (dir.y == 1)
+            {
+                return 2;
+            }
+        } else if (dir.y == 0)
+        { // horizontal
+            if (dir.x == -1)
+            {
+                return 3;
+            } else if (dir.x == 1)
+            {
+                return 4;
+            }
+        }
+        return 0;
+    }
     public void displayLine(int y, Point cursor, Point scroll)
     {
         string[] lineResult;
@@ -254,7 +315,9 @@ class Factory // factory data / big verbose stuff related to factory
         {
             colorNow = color;
             prevColor = currentColor;
-            Tile t = giveMeTheTile(x+scroll.x, y);
+            Point cur = new Point(x+scroll.x, y);
+            Tile t = giveMeTheTile(cur);
+            char addChar = t.type;
             string state = "";
             if (t.subtype == null)
             {
@@ -282,6 +345,42 @@ class Factory // factory data / big verbose stuff related to factory
                 color = true;
                 colorNow = false;
             }
+            if ("@+-*".Contains(t.type))
+            {
+                if (continueText && !color)
+                {
+                    idx++;
+                }
+                currentColor = "cyan";
+                color = true;
+                colorNow = false;
+                if (t.type == '+' || t.type == '-')
+                {
+                    addChar = "?v^><"[t.prog];
+                }
+            }
+            if (t.type == 'M')
+            {
+                if (!machines[cur].isFormed)
+                {
+                    if (continueText && !color)
+                    {
+                        idx++;
+                    }
+                    currentColor = "red";
+                    color = true;
+                    colorNow = false;
+                }
+                addChar = t.subtype.ToUpper()[0];
+            }
+            if (t.type == 'm')
+            {
+                string macs = "+|-";
+                currentColor = gd.getFromKey("machineColor", t.subtype);
+                color = true;
+                colorNow = false;
+                addChar = macs[t.prog];
+            }
             bool colorLoop = false;
             if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
             {
@@ -308,7 +407,6 @@ class Factory // factory data / big verbose stuff related to factory
                 lineResult[idx] = "/invert";
                 //idx++;
             }
-            char addChar = t.type;
             if (state == "natrualColor")
             {
                 if (t.subtype.Contains("water"))
@@ -423,7 +521,7 @@ class Factory // factory data / big verbose stuff related to factory
             {
                 if (inventory.addItem(new Slot(info)))
                 {
-                    setTile(cursor.x, cursor.y, curs);
+                    setTile(cursor, curs);
                     return true;
                 }
             }
@@ -447,7 +545,7 @@ class Factory // factory data / big verbose stuff related to factory
                     tile.subtype = infol[1];
                 }
                 inventory.data[(int)usingItem].num--;
-                setTile(cursor.x, cursor.y, tile);
+                setTile(cursor, tile);
                 if (tile.type == 'M')
                 {
                     machines.Add(cursor, new Machine());
@@ -456,6 +554,17 @@ class Factory // factory data / big verbose stuff related to factory
             }
         }
         return false;
+    }
+    void changeProg(Point pt, int nprg)
+    {
+        Tile tile = giveMeTheTile(pt);
+        int prevp = tile.prog;
+        tile.prog = nprg;
+        if (tile.prog != prevp)
+        {
+            linesToUpdate.Add(pt.y);
+            setTile(pt, tile);
+        }
     }
     public void updateMachines()
     {
@@ -472,8 +581,8 @@ class Factory // factory data / big verbose stuff related to factory
         /*
             Stuff to 𝓱𝓪𝓷𝓭𝓵𝓮
             bool isFormed = false;
-            Point[] inputs = new Point[4];
-            Point[] outputs = new Point[4];
+            List<Point> inputs = new List<Point>();
+            Point? output = null;
             Point? worldInteractor = null;
             Point? energyPort = null;
             bool runningRecipe = false
@@ -487,11 +596,80 @@ class Factory // factory data / big verbose stuff related to factory
             return;
         }
         mach.isFormed = true;
+        mach.inputs.Clear();
+        mach.output = null;
+        mach.worldInteractor = null;
+        mach.energyPort = null;
         for (int i=0;i<machineArea.Length;i++)
         {
-            Point tl = new Point(mac);
-            tl.transform(machineArea[i]);
-            // finish this part later <<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS ONE
+            Point pt = new Point(mac);
+            pt.transform(machineArea[i]);
+            Tile tile = giveMeTheTile(pt);
+            if (i < 4)
+            {
+                changeProg(pt, 0);
+                if (tile.type != 'm')
+                {
+                    mach.isFormed = false;
+                }
+            } else if (i > 3)
+            {
+                switch (tile.type)
+                {
+                    case '+':
+                        mach.inputs.Add(pt);
+                        changeProg(pt, getArrow(machineArea[i]));
+                        break;
+                    case '-':
+                        if (mach.output == null)
+                        {
+                            mach.output = pt;
+                        } else
+                        {
+                            mach.isFormed = false;
+                        }
+                        changeProg(pt, getArrow(machineArea[i].getReverse()));
+                        break;
+                    case '@':
+                        if (mach.worldInteractor == null)
+                        {
+                            mach.worldInteractor = pt;
+                        } else
+                        {
+                            mach.isFormed = false;
+                        }
+                        break;
+                    case '*':
+                        if (mach.energyPort == null)
+                        {
+                            mach.energyPort = pt;
+                        } else
+                        {
+                            mach.isFormed = false;
+                        }
+                        break;
+                    case 'm':
+                        if (i > 5)
+                        {
+                            changeProg(pt, 2);
+                        } else
+                        {
+                            changeProg(pt, 1);
+                        }
+                        break;
+                    default:
+                        mach.isFormed = false;
+                        break;
+                }
+            }
+        }
+        if (mach.output == null || mach.inputs.Count == 0)
+        {
+            mach.isFormed = false;
+        }
+        if (!mach.isFormed && mach.runningRecipe)
+        {
+            mach.runningRecipe = false;
         }
     }
     // add world tick function to tick the world

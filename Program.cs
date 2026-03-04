@@ -10,7 +10,8 @@ namespace terminalfactory;
 /*
     - saving (save data serialize)
     - world ticking
-    -> machine forming
+    - I/O ui
+    - make the machines do recipes
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
@@ -44,6 +45,10 @@ public struct Point
     {
         x += point.x;
         y += point.y;
+    }
+    public Point getReverse()
+    {
+        return new Point(-x, -y);
     }
 }
 
@@ -96,7 +101,6 @@ class Game
     TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
     Inventory inventory = new Inventory();
-    HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     string currentTipText = "";
     int? usingItem = null;
     void generateNeeded()
@@ -203,12 +207,12 @@ class Game
     {
         for (int i=0;i<menus[scene].Length;i++)
         {
-            if (linesToUpdate.Contains(i))
+            if (factory.linesToUpdate.Contains(i))
             {
                 displayMenuLine(i);
             }
         }
-        linesToUpdate.Clear();
+        factory.linesToUpdate.Clear();
     }
     void selectItemMenu()
     {
@@ -275,7 +279,7 @@ class Game
     }
     void displayStuff()
     {
-        linesToUpdate.Clear();
+        factory.linesToUpdate.Clear();
         Console.ResetColor();
         Console.Clear();
         updateBar(true);
@@ -295,13 +299,13 @@ class Game
     {
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            if (linesToUpdate.Contains(i+scroll.y))
+            if (factory.linesToUpdate.Contains(i+scroll.y))
             {
                 Console.SetCursorPosition(0, i+2);
                 factory.displayLine(i+scroll.y, cursor, scroll);
             }
         }
-        linesToUpdate.Clear();
+        factory.linesToUpdate.Clear();
     }
     void adjustCamera()
     {
@@ -396,24 +400,24 @@ class Game
                 {
                     case 'a':
                         cursor.x--;
-                        linesToUpdate.Add(cursor.y);
+                        factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
                         break;
                     case 's':
                         cursor.y++;
-                        linesToUpdate.Add(cursor.y);
-                        linesToUpdate.Add(cursor.y-1);
+                        factory.linesToUpdate.Add(cursor.y);
+                        factory.linesToUpdate.Add(cursor.y-1);
                         adjustCamera();
                         break;
                     case 'w':
                         cursor.y--;
-                        linesToUpdate.Add(cursor.y);
-                        linesToUpdate.Add(cursor.y+1);
+                        factory.linesToUpdate.Add(cursor.y);
+                        factory.linesToUpdate.Add(cursor.y+1);
                         adjustCamera();
                         break;
                     case 'd':
                         cursor.x++;
-                        linesToUpdate.Add(cursor.y);
+                        factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
                         break;
                     case 'p':
@@ -434,14 +438,14 @@ class Game
                     case 'k':
                         if (factory.breakTile(cursor))
                         {
-                            linesToUpdate.Add(cursor.y);
+                            factory.linesToUpdate.Add(cursor.y);
                         }
                         break;
                     case 'o':
                         // place
                         if (factory.placeTile(usingItem, cursor))
                         {
-                            linesToUpdate.Add(cursor.y);
+                            factory.linesToUpdate.Add(cursor.y);
                         }
                         break;
                 }
@@ -450,11 +454,11 @@ class Game
                 switch (ch)
                 {
                     case 'w':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
                         break;
                     case 's':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
                         break;
                     case 'z':
@@ -469,11 +473,11 @@ class Game
                 switch (ch)
                 {
                     case 'r':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
                         break;
                     case 'f':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
                         break;
                     case 'w':
@@ -509,11 +513,11 @@ class Game
                 switch (ch)
                 {
                     case 'w':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
                         break;
                     case 's':
-                        linesToUpdate.Add(topbar.menuSelection);
+                        factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
                         break;
                     case 'x':
@@ -541,7 +545,7 @@ class Game
         if (scene != "game")
         {
             topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
-            linesToUpdate.Add(topbar.menuSelection);
+            factory.linesToUpdate.Add(topbar.menuSelection);
             if (scene == "craft")
             {
                 unnessaryFunctionForDecidingTips();
@@ -573,7 +577,7 @@ class Game
         } else if (scene == "craft")
         {
             topbar.manualTip = false;
-            if (linesToUpdate.Count > 0)
+            if (factory.linesToUpdate.Count > 0)
             {
                 topbar.lastTipChange = time.Ticks;
                 topbar.tip = menus["craft_desc"][topbar.menuSelection];

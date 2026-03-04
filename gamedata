@@ -202,6 +202,12 @@ lasr=x8192,circ,x128,glass
 machineblock=@+-m*
 !! 
 
+!machineColor
+1=gray
+2=darkcyan
+3=darkyellow
+!! 
+
 !energyConsume
 puri=
 dist=
