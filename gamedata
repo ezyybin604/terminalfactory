@@ -200,6 +200,7 @@ lasr=x8192,circ,x128,glass
 
 !tags
 machineblock=@+-m*
+containerTile=p+-
 !! 
 
 !machineColor

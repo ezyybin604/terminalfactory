@@ -10,7 +10,6 @@ namespace terminalfactory;
 /*
     - saving (save data serialize)
     - world ticking
-    - I/O ui
     - make the machines do recipes
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
@@ -21,6 +20,7 @@ public struct Tile
     public string subtype; ///machine type/resource in tile/fruit type
     public int prog; // Amount of tile in tile/machine progress/stored amount/energy amount
     //public string item; // machine output/storage type
+    public int amount; // amount of item for those tiles that need it
 }
 public struct Point
 {
@@ -54,13 +54,23 @@ public struct Point
 
 class TopBar
 {
-    //public bool showTips = true;
-    public string tip = "default tip";
+    //couldnt bother to go through all tip variable refs so i renamed it
+    public string tipt = "Have you tried waiting?";
     public long lastTipChange = DateTime.MinValue.Ticks;
     public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
     public int menuSelection = 0;
     public int menuScroll = 0;
     public bool manualTip;
+    public int tipPriority;
+    public void changeTip(int priority, string tipi, bool forced=false)
+    {
+        if (priority >= tipPriority || forced)
+        {
+            lastTipChange = DateTime.Now.Ticks;
+            tipPriority = priority;
+            tipt = tipi;
+        }
+    }
 }
 
 // in-ven-tory
@@ -127,7 +137,9 @@ class Game
             "Press P to pause",
             "Press K to break/collect",
             "Press O to place",
-            "Press I to open inventory"
+            "Press I to open inventory",
+            "Press L to view tile contents",
+            "Press M to exhange contents with tile"
         ]);
         topbar.tips.Add("pause", [
             "Use WS to change selection",
@@ -239,7 +251,7 @@ class Game
     void updateBar(bool forceReplace=false)
     {
         string tipText = "";
-        tipText = topbar.tip;
+        tipText = topbar.tipt;
         if (tipText != currentTipText || forceReplace)
         {
             Console.ResetColor();
@@ -393,6 +405,7 @@ class Game
         {
             return;
         }
+        Tile tic = factory.giveMeTheTile(cursor);
         switch (scene)
         {
             case "game":
@@ -446,6 +459,36 @@ class Game
                         if (factory.placeTile(usingItem, cursor))
                         {
                             factory.linesToUpdate.Add(cursor.y);
+                        }
+                        break;
+                    case 'l': // view contents
+                        if (tic.amount > 0 && factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
+                        {
+                            string tip = "x" + tic.amount.ToString() + " " + factory.gd.getFromKey("itemNames", tic.subtype);
+                            topbar.changeTip(2, tip);
+                        }
+                        break;
+                    case 'j': // exchange
+                        if (factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
+                        {
+                            if (tic.amount > 0)
+                            {
+                                // extract
+                                if (inventory.addItem(new Slot(tic.subtype, tic.amount)))
+                                {
+                                    tic.amount = 0;
+                                    factory.setTile(cursor, tic);
+                                }
+                            } else if (tic.type == '+' && usingItem != null)
+                            {
+                                // deposit
+                                tic.amount = inventory.data[(int)usingItem].num;
+                                tic.subtype = inventory.data[(int)usingItem].item;
+                                factory.setTile(cursor, tic);
+                                inventory.data[(int)usingItem].num = 0;
+                                inventory.fix();
+                                usingItem = null;
+                            }
                         }
                         break;
                 }
@@ -536,7 +579,7 @@ class Game
                             }
                         } else
                         {
-                            topbar.tip = "/dNo. You can't do it. stop";
+                            topbar.changeTip(1, "/dNo. You can't do it. stop");
                         }
                         break;
                 }
@@ -572,19 +615,19 @@ class Game
             } else
             {
                 topbar.manualTip = true;
-                topbar.tip = info;
+                topbar.changeTip(1, info);
             }
         } else if (scene == "craft")
         {
             topbar.manualTip = false;
             if (factory.linesToUpdate.Count > 0)
             {
-                topbar.lastTipChange = time.Ticks;
-                topbar.tip = menus["craft_desc"][topbar.menuSelection];
+                string tpr = menus["craft_desc"][topbar.menuSelection];;
                 if (!inventory.verifyRecipe("craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
                 {
-                    topbar.tip = "/d" + topbar.tip;
+                    tpr = "/d" + tpr;
                 }
+                topbar.changeTip(1, tpr);
                 //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
             }
         } else
@@ -598,7 +641,7 @@ class Game
         if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange && !topbar.manualTip)
         {
             int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
-            topbar.tip = topbar.tips[scene][itip];
+            topbar.changeTip(0, topbar.tips[scene][itip], true);
             topbar.lastTipChange = time.Ticks;
         }
     }
