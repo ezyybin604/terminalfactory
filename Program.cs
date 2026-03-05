@@ -11,6 +11,7 @@ namespace terminalfactory;
     - saving (save data serialize)
     - world ticking
     - make the machines do recipes
+    - pipe stuff (and energy)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
