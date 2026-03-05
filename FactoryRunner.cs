@@ -40,7 +40,7 @@ class Factory // factory data / big verbose stuff related to factory
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
-    public string savefile = "defualt.tf";
+    public string savefile = "defualtfsave";
     public const int chunkSize = 16;
     public Inventory inventory = new Inventory();
     // [x][y]

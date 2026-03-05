@@ -1,4 +1,6 @@
 
+using System.Xml.Serialization;
+
 namespace terminalfactory;
 
 // type = # of !s
@@ -93,5 +95,26 @@ class GameData
         {
             state = "nofile";
         }
+    }
+}
+
+class FileManagement
+{
+    public void SaveInventory(Inventory inv, Factory fact)
+    {
+        XmlSerializer xml = new XmlSerializer(typeof(InventoryData));
+    }
+    public Slot[] LoadInventory(Factory fact)
+    {
+        return [new Slot()];
+    }
+}
+
+class InventoryData
+{ // for serization or however you spell it
+    public Slot[] data = new Slot[Inventory.Length];
+    public InventoryData(Slot[] dat)
+    {
+        data = dat;
     }
 }

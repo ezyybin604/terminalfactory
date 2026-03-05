@@ -112,8 +112,21 @@ class Game
     TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
     Inventory inventory = new Inventory();
+    FileManagement gdm = new FileManagement();
     string currentTipText = "";
     int? usingItem = null;
+    public void loadData()
+    {
+        inventory.data = gdm.LoadInventory(factory);
+    }
+    private void saveData()
+    {
+        if (!Directory.Exists(factory.savefile))
+        {
+            Directory.CreateDirectory(factory.savefile);
+        }
+        gdm.SaveInventory(inventory, factory);
+    }
     void generateNeeded()
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
@@ -240,7 +253,7 @@ class Game
                         displayStuff();
                         break;
                     case "save":
-                        // finish later
+                        saveData();
                         break;
                     case "quit":
                         scene = "end";
@@ -722,9 +735,37 @@ class Game
     {
         Console.Clear();
         Game game = new Game();
-        if (!File.Exists(game.factory.savefile))
+        bool sf = Directory.Exists(game.factory.savefile);
+        bool alsf = true;
+        if (sf)
         {
-            Console.WriteLine("No savefile found.");
+            string? inp = null;
+            while (inp == null)
+            {
+                Console.Clear();
+                Console.Write("A save was found. Load a different one? (Press ENTER for default):");
+                inp = Console.ReadLine();
+                if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
+                {
+                    inp = null;
+                }
+            }
+            if (inp != "")
+            {
+                game.factory.savefile = inp;
+                alsf = Directory.Exists(game.factory.savefile);
+            }
+            game.loadData();
+        }
+        if (!sf && alsf)
+        {
+            if (sf)
+            {
+                Console.WriteLine("New save detected.");
+            } else
+            {
+                Console.WriteLine("No save found.");
+            }
             Console.Write("Skip intro? (y/n):");
             char res = '\0';
             if (!((res = Console.ReadKey().KeyChar) == 'y'))
