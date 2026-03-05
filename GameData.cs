@@ -100,21 +100,36 @@ class GameData
 
 class FileManagement
 {
+    // copying from docs
     public void SaveInventory(Inventory inv, Factory fact)
     {
         XmlSerializer xml = new XmlSerializer(typeof(InventoryData));
+        TextWriter writer = new StreamWriter(Path.Join(fact.savefile, "invdata"));
+        InventoryData ind = new InventoryData();
+        inv.fix();
+        ind.data = inv.data;
+        xml.Serialize(writer, ind);
+        writer.Close();
     }
     public Slot[] LoadInventory(Factory fact)
     {
-        return [new Slot()];
+        XmlSerializer serializer = new XmlSerializer(typeof(InventoryData));
+        string fname = Path.Join(fact.savefile, "invdata");
+        InventoryData? id = new InventoryData();
+        if (File.Exists(fname))
+        {
+            FileStream fs = new FileStream(fname, FileMode.Open);
+            id = (InventoryData?)serializer.Deserialize(fs);
+        }
+        if (id != null)
+        {
+            return id.data;
+        }
+        return new InventoryData().data;
     }
 }
 
-class InventoryData
+public class InventoryData
 { // for serization or however you spell it
     public Slot[] data = new Slot[Inventory.Length];
-    public InventoryData(Slot[] dat)
-    {
-        data = dat;
-    }
 }

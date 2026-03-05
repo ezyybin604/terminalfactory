@@ -421,6 +421,9 @@ class Factory // factory data / big verbose stuff related to factory
                 } else if (t.subtype == "oil")
                 {
                     addChar = 'o';
+                } else if (t.subtype == "coal")
+                {
+                    addChar = 'c';
                 }
             }
             if (t.type == 'o')
@@ -485,7 +488,7 @@ class Factory // factory data / big verbose stuff related to factory
             }
         }
     }
-    public bool breakTile(Point cursor)
+    public bool breakTile(Point cursor, TopBar topbar)
     {
         Tile curs = giveMeTheTile(cursor);
         string info = gd.autoTilePick(curs, 1, "blockinfo");
@@ -522,6 +525,8 @@ class Factory // factory data / big verbose stuff related to factory
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor, curs);
+                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + gd.getFromKey("itemNames", info), 2, 3000);
+                    topbar.manualTip = false;
                     return true;
                 }
             }
@@ -682,6 +687,25 @@ class Inventory
     public const int MaxPerSlot = 999;
     public Slot[] data = new Slot[Length];
     List<string> invlist = new List<string>();
+    public int getItemAmount(string item)
+    {
+        fix();
+        int amount = 0;
+        for (int i=0;i<data.Length;i++)
+        {
+            if (data[i].num > 0)
+            {
+                if (data[i].item == item)
+                {
+                    amount += data[i].num;
+                }
+            } else
+            {
+                return amount;
+            }
+        }
+        return amount;
+    }
     public int fix()
     {
         Slot[] invcopy = data;

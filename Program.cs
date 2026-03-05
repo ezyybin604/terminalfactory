@@ -63,19 +63,23 @@ class TopBar
     public int menuScroll = 0;
     public bool manualTip;
     public int tipPriority;
-    public void changeTip(int priority, string tipi, bool forced=false)
+    public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)
         {
-            lastTipChange = DateTime.Now.Ticks;
+            lastTipChange = DateTime.Now.Ticks - (extrams * TimeSpan.TicksPerMillisecond);
             tipPriority = priority;
             tipt = tipi;
         }
     }
+    public void changeTip(int priority, string tipi, bool forced=false)
+    {
+        changeTip(tipi, priority, 0, forced);
+    }
 }
 
 // in-ven-tory
-class Slot
+public class Slot
 {
     public int num;
     public string item = "";
@@ -284,6 +288,9 @@ class Game
                 case 'd': // deny color
                     Console.ForegroundColor = ConsoleColor.Red;
                     break;
+                case 'g': // good color
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    break;
                 default:
                     break;
             }
@@ -460,12 +467,18 @@ class Game
                         {
                             scene = "inv";
                             forceDisplay = true;
+                        } else
+                        {
+                            topbar.changeTip("/dInventory empty.", 1, 3000);
                         }
                         break;
                     case 'k':
-                        if (factory.breakTile(cursor))
+                        if (factory.breakTile(cursor, topbar))
                         {
-                            factory.linesToUpdate.Add(cursor.y);
+                            if (tic.type != 'i')
+                            {
+                                factory.linesToUpdate.Add(cursor.y);
+                            }
                         }
                         break;
                     case 'o':
@@ -619,17 +632,23 @@ class Game
     }
     void unnessaryFunctionForDecidingTips()
     {
+        bool repeatTime = time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange;
         if (scene == "game")
         {
             Tile curs = factory.giveMeTheTile(cursor);
             string info = factory.gd.autoTilePick(curs, 0);
+            bool force = false;
+            if (repeatTime && topbar.tipPriority > 1)
+            {
+                force = true;
+            }
             if (info == "")
             {
                 topbar.manualTip = false;
             } else
             {
                 topbar.manualTip = true;
-                topbar.changeTip(1, info);
+                topbar.changeTip(1, info, force);
             }
         } else if (scene == "craft")
         {
@@ -647,12 +666,12 @@ class Game
         } else
         {
             topbar.manualTip = false;
-        } // maybe inv later but idk what that could be
+        }
         if (topbar.manualTip)
         {
             topbar.lastTipChange = DateTime.MinValue.Ticks;
         }
-        if (time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange && !topbar.manualTip)
+        if (repeatTime && !topbar.manualTip)
         {
             int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
             topbar.changeTip(0, topbar.tips[scene][itip], true);
@@ -788,34 +807,34 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
                 Console.ReadLine();
             }
-            try
-            {
-                Console.Title = "terminalfactory";
-            }
-            catch (PlatformNotSupportedException)
-            {
-                Console.Write("no");
-            }
-            while (game.factory.gd.state == "prep")
-            {
-                Console.Clear();
-                Console.WriteLine("Preparing.");
-                Thread.Sleep(100);
-            }
-            if (game.factory.gd.state == "done")
-            {
-                game.initStuff();
-                if (game.gameThread != null)
-                {
-                    game.gameThread.Start();
-                    game.inputSutff();
-                }
-            } else
-            {
-                Console.WriteLine("\nAn error happened with GameData: " + game.factory.gd.state);
-                Console.ReadLine();
-            }
-            game.bye();
         }
+        try
+        {
+            Console.Title = "terminalfactory";
+        }
+        catch (PlatformNotSupportedException)
+        {
+            Console.Write("no");
+        }
+        while (game.factory.gd.state == "prep")
+        {
+            Console.Clear();
+            Console.WriteLine("Preparing.");
+            Thread.Sleep(100);
+        }
+        if (game.factory.gd.state == "done")
+        {
+            game.initStuff();
+            if (game.gameThread != null)
+            {
+                game.gameThread.Start();
+                game.inputSutff();
+            }
+        } else
+        {
+            Console.WriteLine("\nAn error happened with GameData: " + game.factory.gd.state);
+            Console.ReadLine();
+        }
+        game.bye();
     }
 }
