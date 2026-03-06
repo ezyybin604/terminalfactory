@@ -1,6 +1,5 @@
 
 using System;
-using System.Numerics;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -12,6 +11,9 @@ namespace terminalfactory;
     - world ticking
     - make the machines do recipes
     - pipe stuff (and energy)
+    - do Factory.getRegions function (section world into 3x3 areas, region top-left points are returned)
+    - finish FileManagement.saveStuff function
+    - regions loader
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
@@ -122,14 +124,9 @@ class Game
     public void loadData()
     {
         inventory.data = gdm.LoadInventory(factory);
-    }
-    private void saveData()
-    {
-        if (!Directory.Exists(factory.savefile))
-        {
-            Directory.CreateDirectory(factory.savefile);
-        }
-        gdm.SaveInventory(inventory, factory);
+        Point[] curscr = gdm.LoadMachines(factory);
+        cursor = curscr[0];
+        scroll = curscr[1];
     }
     void generateNeeded()
     {
@@ -257,7 +254,11 @@ class Game
                         displayStuff();
                         break;
                     case "save":
-                        saveData();
+                        if (!Directory.Exists(factory.savefile))
+                        {
+                            Directory.CreateDirectory(factory.savefile);
+                        }
+                        gdm.SaveStuff(factory, cursor, scroll);
                         break;
                     case "quit":
                         scene = "end";
@@ -667,7 +668,7 @@ class Game
         {
             topbar.manualTip = false;
         }
-        if (topbar.manualTip)
+        if (topbar.manualTip && topbar.tipPriority < 2)
         {
             topbar.lastTipChange = DateTime.MinValue.Ticks;
         }

@@ -24,7 +24,7 @@ o: building stone
 
 // Chunk: Tile[x][y] data;
 
-class Machine
+public class Machine
 {
     public bool isFormed = false;
     public List<Point> inputs = new List<Point>();
@@ -45,7 +45,7 @@ class Factory // factory data / big verbose stuff related to factory
     public Inventory inventory = new Inventory();
     // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
-    Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
+    public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     Point[] machineArea = [
         new Point(1, -1),
@@ -58,6 +58,10 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(0, 1)
     ];
 
+    public List<Point> getRegions()
+    { // isnt finished
+        return [];
+    }
     public double generateRange(double min, double max)
     {
         return (rng.NextDouble()*(max-min))+min;
@@ -525,8 +529,8 @@ class Factory // factory data / big verbose stuff related to factory
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor, curs);
-                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + gd.getFromKey("itemNames", info), 2, 3000);
-                    topbar.manualTip = false;
+                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + gd.getFromKey("itemNames", info), 2, 4000);
+                    //topbar.manualTip = false;
                     return true;
                 }
             }
@@ -680,7 +684,7 @@ class Factory // factory data / big verbose stuff related to factory
     // add world tick function to tick the world
 }
 
-class Inventory
+public class Inventory
 {
     public GameData gd = new GameData();
     public const int Length = 150;

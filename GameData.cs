@@ -1,10 +1,11 @@
 
+using System.Reflection.Metadata.Ecma335;
 using System.Xml.Serialization;
 
 namespace terminalfactory;
 
 // type = # of !s
-class GameData
+public class GameData
 {
     public string state = "prep";
     private Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
@@ -101,35 +102,79 @@ class GameData
 class FileManagement
 {
     // copying from docs
-    public void SaveInventory(Inventory inv, Factory fact)
+    private void saveToFile(Type type, string fn, string savefile, object toSer)
     {
-        XmlSerializer xml = new XmlSerializer(typeof(InventoryData));
-        TextWriter writer = new StreamWriter(Path.Join(fact.savefile, "invdata"));
-        InventoryData ind = new InventoryData();
-        inv.fix();
-        ind.data = inv.data;
-        xml.Serialize(writer, ind);
+        XmlSerializer xml = new XmlSerializer(type);
+        TextWriter writer = new StreamWriter(Path.Join(savefile, fn));
+        xml.Serialize(writer, toSer);
         writer.Close();
     }
-    public Slot[] LoadInventory(Factory fact)
+    private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
-        XmlSerializer serializer = new XmlSerializer(typeof(InventoryData));
-        string fname = Path.Join(fact.savefile, "invdata");
-        InventoryData? id = new InventoryData();
+        XmlSerializer serializer = new XmlSerializer(type);
+        string fname = Path.Join(savefile, fn);
         if (File.Exists(fname))
         {
             FileStream fs = new FileStream(fname, FileMode.Open);
-            id = (InventoryData?)serializer.Deserialize(fs);
+            object? o = serializer.Deserialize(fs);
+            if (o != null)
+            {
+                return o;
+            }
         }
-        if (id != null)
+        return nullDefault;
+    }
+
+    // for stuff
+    public void SaveStuff(Factory fact, Point cursor, Point camera)
+    {
+        fact.inventory.fix();
+        string save = fact.savefile;
+        saveToFile(typeof(InventoryData), "invdata", save, new InventoryData(fact.inventory));
+        saveToFile(typeof(MachineCursor), "player", save, new MachineCursor(fact.machines, cursor, camera));
+        List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
+        for (int i=0;i<regions.Count;i++)
         {
-            return id.data;
+            // stuff here
         }
-        return new InventoryData().data;
+    }
+    public Slot[] LoadInventory(Factory fact)
+    {
+        return (Slot[])loadFromFile(typeof(InventoryData), "invdata", fact.savefile, new Slot[0]);
+    }
+    public Point[] LoadMachines(Factory fact)
+    {
+        MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor());
+        fact.machines = deser.machines;
+        return [deser.cursor, deser.camera];
     }
 }
 
+// 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
 public class InventoryData
 { // for serization or however you spell it
     public Slot[] data = new Slot[Inventory.Length];
+    public InventoryData(Inventory inv) {
+        data = inv.data;
+    }
+    public InventoryData() {}
+}
+
+public class Region
+{ // 3x3 area of chunks
+    public Point regionLocation = new Point();
+    public Slot[][][] data = new Slot[9][][]; // (0 length chunk=empty/not generated)
+}
+
+public class MachineCursor
+{
+    public Point cursor = new Point();
+    public Point camera = new Point();
+    public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
+    public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap) {
+        cursor = cursorp;
+        machines = macs;
+        camera = camerap;
+    }
+    public MachineCursor() {}
 }
