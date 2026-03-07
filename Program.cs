@@ -18,11 +18,19 @@ namespace terminalfactory;
 
 public struct Tile
 {
-    public char type;
-    public string subtype; ///machine type/resource in tile/fruit type
+    public char type = ' ';
+    public string subtype = ""; ///machine type/resource in tile/fruit type
     public int prog; // Amount of tile in tile/machine progress/stored amount/energy amount
     //public string item; // machine output/storage type
     public int amount; // amount of item for those tiles that need it
+    public Tile() {}
+    public Tile(char t, string subt, int prg, int amt)
+    {
+        type = t;
+        subtype = subt;
+        prog = prg;
+        amount = amt;
+    }
 }
 public struct Point
 {
@@ -86,7 +94,7 @@ class TopBar
 // in-ven-tory
 public class Slot
 {
-    public int num;
+    public int num = 0;
     public string item = "";
     public Slot Copy()
     {

@@ -40,7 +40,7 @@ class Factory // factory data / big verbose stuff related to factory
     Random rng = new Random();
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
-    public const int regionArea = 6;
+    public const int regionArea = 8;
     public Inventory inventory = new Inventory();
     // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();

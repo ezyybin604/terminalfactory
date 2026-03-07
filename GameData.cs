@@ -1,5 +1,8 @@
 
-using System.Xml.Serialization;
+/*using System.Xml;
+using System.Xml.Serialization;*/
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace terminalfactory;
 
@@ -102,31 +105,21 @@ class FileManagement
 {
     // copying from docs
     public const int regionLength = Factory.regionArea * Factory.regionArea;
-    private void saveToFile(Type type, string fn, string savefile, object toSer)
+    private void saveToFile(string fn, string savefile, object toSer)
     {
-        string file = Path.Join(savefile, fn);
-        File.WriteAllText(file, ""); // clears my anxiety
-
-        XmlSerializer xml = new XmlSerializer(type);
-        TextWriter writer = new StreamWriter(file);
-        xml.Serialize(writer, toSer);
-        writer.Close();
+        string file = Path.Join(savefile, fn + ".json");
+        File.WriteAllText(file, JsonSerializer.Serialize(toSer));
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
-        Console.WriteLine("Started loading " + fn);
-        XmlSerializer serializer = new XmlSerializer(type);
-        string fname = Path.Join(savefile, fn);
-        if (File.Exists(fname))
+        string file = Path.Join(savefile, fn + ".json");
+        //object? result =  JsonSerializer.Deserialize(File.ReadAllText(file), JsonTypeInfo.CreateJsonTypeInfo(type, JsonSerializerOptions.Default));
+        object? result = JsonSerializer.Deserialize(File.ReadAllText(file), type);
+        if (result == null)
         {
-            FileStream fs = new FileStream(fname, FileMode.Open);
-            object? o = serializer.Deserialize(fs);
-            if (o != null)
-            {
-                return o;
-            }
+            return nullDefault;
         }
-        return nullDefault;
+        return result;
     }
 
     private Tile[][] getChunk(Factory fact, Point ch)
@@ -140,6 +133,50 @@ class FileManagement
         }
         return new Tile[0][]; // the array.empty fix was ugly
     }
+    private int parseInt(string inp)
+    {
+        int res;
+        if (!int.TryParse(inp, out res))
+        {
+            return 0;
+        }
+        return res;
+    }
+    private string getCompressed(Tile tile)
+    {
+        return tile.type + tile.subtype + "=" + tile.prog.ToString() + "=" + tile.amount.ToString();
+    }
+    private Tile getTile(string tile)
+    {
+        string[] res = tile.Split("=");
+        return new Tile(res[0][0], res[0].Substring(1), parseInt(res[1]), parseInt(res[2]));
+    }
+    private string[][] convertChunk(Tile[][] chunk)
+    {
+        string[][] res = new string[chunk.Length][];
+        for (int x=0;x<res.Length;x++)
+        {
+            res[x] = new string[chunk[x].Length];
+            for (int y=0;y<res[x].Length;y++)
+            {
+                res[x][y] = getCompressed(chunk[x][y]);
+            }
+        }
+        return res;
+    }
+    private Tile[][] convertChunk(string[][] chunk)
+    {
+        Tile[][] res = new Tile[chunk.Length][];
+        for (int x=0;x<res.Length;x++)
+        {
+            res[x] = new Tile[chunk[x].Length];
+            for (int y=0;y<res[x].Length;y++)
+            {
+                res[x][y] = getTile(chunk[x][y]);
+            }
+        }
+        return res;
+    }
     private Point getPointIndex(int inp)
     {
         return new Point(inp%Factory.regionArea, (int)Math.Floor((double)(inp/Factory.regionArea)));
@@ -149,19 +186,28 @@ class FileManagement
     {
         fact.inventory.fix();
         string save = fact.savefile;
-        saveToFile(typeof(InventoryData), "invdata", save, new InventoryData(fact.inventory));
-        saveToFile(typeof(MachineCursor), "player", save, new MachineCursor(fact.machines, cursor, camera));
+        saveToFile("invdata", save, new InventoryData{data = fact.inventory.data});
+        MachineCursor machineCursor = new MachineCursor{
+            macsk = Array.Empty<Point>(),
+            macsv = Array.Empty<Machine>(),
+            cursor = cursor,
+            camera = camera
+        };
+        machineCursor.applyDictionary(fact.machines);
+        saveToFile("player", save, machineCursor);
         List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
         for (int i=0;i<regions.Count;i++)
         {
-            Region region = new Region();
+            Region region = new Region{
+                data = new string[regionLength][][]
+            };
             region.regionLocation = regions[i];
             for (int p=0;p<regionLength;p++)
             {
                 Point chunk = regions[i].getTransform(getPointIndex(p));
-                region.data[p] = getChunk(fact, chunk);
+                region.data[p] = convertChunk(getChunk(fact, chunk));
             }
-            saveToFile(typeof(Region), "region" + i.ToString(), save, region);
+            saveToFile("region" + i.ToString(), save, region);
         }
     }
     public Slot[] LoadWorld(Factory fact)
@@ -171,13 +217,16 @@ class FileManagement
         string fname = "region" + i.ToString();
         while (File.Exists(Path.Join(save, fname)))
         {
-            Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region());
+            Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
+            {
+                data = new string[regionLength][][]
+            });
             for (int x=0;x<region.data.Length;x++)
             {
                 if (region.data[x].Length > 0)
                 {
                     Point chunkLoc = region.regionLocation.getTransform(getPointIndex(x));
-                    fact.placeChunk(chunkLoc, region.data[x]);
+                    fact.placeChunk(chunkLoc, convertChunk(region.data[x]));
                 }
             }
             i++;
@@ -188,7 +237,11 @@ class FileManagement
     }
     public Point[] LoadMachines(Factory fact)
     {
-        MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor());
+        MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor
+        {
+            macsk = Array.Empty<Point>(),
+            macsv = Array.Empty<Machine>()
+        });
         fact.machines = deser.returnMachines();
         return [deser.cursor, deser.camera];
     }
@@ -197,27 +250,26 @@ class FileManagement
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
 public class InventoryData
 { // for serization or however you spell it
-    public Slot[] data = new Slot[Inventory.Length];
-    public InventoryData(Inventory inv) {
-        data = inv.data;
-    }
-    public InventoryData() {}
+    required public Slot[] data { get; set; }
 }
 
 public class Region
-{ // 3x3 area of chunks
-    public Point regionLocation = new Point();
-    public Tile[][][] data = new Tile[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
+{ // jsonserialize REALLY wants me to use { get; set; } so im going to blindly paste it all over my data classes
+    public Point regionLocation { get; set; }
+    required public string[][][] data { get; set; } // data = new string[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
 }
-
 public class MachineCursor
 {
-    public Point cursor = new Point();
-    public Point camera = new Point();
-    public Point[] macsk = Array.Empty<Point>();
-    public Machine[] macsv = Array.Empty<Machine>();
-    public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap) {
+    public Point cursor { get; set; }
+    public Point camera { get; set; }
+    required public Point[] macsk { get; set; }
+    required public Machine[] macsv { get; set; }
+    /*public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap, Point ma) {
         cursor = cursorp;
+        camera = camerap;
+    }*/
+    public void applyDictionary(Dictionary<Point, Machine> macs)
+    {
         macsk = new Point[macs.Count];
         macsv = new Machine[macs.Count];
         macs.Keys.CopyTo(macsk, 0);
@@ -225,7 +277,10 @@ public class MachineCursor
         {
             macsv[i] = macs[macsk[i]];
         }
-        camera = camerap;
+    }
+    public MachineCursor() {
+        macsk = Array.Empty<Point>();
+        macsv = Array.Empty<Machine>();
     }
     public Dictionary<Point, Machine> returnMachines()
     {
@@ -236,5 +291,4 @@ public class MachineCursor
         }
         return res;
     }
-    public MachineCursor() {}
 }
