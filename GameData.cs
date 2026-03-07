@@ -1,5 +1,4 @@
 
-using System.Reflection.Metadata.Ecma335;
 using System.Xml.Serialization;
 
 namespace terminalfactory;
@@ -102,15 +101,20 @@ public class GameData
 class FileManagement
 {
     // copying from docs
+    public const int regionLength = Factory.regionArea * Factory.regionArea;
     private void saveToFile(Type type, string fn, string savefile, object toSer)
     {
+        string file = Path.Join(savefile, fn);
+        File.WriteAllText(file, ""); // clears my anxiety
+
         XmlSerializer xml = new XmlSerializer(type);
-        TextWriter writer = new StreamWriter(Path.Join(savefile, fn));
+        TextWriter writer = new StreamWriter(file);
         xml.Serialize(writer, toSer);
         writer.Close();
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
+        Console.WriteLine("Started loading " + fn);
         XmlSerializer serializer = new XmlSerializer(type);
         string fname = Path.Join(savefile, fn);
         if (File.Exists(fname))
@@ -125,6 +129,21 @@ class FileManagement
         return nullDefault;
     }
 
+    private Tile[][] getChunk(Factory fact, Point ch)
+    {
+        if (fact.world.Keys.Contains(ch.x))
+        {
+            if (fact.world[ch.x].Keys.Contains(ch.y))
+            {
+                return fact.world[ch.x][ch.y];
+            }
+        }
+        return new Tile[0][]; // the array.empty fix was ugly
+    }
+    private Point getPointIndex(int inp)
+    {
+        return new Point(inp%Factory.regionArea, (int)Math.Floor((double)(inp/Factory.regionArea)));
+    }
     // for stuff
     public void SaveStuff(Factory fact, Point cursor, Point camera)
     {
@@ -135,17 +154,42 @@ class FileManagement
         List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
         for (int i=0;i<regions.Count;i++)
         {
-            // stuff here
+            Region region = new Region();
+            region.regionLocation = regions[i];
+            for (int p=0;p<regionLength;p++)
+            {
+                Point chunk = regions[i].getTransform(getPointIndex(p));
+                region.data[p] = getChunk(fact, chunk);
+            }
+            saveToFile(typeof(Region), "region" + i.ToString(), save, region);
         }
     }
-    public Slot[] LoadInventory(Factory fact)
+    public Slot[] LoadWorld(Factory fact)
     {
-        return (Slot[])loadFromFile(typeof(InventoryData), "invdata", fact.savefile, new Slot[0]);
+        int i=0;
+        string save = fact.savefile;
+        string fname = "region" + i.ToString();
+        while (File.Exists(Path.Join(save, fname)))
+        {
+            Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region());
+            for (int x=0;x<region.data.Length;x++)
+            {
+                if (region.data[x].Length > 0)
+                {
+                    Point chunkLoc = region.regionLocation.getTransform(getPointIndex(x));
+                    fact.placeChunk(chunkLoc, region.data[x]);
+                }
+            }
+            i++;
+            fname = "region" + i.ToString();
+        }
+        InventoryData id = (InventoryData)loadFromFile(typeof(InventoryData), "invdata", save, new Slot[0]);
+        return id.data;
     }
     public Point[] LoadMachines(Factory fact)
     {
         MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor());
-        fact.machines = deser.machines;
+        fact.machines = deser.returnMachines();
         return [deser.cursor, deser.camera];
     }
 }
@@ -163,18 +207,34 @@ public class InventoryData
 public class Region
 { // 3x3 area of chunks
     public Point regionLocation = new Point();
-    public Slot[][][] data = new Slot[9][][]; // (0 length chunk=empty/not generated)
+    public Tile[][][] data = new Tile[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
 }
 
 public class MachineCursor
 {
     public Point cursor = new Point();
     public Point camera = new Point();
-    public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
+    public Point[] macsk = Array.Empty<Point>();
+    public Machine[] macsv = Array.Empty<Machine>();
     public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap) {
         cursor = cursorp;
-        machines = macs;
+        macsk = new Point[macs.Count];
+        macsv = new Machine[macs.Count];
+        macs.Keys.CopyTo(macsk, 0);
+        for (int i=0;i<macsk.Length;i++)
+        {
+            macsv[i] = macs[macsk[i]];
+        }
         camera = camerap;
+    }
+    public Dictionary<Point, Machine> returnMachines()
+    {
+        Dictionary<Point, Machine> res = new Dictionary<Point, Machine>();
+        for (int i=0;i<macsk.Length;i++)
+        {
+            res[macsk[i]] = macsv[i];
+        }
+        return res;
     }
     public MachineCursor() {}
 }

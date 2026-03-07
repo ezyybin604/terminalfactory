@@ -1,6 +1,4 @@
 
-using System.ComponentModel;
-
 namespace terminalfactory;
 
 /*
@@ -42,6 +40,7 @@ class Factory // factory data / big verbose stuff related to factory
     Random rng = new Random();
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
+    public const int regionArea = 6;
     public Inventory inventory = new Inventory();
     // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -58,9 +57,29 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(0, 1)
     ];
 
+    private Point getRegion(Point point)
+    {
+        return new Point(
+            ((int)Math.Floor((double)(point.x/regionArea)))*3,
+            ((int)Math.Floor((double)(point.y/regionArea)))*3
+        );
+    }
     public List<Point> getRegions()
-    { // isnt finished
-        return [];
+    {
+        HashSet<Point> regions = new HashSet<Point>();
+        int[] yposb = new int[world.Count];
+        int[] xposb;
+        world.Keys.CopyTo(yposb, 0);
+        for (int x=0;x<yposb.Length;x++)
+        {
+            xposb = new int[world[x].Keys.Count];
+            world[x].Keys.CopyTo(xposb, 0);
+            for (int y=0;y<yposb.Length;y++)
+            {
+                regions.Add(getRegion(new Point(x, y)));
+            }
+        }
+        return regions.ToList();
     }
     public double generateRange(double min, double max)
     {
@@ -228,7 +247,20 @@ class Factory // factory data / big verbose stuff related to factory
             world[x].Add(y, chunk);
         }
     }
-
+    public void placeChunk(Point position, Tile[][] data)
+    {
+        if (!world.Keys.Contains(position.x))
+        {
+            world[position.x] = new Dictionary<int, Tile[][]>();
+        }
+        if (world[position.x].Keys.Contains(position.y))
+        { // i dont know if these do the same thing someone tell me
+            world[position.x][position.y] = data;
+        } else
+        {
+            world[position.x].Add(position.y, data);
+        }
+    }
     public void initFactory()
     {
         strColor.Add("blue", ConsoleColor.Cyan);
@@ -686,6 +718,7 @@ class Factory // factory data / big verbose stuff related to factory
 
 public class Inventory
 {
+    public bool hasData = false;
     public GameData gd = new GameData();
     public const int Length = 150;
     public const int MaxPerSlot = 999;

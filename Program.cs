@@ -1,5 +1,4 @@
 
-using System;
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -48,6 +47,10 @@ public struct Point
     {
         x += point.x;
         y += point.y;
+    }
+    public Point getTransform(Point point)
+    {
+        return new Point(x+point.x, y+point.y);
     }
     public Point getReverse()
     {
@@ -123,10 +126,13 @@ class Game
     int? usingItem = null;
     public void loadData()
     {
-        inventory.data = gdm.LoadInventory(factory);
+        inventory.data = gdm.LoadWorld(factory);
+        inventory.hasData = true;
         Point[] curscr = gdm.LoadMachines(factory);
         cursor = curscr[0];
         scroll = curscr[1];
+        generateNeeded();
+        adjustCamera();
     }
     void generateNeeded()
     {
@@ -190,7 +196,7 @@ class Game
         gameThread = new Thread(runTheGameIg);
         gameThread.Name = "Game Logic";
 
-        for (int i=0;i<Inventory.Length;i++)
+        for (int i=0;i<Inventory.Length && !inventory.hasData;i++)
         {
             inventory.data[i] = new Slot();
         }
