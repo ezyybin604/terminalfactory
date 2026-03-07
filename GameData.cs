@@ -75,7 +75,7 @@ public class GameData
                             {
                                 data[sect] = stuff;
                                 sect = null;
-                            } else
+                            } else // impliment triple ! tomorrow :)
                             {
                                 Console.Error.WriteLine("gamedata ohno");
                             }
@@ -111,8 +111,11 @@ class FileManagement
     {
         Console.WriteLine("Loading file " + fn);
         string file = Path.Join(savefile, fn + ".json");
-        //object? result =  JsonSerializer.Deserialize(File.ReadAllText(file), JsonTypeInfo.CreateJsonTypeInfo(type, JsonSerializerOptions.Default));
-        object? result = JsonSerializer.Deserialize(File.ReadAllText(file), type);
+        object? result = null;
+        if (File.Exists(file))
+        {
+            result = JsonSerializer.Deserialize(File.ReadAllText(file), type);
+        }
         if (result == null)
         {
             return nullDefault;
@@ -231,7 +234,7 @@ class FileManagement
         int i=0;
         string save = fact.savefile;
         string fname = "region" + i.ToString();
-        while (File.Exists(Path.Join(save, fname)))
+        while (File.Exists(Path.Join(save, fname + ".json")))
         {
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {
@@ -249,7 +252,10 @@ class FileManagement
             i++;
             fname = "region" + i.ToString();
         }
-        InventoryData id = (InventoryData)loadFromFile(typeof(InventoryData), "invdata", save, new Slot[0]);
+        InventoryData id = (InventoryData)loadFromFile(typeof(InventoryData), "invdata", save, new InventoryData
+        {
+            data = new JsonSlot[Inventory.Length]
+        });
         return convertSlots(id.data);
     }
     public Point[] LoadMachines(Factory fact)
@@ -291,6 +297,7 @@ public class JsonSlot
         item = slot.item;
         num = slot.num;
     }
+    public JsonSlot() {}
     public Slot getSlot()
     {
         return new Slot(item, num);
@@ -299,7 +306,7 @@ public class JsonSlot
 
 public class InventoryData
 { // for serization or however you spell it
-    required public JsonSlot[] data { get; set; }
+    required public JsonSlot[] data { get; set; } = new JsonSlot[Inventory.Length];
 }
 
 public class Region

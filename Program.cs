@@ -6,9 +6,9 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - stop the serialization from crashing
     - world ticking
     - make the machines do recipes
+    - machine recipe selector
     - pipe stuff (and energy)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
@@ -513,7 +513,7 @@ class Game
                             if (tic.amount > 0)
                             {
                                 // extract
-                                if (inventory.addItem(new Slot(tic.subtype, tic.amount)))
+                                if (!factory.gd.getFromKey("tags", "fluids").Split(",").Contains(tic.subtype) && inventory.addItem(new Slot(tic.subtype, tic.amount)))
                                 {
                                     tic.amount = 0;
                                     factory.setTile(cursor, tic);
@@ -736,7 +736,7 @@ class Game
                 {
                     factory.updateMachines();
                 }
-                // tick function goes here
+                factory.tickMachines();
             }
             if (scene == "game")
             {

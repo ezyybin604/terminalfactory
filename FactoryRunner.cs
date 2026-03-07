@@ -30,6 +30,7 @@ public class Machine
     public Point? worldInteractor = null;
     public Point? energyPort = null;
     public bool runningRecipe = false;
+    public string selectedRecipe = ""; // no recipe
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -703,6 +704,7 @@ class Factory // factory data / big verbose stuff related to factory
                         break;
                 }
             }
+            // start machine recipe chain here
         }
         if (mach.output == null || mach.inputs.Count == 0)
         {
@@ -713,7 +715,19 @@ class Factory // factory data / big verbose stuff related to factory
             mach.runningRecipe = false;
         }
     }
-    // add world tick function to tick the world
+    public void tickMachines()
+    {
+        Point[] macp = new Point[machines.Keys.Count];
+        machines.Keys.CopyTo(macp, 0);
+        for (int i=0;i<macp.Length;i++)
+        {
+            Machine mac = machines[macp[i]];
+            if (mac.runningRecipe)
+            {
+                // running recipe so it can start a chain
+            }
+        }
+    }
 }
 
 public class Inventory

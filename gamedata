@@ -3,7 +3,7 @@
 # double !!s means stop
 # !!! means add contents from existing section
 # *=* are a recipe, can be all kinds of abstract
-# also whats the icon vscode is telling me this file is
+# also whats the icon vscode is telling me this file is (its just a text file now :)
 !blockinfo
 i=Infinite Resource (Unlabeled)
 ]=Trough
@@ -198,9 +198,11 @@ carb=x2048,circ,carbon
 lasr=x8192,circ,x128,glass
 !! 
 
+# fluids are just items but you cant have them and have to transport using pipes
 !tags
 machineblock=@+-m*
 containerTile=p+-
+fluids=oil,wat1,wat2,wat3,wat4,wat5
 !! 
 
 !machineColor
@@ -213,7 +215,7 @@ containerTile=p+-
 puri=128
 dist=256
 carb=512
-lasr=1024
+lasr=2048
 cgen=-128
 ogen=-1024
 pump=16
@@ -224,4 +226,27 @@ comp=8
 stor=0
 sltr=16
 mixr=32
+!! 
+
+!puriRecipes
+#res=t(ms),x(num),item
+wat2=t100,x2,wat1
+!! 
+
+!distRecipes
+wat3=t100,x4,wat2
+!! 
+
+!carbRecipes
+wat4=t200,x4,wat3,x2,carbon
+!! 
+
+!lasrRecipes
+# consume 1 lens at 5% chance
+wat5=t200,x4,wat4,x1,lens
+!! 
+
+!asmbRecipes
+!!!craftingRecipe
+lens=x2,glass
 !! 
