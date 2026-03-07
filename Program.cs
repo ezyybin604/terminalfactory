@@ -6,13 +6,10 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - saving (save data serialize)
+    - stop the serialization from crashing
     - world ticking
     - make the machines do recipes
     - pipe stuff (and energy)
-    - do Factory.getRegions function (section world into 3x3 areas, region top-left points are returned)
-    - finish FileManagement.saveStuff function
-    - regions loader
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
 
