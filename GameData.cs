@@ -177,6 +177,24 @@ class FileManagement
         }
         return res;
     }
+    private JsonSlot[] convertSlots(Slot[] slots)
+    {
+        JsonSlot[] res = new JsonSlot[slots.Length];
+        for (int i=0;i<res.Length;i++)
+        {
+            res[i] = new JsonSlot(slots[i]);
+        }
+        return res;
+    }
+    private Slot[] convertSlots(JsonSlot[] slots)
+    {
+        Slot[] res = new Slot[slots.Length];
+        for (int i=0;i<res.Length;i++)
+        {
+            res[i] = slots[i].getSlot();
+        }
+        return res;
+    }
     private Point getPointIndex(int inp)
     {
         return new Point(inp%Factory.regionArea, (int)Math.Floor((double)(inp/Factory.regionArea)));
@@ -186,12 +204,12 @@ class FileManagement
     {
         fact.inventory.fix();
         string save = fact.savefile;
-        saveToFile("invdata", save, new InventoryData{data = fact.inventory.data});
+        saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data)});
         MachineCursor machineCursor = new MachineCursor{
             macsk = Array.Empty<Point>(),
             macsv = Array.Empty<Machine>(),
-            cursor = cursor,
-            camera = camera
+            cursor = new JsonPoint(cursor),
+            camera = new JsonPoint(camera)
         };
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
@@ -199,9 +217,9 @@ class FileManagement
         for (int i=0;i<regions.Count;i++)
         {
             Region region = new Region{
-                data = new string[regionLength][][]
+                data = new string[regionLength][][],
+                regionLocation = new JsonPoint(regions[i])
             };
-            region.regionLocation = regions[i];
             for (int p=0;p<regionLength;p++)
             {
                 Point chunk = regions[i].getTransform(getPointIndex(p));
@@ -219,13 +237,14 @@ class FileManagement
         {
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {
-                data = new string[regionLength][][]
+                data = new string[regionLength][][],
+                regionLocation = new JsonPoint()
             });
             for (int x=0;x<region.data.Length;x++)
             {
                 if (region.data[x].Length > 0)
                 {
-                    Point chunkLoc = region.regionLocation.getTransform(getPointIndex(x));
+                    Point chunkLoc = region.regionLocation.getPoint().getTransform(getPointIndex(x));
                     fact.placeChunk(chunkLoc, convertChunk(region.data[x]));
                 }
             }
@@ -233,35 +252,67 @@ class FileManagement
             fname = "region" + i.ToString();
         }
         InventoryData id = (InventoryData)loadFromFile(typeof(InventoryData), "invdata", save, new Slot[0]);
-        return id.data;
+        return convertSlots(id.data);
     }
     public Point[] LoadMachines(Factory fact)
     {
         MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor
         {
+            cursor = new JsonPoint(),
+            camera = new JsonPoint(),
             macsk = Array.Empty<Point>(),
             macsv = Array.Empty<Machine>()
         });
         fact.machines = deser.returnMachines();
-        return [deser.cursor, deser.camera];
+        return [deser.cursor.getPoint(), deser.camera.getPoint()];
     }
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
+public class JsonPoint
+{
+    public int x { get; set; }
+    public int y { get; set; }
+    public JsonPoint(Point point)
+    {
+        x = point.x;
+        y = point.y;
+    }
+    public JsonPoint() {}
+    public Point getPoint()
+    {
+        return new Point(x, y);
+    }
+}
+public class JsonSlot
+{
+    public int num { get; set; }
+    public string item { get; set; } = "";
+    public JsonSlot(Slot slot)
+    {
+        item = slot.item;
+        num = slot.num;
+    }
+    public Slot getSlot()
+    {
+        return new Slot(item, num);
+    }
+}
+
 public class InventoryData
 { // for serization or however you spell it
-    required public Slot[] data { get; set; }
+    required public JsonSlot[] data { get; set; }
 }
 
 public class Region
 { // jsonserialize REALLY wants me to use { get; set; } so im going to blindly paste it all over my data classes
-    public Point regionLocation { get; set; }
+    required public JsonPoint regionLocation { get; set; }
     required public string[][][] data { get; set; } // data = new string[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
 }
 public class MachineCursor
 {
-    public Point cursor { get; set; }
-    public Point camera { get; set; }
+    required public JsonPoint cursor { get; set; }
+    required public JsonPoint camera { get; set; }
     required public Point[] macsk { get; set; }
     required public Machine[] macsv { get; set; }
     /*public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap, Point ma) {
