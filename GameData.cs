@@ -109,6 +109,7 @@ class FileManagement
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
+        Console.WriteLine("Loading file " + fn);
         string file = Path.Join(savefile, fn + ".json");
         //object? result =  JsonSerializer.Deserialize(File.ReadAllText(file), JsonTypeInfo.CreateJsonTypeInfo(type, JsonSerializerOptions.Default));
         object? result = JsonSerializer.Deserialize(File.ReadAllText(file), type);
