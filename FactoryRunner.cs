@@ -31,6 +31,7 @@ public class Machine
     public Point? energyPort = null;
     public bool runningRecipe = false;
     public string selectedRecipe = ""; // no recipe
+    public long startedRecipe = DateTime.Now.Ticks;
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -64,6 +65,15 @@ class Factory // factory data / big verbose stuff related to factory
             ((int)Math.Floor((double)(point.x/regionArea)))*3,
             ((int)Math.Floor((double)(point.y/regionArea)))*3
         );
+    }
+    public int parseInt(string inp)
+    { // i didnt want to copy it and have the same thing twice
+        int res;
+        if (!int.TryParse(inp, out res))
+        {
+            return 0;
+        }
+        return res;
     }
     public List<Point> getRegions()
     {
@@ -621,6 +631,13 @@ class Factory // factory data / big verbose stuff related to factory
             updateMachine(macp[i]);
         }
     }
+    private void startMachine(Machine mac, string subt)
+    {// just found out about utcnow but i decided i dont care about that
+        int totalEnergyConsumed = parseInt(gd.getFromKey("generatorOutput", subt));
+        if (mac.energyPort != null && giveMeTheTile((Point)mac.energyPort).amount > totalEnergyConsumed)
+        mac.runningRecipe = true;
+        mac.startedRecipe = DateTime.Now.Ticks;
+    }
     void updateMachine(Point mac)
     {
         /*
@@ -707,16 +724,81 @@ class Factory // factory data / big verbose stuff related to factory
                         break;
                 }
             }
-            // start machine recipe chain here
         }
         if (mach.output == null || mach.inputs.Count == 0)
         {
             mach.isFormed = false;
         }
+        bool machRecipes = gd.getFromKey("tags", "macWrecipe").Split(",").Contains(core.subtype);
+        string rid = core.subtype + "Recipes";
         if (!mach.isFormed && mach.runningRecipe)
         {
             mach.runningRecipe = false;
+        } else if (mach.isFormed && !mach.runningRecipe && (mach.selectedRecipe != "" || !machRecipes))
+        {
+            if (machRecipes)
+            {
+                Slot[] inputSlots = new Slot[mach.inputs.Count];
+                bool slotsFull = true; // all inputs have to be full to run recipe
+                for (int i=0;i<inputSlots.Length;i++)
+                {
+                    Tile tile = giveMeTheTile(mach.inputs[i]);
+                    if (tile.amount > 0)
+                    {
+                        inputSlots[i].num = tile.amount;
+                        inputSlots[i].item = tile.subtype;
+                    } else
+                    {
+                        slotsFull = false;
+                    }
+                    if (mach.output == null)
+                    {
+                        slotsFull = false;
+                    } else
+                    {
+                        tile = giveMeTheTile((Point)mach.output);
+                        if (tile.amount > 0) // has nothing in output or no run recipe
+                        {
+                            slotsFull = false;
+                        }
+                    }
+                }
+                if (slotsFull)
+                {
+                    Inventory inputInventory = new Inventory();
+                    inputInventory.data = inputSlots;
+                    // verify and turn on recipe
+                    if (inputInventory.verifyRecipe(rid, mach.selectedRecipe))
+                    {
+                        startMachine(mach, core.subtype);
+                    }
+                }
+            } else
+            {
+                // list of non-recipe based machines:
+                // cgen,ogen = generators
+                // pump,mine = in-world extractors
+                // niem,stor = storage
+                // comp = dynamic input
+                // mixr = dynamic output
+                switch (core.subtype)
+                {
+                    case "cgen": case "ogen":
+                        string consumed = gd.getFromKey("generatorMaterial", core.subtype);
+                        if (mach.inputs.Count == 1 && mach.output != null)
+                        {
+                            Tile tile = giveMeTheTile(mach.inputs[0]);
+                            Tile outputTile = giveMeTheTile((Point)mach.output);
+                            if (tile.amount > 0 && tile.subtype == consumed && outputTile.amount < 1)
+                            {
+                                startMachine(mach, core.subtype);
+                            }
+                        }
+                        break;
+                }
+            }
         }
+        machines[mac] = mach; // is this redundant? (i see the changes without this)
     }
     public void tickMachines()
     {

@@ -146,23 +146,14 @@ class FileManagement
         }
         return new Tile[0][]; // the array.empty fix was ugly
     }
-    private int parseInt(string inp)
-    {
-        int res;
-        if (!int.TryParse(inp, out res))
-        {
-            return 0;
-        }
-        return res;
-    }
     private string getCompressed(Tile tile)
     {
         return tile.type + tile.subtype + "=" + tile.prog.ToString() + "=" + tile.amount.ToString();
     }
-    private Tile getTile(string tile)
+    private Tile getTile(string tile, Factory fact)
     {
         string[] res = tile.Split("=");
-        return new Tile(res[0][0], res[0].Substring(1), parseInt(res[1]), parseInt(res[2]));
+        return new Tile(res[0][0], res[0].Substring(1), fact.parseInt(res[1]), fact.parseInt(res[2]));
     }
     private string[][] convertChunk(Tile[][] chunk)
     {
@@ -177,7 +168,7 @@ class FileManagement
         }
         return res;
     }
-    private Tile[][] convertChunk(string[][] chunk)
+    private Tile[][] convertChunk(string[][] chunk, Factory fact)
     {
         Tile[][] res = new Tile[chunk.Length][];
         for (int x=0;x<res.Length;x++)
@@ -185,7 +176,7 @@ class FileManagement
             res[x] = new Tile[chunk[x].Length];
             for (int y=0;y<res[x].Length;y++)
             {
-                res[x][y] = getTile(chunk[x][y]);
+                res[x][y] = getTile(chunk[x][y], fact);
             }
         }
         return res;
@@ -258,7 +249,7 @@ class FileManagement
                 if (region.data[x].Length > 0)
                 {
                     Point chunkLoc = region.regionLocation.getPoint().getTransform(getPointIndex(x));
-                    fact.placeChunk(chunkLoc, convertChunk(region.data[x]));
+                    fact.placeChunk(chunkLoc, convertChunk(region.data[x], fact));
                 }
             }
             i++;

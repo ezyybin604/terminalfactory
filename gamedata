@@ -170,6 +170,7 @@ wat2=Pond Water
 wat3=Spring Water
 wat4=Carbonated Water
 wat5=Refined Water
+energy=Raw Energy
 !! 
 
 # copyright from microsoft ai incoming
@@ -197,11 +198,11 @@ pump=x16,circ
 stor=x16,circ,x64,glass
 cgen=x24,circ,x128,coal
 asmb=x24,circ
-ogen=x48,circ,x16,frium
 mixr=x64,circ,copper
 niem=x128,circ
 sltr=x192,circ
 puri=x256,circ
+ogen=x256,circ,x8,frium
 dist=x512,circ
 carb=x2048,circ,carbon
 lasr=x8192,circ,x128,glass
@@ -211,9 +212,20 @@ lasr=x8192,circ,x128,glass
 !tags
 machineblock=@+-m*
 containerTile=p+-
-fluids=oil,wat1,wat2,wat3,wat4,wat5
+# just get outputs to turn energy item into actual energy
+fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr
 chooseADefault=puri,dist,carb,lasr
+!! 
+
+!generatorMaterial
+cgen=coal
+ogen=oil
+!! 
+
+!generatorOutput
+cgen=128
+ogen=1024
 !! 
 
 !machineColor
@@ -227,8 +239,8 @@ puri=128
 dist=256
 carb=512
 lasr=2048
-cgen=-128
-ogen=-1024
+cgen=0
+ogen=0
 pump=16
 mine=16
 asmb=64
@@ -254,7 +266,7 @@ asmb=750
 niem=0
 stor=0
 # composter has own value and when its reached then it outputs compost
-comp=0
+comp=1000
 sltr=200
 mixr=400
 !! 
