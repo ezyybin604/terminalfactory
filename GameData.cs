@@ -75,7 +75,15 @@ public class GameData
                             {
                                 data[sect] = stuff;
                                 sect = null;
-                            } else // impliment triple ! tomorrow :)
+                            } else if (i == 3 && sect != null)
+                            {
+                                string[] keys = new string[data[after].Count];
+                                data[after].Keys.CopyTo(keys, 0);
+                                for (int x=0;x<keys.Length;x++)
+                                {
+                                    stuff[keys[x]] = data[after][keys[x]];
+                                }
+                            } else
                             {
                                 Console.Error.WriteLine("gamedata ohno");
                             }
@@ -85,6 +93,10 @@ public class GameData
                             if (ss.Length == 2)
                             {
                                 stuff[ss[0]] = ss[1];
+                            } else
+                            {
+                                state = "formatting error";
+                                return;
                             }
                         }
                     }

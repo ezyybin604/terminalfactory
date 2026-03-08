@@ -155,12 +155,21 @@ sand=Sand
 bone=Bone
 carbon=Carbon
 diamond=Diamond
+lens=Glass Lens
+salt=Salt
 #fruit
 fr1=Strawberry
 fr2=Abiu
 fr3=Date
 fr4=Dragonfruit
 fr5=Jackfruit
+#fluids
+oil=Oil
+wat1=Ocean Water
+wat2=Pond Water
+wat3=Spring Water
+wat4=Carbonated Water
+wat5=Refined Water
 !! 
 
 # copyright from microsoft ai incoming
@@ -203,6 +212,8 @@ lasr=x8192,circ,x128,glass
 machineblock=@+-m*
 containerTile=p+-
 fluids=oil,wat1,wat2,wat3,wat4,wat5
+macWrecipe=puri,dist,carb,lasr,asmb,sltr
+chooseADefault=puri,dist,carb,lasr
 !! 
 
 !machineColor
@@ -228,25 +239,54 @@ sltr=16
 mixr=32
 !! 
 
+# in ms
+!machineTime
+puri=100
+dist=100
+carb=200
+lasr=200
+cgen=50
+ogen=50
+pump=100
+mine=250
+asmb=750
+#these one store things
+niem=0
+stor=0
+# composter has own value and when its reached then it outputs compost
+comp=0
+sltr=200
+mixr=400
+!! 
+
 !puriRecipes
 #res=t(ms),x(num),item
-wat2=t100,x2,wat1
+wat2=x2,wat1
 !! 
 
 !distRecipes
-wat3=t100,x4,wat2
+wat3=x4,wat2
 !! 
 
 !carbRecipes
-wat4=t200,x4,wat3,x2,carbon
+wat4=x4,wat3,x2,carbon
 !! 
 
 !lasrRecipes
 # consume 1 lens at 5% chance
-wat5=t200,x4,wat4,x1,lens
+wat5=x4,wat4,x1,lens
 !! 
 
 !asmbRecipes
 !!!craftingRecipe
 lens=x2,glass
+salt=x16,wat1
+!! 
+
+!sltrRecipes
+fr1s=x2,salt,x1,fr1
+fr2s=x4,salt,x1,fr2
+fr3s=x8,salt,x1,fr3
+fr4s=x16,salt,x1,fr4
+fr5s=x32,salt,x1,fr5
 !! 

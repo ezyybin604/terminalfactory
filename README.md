@@ -24,7 +24,7 @@ Use WASD to move the cursor, I to open the inventory, and K to place a block. O 
 
 Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to delete item, and A to enter crafting menu.
 
-### Actually, I give up giving the controls slowly and carefully. Here's all of them! (all of the tips)
+### Actually, I give up giving the controls slowly and carefully. Here's all of them! (all of the controls n stuff)
 
 1. Game
     - Use WASD to move
@@ -32,8 +32,9 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press K to break/collect
     - Press O to place
     - Press I to open inventory
-    - Press L to view tile contents
+    - Press L to view tile contents/view recipe
     - Press M to exhange contents with tile
+    - Press M to change machine recipe
 
 2. Pause
     - Use WS to change selection

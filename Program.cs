@@ -6,9 +6,10 @@ namespace terminalfactory;
 
 // todo:
 /*
+    i sure do hope theres no bugs when its time for  (:pray:)
+
     - world ticking
-    - make the machines do recipes
-    - machine recipe selector
+    - make the machines do recipes/io stuff
     - pipe stuff (and energy)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
 */
@@ -73,6 +74,7 @@ class TopBar
     public int menuScroll = 0;
     public bool manualTip;
     public int tipPriority;
+    public string returnScene = "";
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)
@@ -128,6 +130,7 @@ class Game
     Inventory inventory = new Inventory();
     FileManagement gdm = new FileManagement();
     string currentTipText = "";
+    string specialMode = "";
     int? usingItem = null;
     public void loadData()
     {
@@ -164,8 +167,9 @@ class Game
             "Press K to break/collect",
             "Press O to place",
             "Press I to open inventory",
-            "Press L to view tile contents",
-            "Press M to exhange contents with tile"
+            "Press L to view tile contents/view recipe",
+            "Press M to exhange contents with tile",
+            "Also press M to select machine recipe"
         ]);
         topbar.tips.Add("pause", [
             "Use WS to change selection",
@@ -192,11 +196,19 @@ class Game
             "Save|save",
             "Quit (go away)|quit"
         ]);
+        if (specialMode == "demo")
+        {
+            menus["pause"] = [
+                "Resume Game|resume",
+                "Restart|restart"
+            ];
+        }
         menus.Add("end", ["Why are you reading this exactly?"]);
+        menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
+
         menus.Add("craft_raw", []);
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
-        menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
 
         gameThread = new Thread(runTheGameIg);
         gameThread.Name = "Game Logic";
@@ -210,6 +222,10 @@ class Game
     }
     void displayMenuLine(int i)
     {
+        if (i > menus[scene].Length-1)
+        {
+            return;
+        }
         string[] si = menus[scene][i].Split("|");
         int gi = i+2-topbar.menuScroll;
         Console.ResetColor();
@@ -273,6 +289,14 @@ class Game
                         break;
                     case "quit":
                         scene = "end";
+                        break;
+                    case "restart":
+                        factory = new Factory();
+                        cursor = new Point(2, 2);
+                        scroll = new Point();
+                        scene = "game";
+                        inventory = new Inventory();
+                        usingItem = null;
                         break;
                 }
                 break;
@@ -505,9 +529,13 @@ class Game
                         {
                             string tip = "x" + tic.amount.ToString() + " " + factory.gd.getFromKey("itemNames", tic.subtype);
                             topbar.changeTip(2, tip);
+                        } else if (tic.type == 'M')
+                        {
+                            string tip = "Recipe: " + factory.gd.getFromKey("itemNames", factory.machines[cursor].selectedRecipe);
+                            topbar.changeTip(2, tip);
                         }
                         break;
-                    case 'j': // exchange
+                    case 'j': // exchange / select recipe for machine
                         if (factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
                         {
                             if (tic.amount > 0)
@@ -528,6 +556,13 @@ class Game
                                 inventory.fix();
                                 usingItem = null;
                             }
+                        } else if (tic.type == 'M' && factory.gd.getFromKey("tags", "macWrecipe").Split(",").Contains(tic.subtype))
+                        {
+                            scene = "craft";
+                            topbar.returnScene = "game";
+                            topbar.menuSelection = 0;
+                            updateRecipeMenu(tic.subtype + "Recipes");
+                            forceDisplay = true;
                         }
                         break;
                 }
@@ -569,6 +604,7 @@ class Game
                         break;
                     case 'a':
                         scene = "craft";
+                        topbar.returnScene = "inv";
                         topbar.menuSelection = 0;
                         updateRecipeMenu();
                         forceDisplay = true;
@@ -603,22 +639,30 @@ class Game
                         topbar.menuSelection++;
                         break;
                     case 'x':
-                        scene = "inv";
+                        scene = topbar.returnScene;
                         forceDisplay = true;
                         break;
                     case 'z':
                         // craft process goes here (doit)
                         string result = menus["craft_raw"][topbar.menuSelection];
-                        Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
-                        if (inventory.verifyRecipe(recipe))
+                        if (topbar.returnScene == "game")
                         {
-                            if (inventory.addItem(new Slot(result)))
+                            factory.machines[cursor].selectedRecipe = result;
+                            scene = topbar.returnScene;
+                            forceDisplay = true;
+                        } else if (topbar.returnScene == "inv")
+                        {
+                            Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
+                            if (inventory.verifyRecipe(recipe) || specialMode == "creative")
                             {
-                                inventory.removeItems(recipe);
+                                if (inventory.addItem(new Slot(result)) && specialMode != "creative")
+                                {
+                                    inventory.removeItems(recipe);
+                                }
+                            } else
+                            {
+                                topbar.changeTip(1, "/dNo. You can't do it. stop");
                             }
-                        } else
-                        {
-                            topbar.changeTip(1, "/dNo. You can't do it. stop");
                         }
                         break;
                 }
@@ -662,13 +706,13 @@ class Game
                 topbar.manualTip = true;
                 topbar.changeTip(1, info, force);
             }
-        } else if (scene == "craft")
+        } else if (scene == "craft" && topbar.returnScene == "inv")
         {
             topbar.manualTip = false;
             if (factory.linesToUpdate.Count > 0)
             {
                 string tpr = menus["craft_desc"][topbar.menuSelection];;
-                if (!inventory.verifyRecipe("craftingRecipe", menus["craft_raw"][topbar.menuSelection]))
+                if (!inventory.verifyRecipe("craftingRecipe", menus["craft_raw"][topbar.menuSelection]) && specialMode != "creative")
                 {
                     tpr = "/d" + tpr;
                 }
@@ -780,11 +824,25 @@ class Game
                 {
                     inp = null;
                 }
+                if (inp == "creative" || inp == "demo")
+                {
+                    Console.WriteLine("creative: All crafts in crafting menu are free");
+                    Console.WriteLine("demo: No saving, there is a restart button instead of exiting.");
+                    Console.WriteLine("Activate selected Special Mode?");
+                    if (Console.ReadKey().KeyChar == 'y')
+                    {
+                        game.specialMode = inp;
+                        inp = "";
+                    }
+                }
             }
             if (inp != "")
             {
-                game.factory.savefile = inp;
                 alsf = Directory.Exists(game.factory.savefile);
+                if (!alsf)
+                {
+                    game.factory.savefile = inp;
+                }
             }
             game.loadData();
         }
@@ -827,12 +885,6 @@ Nobody follows, so to keep secrecy while you travel.
         catch (PlatformNotSupportedException)
         {
             Console.Write("no");
-        }
-        while (game.factory.gd.state == "prep")
-        {
-            Console.Clear();
-            Console.WriteLine("Preparing.");
-            Thread.Sleep(100);
         }
         if (game.factory.gd.state == "done")
         {

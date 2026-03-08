@@ -563,7 +563,6 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     setTile(cursor, curs);
                     topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + gd.getFromKey("itemNames", info), 2, 4000);
-                    //topbar.manualTip = false;
                     return true;
                 }
             }
@@ -591,6 +590,10 @@ class Factory // factory data / big verbose stuff related to factory
                 if (tile.type == 'M')
                 {
                     machines.Add(cursor, new Machine());
+                    if (gd.getFromKey("tags", "chooseADefault").Split(",").Contains(tile.subtype))
+                    {
+                        machines[cursor].selectedRecipe = gd.getKeys(tile.subtype + "Recipes")[0];
+                    }
                 }
                 return true;
             }
