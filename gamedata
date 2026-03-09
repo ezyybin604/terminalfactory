@@ -215,7 +215,31 @@ containerTile=p+-
 # just get outputs to turn energy item into actual energy
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr
-chooseADefault=puri,dist,carb,lasr
+chooseADefault=puri,dist,carb,lasr,comp
+!! 
+
+# pump
+!fluidToItem
+i.oil=oil
+i.water1=wat1
+i.water2=wat2
+i.water3=wat3
+!! 
+
+# miner
+!tileToItem
+i.diamond=diamond
+i.iron=iron
+i.copper=copper
+i.carbon=carbon
+i.coal=coal
+b.fr1=fr1
+b.fr2=fr2
+b.fr3=fr3
+b.fr4=fr4
+b.fr5=fr5
+f.stone=stone
+f.sand=sand
 !! 
 
 !generatorMaterial
@@ -251,24 +275,28 @@ sltr=16
 mixr=32
 !! 
 
-# in ms
+# in ticks (50ms intervals, aka 1 frame)
 !machineTime
-puri=100
-dist=100
-carb=200
-lasr=200
-cgen=50
-ogen=50
-pump=100
-mine=250
-asmb=750
+puri=3
+dist=5
+carb=10
+lasr=20
+cgen=2
+ogen=1
+pump=2
+mine=2
+asmb=5
 #these one store things
 niem=0
 stor=0
 # composter has own value and when its reached then it outputs compost
-comp=1000
-sltr=200
-mixr=400
+comp=20
+sltr=3
+mixr=5
+!! 
+
+!compRecipes
+comp=
 !! 
 
 !puriRecipes

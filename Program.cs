@@ -6,9 +6,11 @@ namespace terminalfactory;
 
 // todo:
 /*
-    i sure do hope theres no bugs when its time for  (:pray:)
+    i sure do hope theres no bugs when its time for arcade (:pray:)
 
     - world ticking
+    - splitter of items when i do logistics
+    - passthrough too
     - make the machines do recipes/io stuff
     - pipe stuff (and energy)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
@@ -61,6 +63,10 @@ public struct Point
     public Point getReverse()
     {
         return new Point(-x, -y);
+    }
+    public Point getMultiply(int m)
+    {
+        return new Point(x*m, y*m);
     }
 }
 
