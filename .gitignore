@@ -1,6 +1,6 @@
 
-bin/*
-obj/*
+bin/
+obj/
 .DS_Store
-.vscode
-defualtfsave
+.vscode/
+defualtfsave/
