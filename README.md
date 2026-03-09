@@ -64,5 +64,8 @@ There's a button to save your progress if you want that.
 
 And if you're asking this question, do you even know what the factory genre is
 
+But basically the end of the game is you shoot a giant high-tech missile at the dragon.
+(This isn't in the game yet)
+
 this message is only here as (basically) required by assignment
 ```
