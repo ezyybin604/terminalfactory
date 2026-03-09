@@ -137,6 +137,7 @@ class Game
     FileManagement gdm = new FileManagement();
     string currentTipText = "";
     string specialMode = "";
+    string[] splashes = File.ReadAllText("data/splashes").Split("\n"); // yoinking yet another concept from minecraft
     int? usingItem = null;
     public void loadData()
     {
@@ -162,6 +163,31 @@ class Game
             {
                 factory.generateChunk(x+sx, y+sy);
             }
+        }
+    }
+    public void introduction()
+    {
+        Console.Write("Skip intro? (y/n):");
+        char res = '\0';
+        if (!((res = Console.ReadKey().KeyChar) == 'y'))
+        {
+            Console.Clear();
+            Console.WriteLine(@"
+Your town was overtaken by a DRAGON.
+A group survived, (that includes you)
+But it is hungry.
+None of you know how to feed a creature of such scale,
+But you have the knowledge of a empty field nearby
+that could be the perfect spot for a factory to
+pump out continous food and water for the dragon.
+
+(Press ENTER to continue)");
+            Console.ReadLine();
+            Console.WriteLine(@"
+Nobody follows, so to keep secrecy while you travel.
+
+(Press ENTER to start)");
+            Console.ReadLine();
         }
     }
     void initStuff()
@@ -206,7 +232,7 @@ class Game
         {
             menus["pause"] = [
                 "Resume Game|resume",
-                "Restart|restart"
+                "Restart|quit"
             ];
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
@@ -295,14 +321,6 @@ class Game
                         break;
                     case "quit":
                         scene = "end";
-                        break;
-                    case "restart":
-                        factory = new Factory();
-                        cursor = new Point(2, 2);
-                        scroll = new Point();
-                        scene = "game";
-                        inventory = new Inventory();
-                        usingItem = null;
                         break;
                 }
                 break;
@@ -743,10 +761,18 @@ class Game
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
         ConsoleKeyInfo input;
-        while (true)
+        while (scene != "end")
         {
             input = Console.ReadKey(true);
             readkeylog.Add(input);
+            if (specialMode == "demo" && scene == "pause" && input.KeyChar == 'z' && topbar.menuSelection == 1)
+            {
+                while (scene != "end")
+                {
+                    Console.WriteLine("Waiting to restart");
+                    Thread.Sleep(100);
+                }
+            }
         }
     }
     void runTheGameIg()
@@ -802,7 +828,10 @@ class Game
             timer = Math.Max(-1, timer);
             Thread.Sleep(50);
         }
-        bye();
+        if (specialMode != "demo")
+        {
+            bye();
+        }
     }
     void bye()
     {
@@ -812,10 +841,17 @@ class Game
         Thread.Sleep(1000);
         Environment.Exit(0);
     }
+    void hi()
+    {
+        Console.ResetColor();
+        Console.Clear();
+        Console.WriteLine(@"TERMINALFACTORY");
+        Console.WriteLine("\"" + splashes[factory.generateIntRange(1, splashes.Length)-1] + "\"\n");
+    }
     public static void Main()
     {
-        Console.Clear();
         Game game = new Game();
+        game.hi();
         bool sf = Directory.Exists(game.factory.savefile);
         bool alsf = true;
         if (sf)
@@ -861,28 +897,7 @@ class Game
             {
                 Console.WriteLine("No save found.");
             }
-            Console.Write("Skip intro? (y/n):");
-            char res = '\0';
-            if (!((res = Console.ReadKey().KeyChar) == 'y'))
-            {
-                Console.Clear();
-                Console.WriteLine(@"
-Your town was overtaken by a DRAGON.
-A group survived, (that includes you)
-But it is hungry.
-None of you know how to feed a creature of such scale,
-But you have the knowledge of a empty field nearby
-that could be the perfect spot for a factory to
-pump out continous food and water for the dragon.
-
-(Press ENTER to continue)");
-                Console.ReadLine();
-                Console.WriteLine(@"
-Nobody follows, so to keep secrecy while you travel.
-
-(Press ENTER to start)");
-                Console.ReadLine();
-            }
+            game.introduction();
         }
         try
         {
@@ -894,11 +909,29 @@ Nobody follows, so to keep secrecy while you travel.
         }
         if (game.factory.gd.state == "done")
         {
-            game.initStuff();
-            if (game.gameThread != null)
+            if (game.specialMode == "demo")
             {
-                game.gameThread.Start();
-                game.inputSutff();
+                while (true)
+                {
+                    game = new Game();
+                    game.specialMode = "demo";
+                    game.hi();
+                    game.introduction();
+                    game.initStuff();
+                    if (game.gameThread != null)
+                    {
+                        game.gameThread.Start();
+                        game.inputSutff();
+                    }
+                }
+            } else
+            {
+                game.initStuff();
+                if (game.gameThread != null)
+                {
+                    game.gameThread.Start();
+                    game.inputSutff();
+                }
             }
         } else
         {

@@ -36,7 +36,7 @@ public class Machine
 
 class Factory // factory data / big verbose stuff related to factory
 {
-    public GameData gd = new GameData("gamedata");
+    public GameData gd = new GameData("data/gamedata");
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
@@ -105,7 +105,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return dd;
     }
-    private int generateIntRange(int min, int max)
+    public int generateIntRange(int min, int max)
     {
         return (int)floorRound(generateRange(min, max), max);
     }
