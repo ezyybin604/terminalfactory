@@ -43,6 +43,8 @@ class Factory // factory data / big verbose stuff related to factory
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
     public const int regionArea = 8;
+    public int energyInNetwork = 0;
+    public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
     // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -732,7 +734,7 @@ class Factory // factory data / big verbose stuff related to factory
                 }
             }
         }
-        if (mach.output == null || mach.inputs.Count == 0)
+        if (core.subtype != "niem" && (mach.output == null || mach.inputs.Count == 0))
         {
             mach.isFormed = false;
         }
@@ -832,6 +834,29 @@ class Factory // factory data / big verbose stuff related to factory
                                 mach.selectedRecipe = gd.getFromKey(cat, witi);
                                 startMachine(mach, core.subtype); // no items to remove
                             }
+                        }
+                        break;
+                    case "niem":
+                        int giveEnergy;
+                        if (mach.output != null)
+                        { // withdraw
+                            Tile engout = giveMeTheTile((Point)mach.output);
+                            if (engout.subtype == "energy" || engout.amount < 1)
+                            {
+                                engout.subtype = "energy";
+                                giveEnergy = Math.Min(2048, energyInNetwork);
+                                engout.amount += giveEnergy;
+                                energyInNetwork -= giveEnergy;
+                                setTile((Point)mach.output, engout);
+                            }
+                        }
+                        if (mach.energyPort != null)
+                        { // deposit
+                            Tile engpor = giveMeTheTile((Point)mach.energyPort);
+                            giveEnergy = Math.Min(maxEnergy-energyInNetwork, engpor.amount);
+                            energyInNetwork += giveEnergy;
+                            engpor.amount -= giveEnergy;
+                            setTile((Point)mach.energyPort, engpor);
                         }
                         break;
                 }

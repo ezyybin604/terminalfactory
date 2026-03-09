@@ -213,7 +213,8 @@ class FileManagement
             macsk = Array.Empty<Point>(),
             macsv = Array.Empty<Machine>(),
             cursor = new JsonPoint(cursor),
-            camera = new JsonPoint(camera)
+            camera = new JsonPoint(camera),
+            energyInNetwork = fact.energyInNetwork
         };
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
@@ -271,6 +272,7 @@ class FileManagement
             macsv = Array.Empty<Machine>()
         });
         fact.machines = deser.returnMachines();
+        fact.energyInNetwork = deser.energyInNetwork;
         return [deser.cursor.getPoint(), deser.camera.getPoint()];
     }
 }
@@ -323,6 +325,7 @@ public class MachineCursor
     required public JsonPoint camera { get; set; }
     required public Point[] macsk { get; set; }
     required public Machine[] macsv { get; set; }
+    public int energyInNetwork { get; set; } = 0;
     /*public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap, Point ma) {
         cursor = cursorp;
         camera = camerap;

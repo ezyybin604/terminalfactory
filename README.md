@@ -51,3 +51,18 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Use WS to change selection",
     - Press Z to select",
     - Press X to go back"
+
+### "What are the endings"
+```
+There are no "endings".
+-The factory must grow.
+Let the smoke pollute the air-
+Oh wait, wrong game
+But do grow your factory though.
+And since this game basically goes on however long you feel like,
+There's a button to save your progress if you want that.
+
+And if you're asking this question, do you even know what the factory genre is
+
+this message is only here as (basically) required by assignment
+```

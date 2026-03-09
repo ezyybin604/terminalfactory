@@ -14,6 +14,7 @@ namespace terminalfactory;
     - make the machines do recipes/io stuff
     - pipe stuff (and energy)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
+    - give NIEM a energy extractor selector (recipe selector :O?) rn limited to 2048
 */
 
 public struct Tile
