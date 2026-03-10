@@ -855,10 +855,18 @@ Nobody follows, so to keep secrecy while you travel.
         Console.ResetColor();
         Console.Clear();
         Console.WriteLine(@"TERMINALFACTORY");
-        Console.WriteLine("\"" + splashes[factory.generateIntRange(1, splashes.Length)-1] + "\"\n");
+        string splash = splashes[factory.generateIntRange(1, splashes.Length)-1];
+        bool windows = Environment.OSVersion.ToString().ToLower().Contains("windows");
+        if (windows)
+        {
+            Console.Write("\"" + splash.Substring(0, splash.Length-1) + "\"");
+        } else
+        {
+            Console.Write("\"" + splash + "\"");
+        }
         Console.SetCursorPosition(0, Console.WindowHeight-1);
         Console.Write("v0.1");
-        Console.SetCursorPosition(0, 2);
+        Console.SetCursorPosition(0, 3);
     }
     public static void Main()
     {

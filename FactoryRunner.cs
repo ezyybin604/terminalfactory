@@ -1,6 +1,4 @@
 
-using System.Diagnostics;
-
 namespace terminalfactory;
 
 /*
@@ -62,6 +60,44 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(0, -1),
         new Point(0, 1)
     ];
+    private int getWaterValue(string item)
+    {
+        if (item.Length == 3)
+        { // FINSIH THIS LATER IT NOERG DONE/*
+        /*
+            if (item.Substring(0, 2) == "fr")
+            {
+                // raw food
+                return (int)Math.Pow(parseInt(item.Substring(2)), 3);
+            } else if (item.Substring(0, 2) == "sf")
+            {
+                return getFoodValue("fr " + item.Substring(2))*2;
+            }*/
+        }
+        return 0;
+    }
+    private int getFoodValue(string item)
+    {
+        if (item.Length == 3)
+        {
+            if (item.Substring(0, 2) == "fr")
+            {
+                // raw food
+                return (int)Math.Pow(parseInt(item.Substring(2)), 3);
+            } else if (item.Substring(0, 2) == "sf")
+            {
+                return getFoodValue("fr " + item.Substring(2))*2;
+            }
+        } else if (item.Length > 4 && item[0] == '@' && item.Substring(0, 4) == "@mfr")
+        {
+            string[] data = item.Substring(4).Split(",");
+            if (data.Length == 2)
+            {
+                return getFoodValue(data[0]) * getFoodValue(data[1]);
+            }
+        }
+        return 0; // That's not food.. probably
+    }
     public string getItemName(string item)
     {
         if (item.Length > 0 && item[0] == '@')
@@ -73,9 +109,9 @@ class Factory // factory data / big verbose stuff related to factory
                 string[] result = new string[data.Length];
                 for (int i=0;i<data.Length;i++)
                 {
-                    result[i] =  getItemName("fr"+data[i]);
+                    result[i] =  getItemName(data[i]);
                 }
-                return String.Join(", and ", result);
+                return "Mixed Fruit: " + String.Join(", ", result);
             }
         } else
         {
@@ -894,9 +930,9 @@ class Factory // factory data / big verbose stuff related to factory
                             {
                                 Tile tile = giveMeTheTile(mach.inputs[i]);
                                 // its less scary to say something is true than not
-                                if (tile.amount > 0 && tile.subtype.Length == 3 && tile.subtype.Substring(0, 2) == "fr")
+                                if (tile.amount > 0 && tile.subtype.Length == 3 && (tile.subtype.Substring(0, 2) == "fr" || tile.subtype.Substring(0, 2) == "sf"))
                                 {
-                                    ing[i] = tile.subtype.Substring(2);
+                                    ing[i] = tile.subtype;
                                 } else
                                 {
                                     validItems = false;

@@ -164,6 +164,12 @@ fr2=Abiu
 fr3=Date
 fr4=Dragonfruit
 fr5=Jackfruit
+
+sf1=Salted Strawberry
+sf2=Salted Abiu
+sf3=Salted Date
+sf4=Salted Dragonfruit
+sf5=Salted Jackfruit
 #fluids
 oil=Oil
 wat1=Ocean Water
@@ -342,9 +348,10 @@ salt=x16,wat1
 !! 
 
 !sltrRecipes
-fr1s=x2,salt,x1,fr1
-fr2s=x4,salt,x1,fr2
-fr3s=x8,salt,x1,fr3
-fr4s=x16,salt,x1,fr4
-fr5s=x32,salt,x1,fr5
+# Salted Fruit
+sf1=x2,salt,x1,fr1
+sf2=x4,salt,x1,fr2
+sf3=x8,salt,x1,fr3
+sf4=x16,salt,x1,fr4
+sf5=x32,salt,x1,fr5
 !! 
