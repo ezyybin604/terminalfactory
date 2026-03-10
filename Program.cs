@@ -138,7 +138,7 @@ class Game
     FileManagement gdm = new FileManagement();
     string currentTipText = "";
     string specialMode = "";
-    string[] splashes = File.ReadAllText("data/splashes").Split("\n"); // yoinking yet another concept from minecraft
+    string[] splashes = new string[0]; // yoinking yet another concept from minecraft
     int? usingItem = null;
     public void loadData()
     {
@@ -852,6 +852,15 @@ Nobody follows, so to keep secrecy while you travel.
     public static void Main()
     {
         Game game = new Game();
+        if (File.Exists("data/splashes"))
+        {
+            game.splashes = File.ReadAllText("data/splashes").Split("\n");
+        } else
+        {
+            Console.WriteLine("splashes is missing oh no");
+            Console.ReadLine();
+            Environment.Exit(0);
+        }
         game.hi();
         bool sf = Directory.Exists(game.factory.savefile);
         bool alsf = true;
