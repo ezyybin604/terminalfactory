@@ -115,6 +115,7 @@ b.fr4=magenta
 b.fr5=darkgreen
 !! 
 
+# @ at the start of a item name means it should have special handling
 !itemNames
 glass=Glass
 maciron=Machine Iron
@@ -171,6 +172,7 @@ wat3=Spring Water
 wat4=Carbonated Water
 wat5=Refined Water
 energy=Raw Energy
+compo=Compost
 !! 
 
 # copyright from microsoft ai incoming
@@ -214,7 +216,7 @@ machineblock=@+-m*
 containerTile=p+-
 # just get outputs to turn energy item into actual energy
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
-macWrecipe=puri,dist,carb,lasr,asmb,sltr
+macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
 chooseADefault=puri,dist,carb,lasr,comp
 !! 
 
@@ -297,6 +299,22 @@ mixr=5
 
 !compRecipes
 comp=
+!! 
+
+!niemRecipes
+16=Energy Selection
+64=Energy Selection
+256=Energy Selection
+512=Energy Selection
+1024=Energy Selection
+2048=Energy Selection
+4096=Energy Selection
+8192=Energy Selection
+16392=Energy Selection
+32000=Energy Selection
+50000=Energy Selection
+100000=Energy Selection
+1000000=Energy Selection
 !! 
 
 !puriRecipes

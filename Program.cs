@@ -10,11 +10,13 @@ namespace terminalfactory;
 
     - world ticking
     - splitter of items when i do logistics
-    - passthrough too
-    - make the machines do recipes/io stuff
+    - passthrough pipes too
+    -> make the machines do recipes/io stuff (doin this one)
     - pipe stuff (and energy)
+    - tile updates, this tick and next tick updates
+    - make functions to determine the value of food/water
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - give NIEM a energy extractor selector (recipe selector :O?) rn limited to 2048
+    - remove repetition where theres a lot of it
 */
 
 public struct Tile
@@ -282,7 +284,7 @@ Nobody follows, so to keep secrecy while you travel.
         if (scene == "inv")
         {
             inventory.fix();
-            menus["inv"] = inventory.getMenu();
+            menus["inv"] = inventory.getMenu(factory);
         } // prev for loop menus[scene].Length-topbar.menuScroll
         int menuLength = Math.Min(Console.WindowHeight-2, menus[scene].Length);
         for (int i=0;i<menuLength;i++)
@@ -471,11 +473,17 @@ Nobody follows, so to keep secrecy while you travel.
                     }
                 } else
                 {
-                    res.Add("x" + numitem.ToString() + " " + factory.gd.getFromKey("itemNames", cur));
+                    if (numitem == 0)
+                    {
+                        res.Add(factory.getItemName(cur));
+                    } else
+                    {
+                        res.Add("x" + numitem.ToString() + " " + factory.getItemName(cur));
+                    }
                 }
             }
             menus["craft_raw"][i] = ent[i];
-            menus["craft"][i] = factory.gd.getFromKey("itemNames", ent[i]);
+            menus["craft"][i] = factory.getItemName(ent[i]);
             menus["craft_desc"][i] = String.Join(", ", res);
         }
     }
@@ -523,7 +531,7 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'i':
                         topbar.menuSelection = 0;
                         inventory.fix();
-                        menus["inv"] = inventory.getMenu();
+                        menus["inv"] = inventory.getMenu(factory);
                         if (inventory.data[0].num > 0)
                         {
                             scene = "inv";
@@ -552,11 +560,11 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'l': // view contents
                         if (tic.amount > 0 && factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
                         {
-                            string tip = "x" + tic.amount.ToString() + " " + factory.gd.getFromKey("itemNames", tic.subtype);
+                            string tip = "x" + tic.amount.ToString() + " " + factory.getItemName(tic.subtype);
                             topbar.changeTip(2, tip);
                         } else if (tic.type == 'M')
                         {
-                            string tip = "Recipe: " + factory.gd.getFromKey("itemNames", factory.machines[cursor].selectedRecipe);
+                            string tip = "Recipe: " + factory.getItemName(factory.machines[cursor].selectedRecipe);
                             topbar.changeTip(2, tip);
                         }
                         break;
@@ -641,7 +649,7 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'h':
                         inventory.data[topbar.menuSelection].num = 0;
                         inventory.fix();
-                        menus["inv"] = inventory.getMenu();
+                        menus["inv"] = inventory.getMenu(factory);
                         usingItem = null;
                         topbar.menuSelection = Math.Min(topbar.menuSelection, menus["inv"].Length-1);
                         if (inventory.data[0].num < 1)
@@ -848,6 +856,9 @@ Nobody follows, so to keep secrecy while you travel.
         Console.Clear();
         Console.WriteLine(@"TERMINALFACTORY");
         Console.WriteLine("\"" + splashes[factory.generateIntRange(1, splashes.Length)-1] + "\"\n");
+        Console.SetCursorPosition(0, Console.WindowHeight-1);
+        Console.Write("v0.1");
+        Console.SetCursorPosition(0, 2);
     }
     public static void Main()
     {
