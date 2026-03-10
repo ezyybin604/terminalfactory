@@ -1,4 +1,6 @@
 
+using System.Diagnostics;
+
 namespace terminalfactory;
 
 /*
@@ -60,7 +62,31 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(0, -1),
         new Point(0, 1)
     ];
-
+    public string getItemName(string item)
+    {
+        if (item.Length > 0 && item[0] == '@')
+        {
+            string itm = item.Substring(1);
+            if (itm.Length > 3 && itm.Substring(0, 3) == "mfr") // mixed fruit
+            {
+                string[] data = itm.Substring(3).Split(",");
+                string[] result = new string[data.Length];
+                for (int i=0;i<data.Length;i++)
+                {
+                    result[i] =  getItemName("fr"+data[i]);
+                }
+                return String.Join(", and ", result);
+            }
+        } else
+        {
+            string trans = gd.getFromKey("itemNames", item);
+            if (trans != "")
+            {
+                return trans;
+            }
+        }
+        return item;
+    }
     private Point getRegion(Point point)
     {
         return new Point(
@@ -213,7 +239,7 @@ class Factory // factory data / big verbose stuff related to factory
                     // Ore/Rock Cluster (scatter 5-12 randomly in 3x3 area)
                     shape = pointShapeGenerator(5, "scatter", generateIntRange(8, 20));
                     string[] sbt = ["diamond", "iron", "copper", "carbon", "stone", "bone", "oil", "sand", "coal"];
-                    copy.subtype = sbt[weightedRandom([5, 20, 20, 5, 25, 5, 10, 25, 25])];
+                    copy.subtype = sbt[weightedRandom([2, 20, 20, 5, 25, 5, 10, 25, 25])];
                     copy.type = 'i';
                     if (copy.subtype == "stone" || copy.subtype == "bone" ||  copy.subtype == "sand")
                     {
@@ -574,7 +600,7 @@ class Factory // factory data / big verbose stuff related to factory
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor, curs);
-                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + gd.getFromKey("itemNames", info), 2, 4000);
+                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + getItemName(info), 2, 4000);
                     return true;
                 }
             }
@@ -745,7 +771,7 @@ class Factory // factory data / big verbose stuff related to factory
             mach.runningRecipe = false;
         } else if (mach.isFormed && !mach.runningRecipe && (mach.selectedRecipe != "" || !machRecipes))
         {
-            if (machRecipes)
+            if (machRecipes && core.subtype != "niem")
             {
                 Slot[] inputSlots = new Slot[mach.inputs.Count];
                 bool slotsFull = true; // all inputs have to be full to run recipe
@@ -844,7 +870,7 @@ class Factory // factory data / big verbose stuff related to factory
                             if (engout.subtype == "energy" || engout.amount < 1)
                             {
                                 engout.subtype = "energy";
-                                giveEnergy = Math.Min(2048, energyInNetwork);
+                                giveEnergy = Math.Min(parseInt(mach.selectedRecipe), energyInNetwork);
                                 engout.amount += giveEnergy;
                                 energyInNetwork -= giveEnergy;
                                 setTile((Point)mach.output, engout);
@@ -858,6 +884,44 @@ class Factory // factory data / big verbose stuff related to factory
                             engpor.amount -= giveEnergy;
                             setTile((Point)mach.energyPort, engpor);
                         }
+                        break;
+                    case "mixr":
+                        if (mach.inputs.Count == 2)
+                        {
+                            bool validItems = true;
+                            string[] ing = new string[2];
+                            for (int i=0;i<2;i++)
+                            {
+                                Tile tile = giveMeTheTile(mach.inputs[i]);
+                                // its less scary to say something is true than not
+                                if (tile.amount > 0 && tile.subtype.Length == 3 && tile.subtype.Substring(0, 2) == "fr")
+                                {
+                                    ing[i] = tile.subtype.Substring(2);
+                                } else
+                                {
+                                    validItems = false;
+                                }
+                            }
+                            if (validItems)
+                            {
+                                mach.selectedRecipe = "@mfr"+ing[0]+","+ing[1];
+                                if (startMachine(mach, core.subtype))
+                                {
+                                    for (int i=0;i<2;i++)
+                                    {
+                                        Tile tile = giveMeTheTile(mach.inputs[i]);
+                                        tile.amount--;
+                                        setTile(mach.inputs[i], tile);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case "comp":
+                        // do this one after
+                        break;
+                    case "stor":
+                        // this one last
                         break;
                 }
             }
@@ -906,7 +970,7 @@ class Factory // factory data / big verbose stuff related to factory
     }
 }
 
-public class Inventory
+class Inventory
 {
     public bool hasData = false;
     public GameData gd = new GameData();
@@ -951,7 +1015,7 @@ public class Inventory
         }
         return x; // returns "length" of inventory
     }
-    public string[] getMenu()
+    public string[] getMenu(Factory fact)
     {
         invlist.Clear();
         for (int i=0;i<data.Length;i++)
@@ -959,7 +1023,7 @@ public class Inventory
             Slot slot = data[i];
             if (slot.num > 0)
             {
-                invlist.Add(String.Format("x{0}, {1}", slot.num, gd.getFromKey("itemNames", slot.item)));
+                invlist.Add(String.Format("x{0}, {1}", slot.num, fact.getItemName(slot.item)));
             }
         }
         string[] menuout = new string[invlist.Count];
