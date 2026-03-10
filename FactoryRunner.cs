@@ -32,6 +32,7 @@ public class Machine
     public bool runningRecipe = false;
     public string selectedRecipe = ""; // no recipe
     public int startedRecipe = 0;
+    public int number = 0;
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -62,17 +63,13 @@ class Factory // factory data / big verbose stuff related to factory
     ];
     private int getWaterValue(string item)
     {
-        if (item.Length == 3)
-        { // FINSIH THIS LATER IT NOERG DONE/*
-        /*
-            if (item.Substring(0, 2) == "fr")
+        if (item.Length == 4)
+        {
+            if (item.Substring(0, 3) == "wat")
             {
                 // raw food
-                return (int)Math.Pow(parseInt(item.Substring(2)), 3);
-            } else if (item.Substring(0, 2) == "sf")
-            {
-                return getFoodValue("fr " + item.Substring(2))*2;
-            }*/
+                return 4*((int)Math.Pow(4, parseInt(item.Substring(3))-1));
+            }
         }
         return 0;
     }
@@ -954,10 +951,31 @@ class Factory // factory data / big verbose stuff related to factory
                         }
                         break;
                     case "comp":
-                        // do this one after
+                        for (int i=0;i<mach.inputs.Count;i++)
+                        {
+                            Tile input = giveMeTheTile(mach.inputs[i]);
+                            if (input.amount > 0)
+                            {
+                                mach.number += getFoodValue(input.subtype);
+                                input.amount--;
+                            }
+                        }
+                        if (mach.startedRecipe > 1000)
+                        {
+                            mach.number -= 1000;
+                            mach.selectedRecipe = "compo";
+                            startMachine(mach, core.subtype);
+                        }
                         break;
                     case "stor":
-                        // this one last
+                        for (int i=0;i<mach.inputs.Count;i++)
+                        {
+                            // uhh finish later
+                        }
+                        if (mach.output != null)
+                        {
+                            // this one too
+                        }
                         break;
                 }
             }

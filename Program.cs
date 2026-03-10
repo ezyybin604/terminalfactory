@@ -17,6 +17,7 @@ namespace terminalfactory;
     - make functions to determine the value of food/water
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - remove repetition where theres a lot of it
+    - better tutorial that explains things more
 */
 
 public struct Tile
@@ -944,6 +945,7 @@ Nobody follows, so to keep secrecy while you travel.
                 {
                     game = new Game();
                     game.specialMode = "demo";
+                    game.splashes = File.ReadAllText("data/splashes").Split("\n");
                     game.hi();
                     game.introduction();
                     game.initStuff();
