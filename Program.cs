@@ -11,13 +11,14 @@ namespace terminalfactory;
     - world ticking
     - splitter of items when i do logistics
     - passthrough pipes too
-    -> make the machines do recipes/io stuff (doin this one)
+    - make the machines do recipes/io stuff (doin this one)
     - pipe stuff (and energy)
     - tile updates, this tick and next tick updates
     - make functions to determine the value of food/water
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - remove repetition where theres a lot of it
     - better tutorial that explains things more
+    - finish storage machinr
 */
 
 public struct Tile
