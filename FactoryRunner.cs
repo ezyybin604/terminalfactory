@@ -44,6 +44,7 @@ class Factory // factory data / big verbose stuff related to factory
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
     public const int regionArea = 8;
+    public const int defaultOutputLimit = 100; // max items in output (default number)
     public int energyInNetwork = 0;
     public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
@@ -370,6 +371,11 @@ class Factory // factory data / big verbose stuff related to factory
     {
         return giveMeTheTile(point.x, point.y);
     }
+    public Tile giveMeTheTile(Point? point)
+    {
+        if (point == null) return new Tile();
+        return giveMeTheTile((Point)point);
+    }
     public void setTile(int x, int y, Tile tl)
     {
         Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
@@ -384,6 +390,11 @@ class Factory // factory data / big verbose stuff related to factory
     public void setTile(Point pt, Tile tl)
     {
         setTile(pt.x, pt.y, tl);
+    }
+    public void setTile(Point? pt, Tile tl)
+    {
+        if (pt == null) return;
+        setTile((Point)pt, tl);
     }
     private int getArrow(Point dir) // ^v<>
     {
@@ -695,13 +706,13 @@ class Factory // factory data / big verbose stuff related to factory
     private bool startMachine(Machine mac, string subt)
     {
         int totalEnergyConsumed = parseInt(gd.getFromKey("generatorOutput", subt)) * parseInt(gd.getFromKey("machineTime", subt));
-        if (mac.energyPort != null && giveMeTheTile((Point)mac.energyPort).amount >= totalEnergyConsumed)
+        if (mac.energyPort != null && giveMeTheTile(mac.energyPort).amount >= totalEnergyConsumed)
         {
             mac.runningRecipe = true;
             mac.startedRecipe = 0;
-            Tile ep = giveMeTheTile((Point)mac.energyPort);
+            Tile ep = giveMeTheTile(mac.energyPort);
             ep.amount -= totalEnergyConsumed;
-            setTile((Point)mac.energyPort, ep);
+            setTile(mac.energyPort, ep);
             return true;
         }
         return false;
@@ -824,7 +835,7 @@ class Factory // factory data / big verbose stuff related to factory
                         slotsFull = false;
                     } else
                     {
-                        tile = giveMeTheTile((Point)mach.output);
+                        tile = giveMeTheTile(mach.output);
                         if (tile.amount > 0) // has nothing in output or no run recipe
                         {
                             slotsFull = false;
@@ -869,7 +880,7 @@ class Factory // factory data / big verbose stuff related to factory
                         if (mach.inputs.Count == 1 && mach.output != null)
                         {
                             Tile tile = giveMeTheTile(mach.inputs[0]);
-                            Tile outputTile = giveMeTheTile((Point)mach.output);
+                            Tile outputTile = giveMeTheTile(mach.output);
                             if (tile.amount > 0 && tile.subtype == consumed && outputTile.amount < 1)
                             {
                                 startMachine(mach, core.subtype); // no energy requirement :)
@@ -886,7 +897,7 @@ class Factory // factory data / big verbose stuff related to factory
                         }
                         if (mach.output != null && mach.worldInteractor != null)
                         {
-                            Tile wi = giveMeTheTile((Point)mach.worldInteractor);
+                            Tile wi = giveMeTheTile(mach.worldInteractor);
                             string witi = wi.type.ToString() + "." + wi.subtype;
                             if (gd.getKeys(cat).Contains(witi))
                             {
@@ -899,23 +910,23 @@ class Factory // factory data / big verbose stuff related to factory
                         int giveEnergy;
                         if (mach.output != null)
                         { // withdraw
-                            Tile engout = giveMeTheTile((Point)mach.output);
-                            if (engout.subtype == "energy" || engout.amount < 1)
+                            Tile engout = giveMeTheTile(mach.output);
+                            if ((engout.subtype == "energy" || engout.amount < 1) && engout.amount < 9999)
                             {
                                 engout.subtype = "energy";
                                 giveEnergy = Math.Min(parseInt(mach.selectedRecipe), energyInNetwork);
                                 engout.amount += giveEnergy;
                                 energyInNetwork -= giveEnergy;
-                                setTile((Point)mach.output, engout);
+                                setTile(mach.output, engout);
                             }
                         }
                         if (mach.energyPort != null)
                         { // deposit
-                            Tile engpor = giveMeTheTile((Point)mach.energyPort);
+                            Tile engpor = giveMeTheTile(mach.energyPort);
                             giveEnergy = Math.Min(maxEnergy-energyInNetwork, engpor.amount);
                             energyInNetwork += giveEnergy;
                             engpor.amount -= giveEnergy;
-                            setTile((Point)mach.energyPort, engpor);
+                            setTile(mach.energyPort, engpor);
                         }
                         break;
                     case "mixr":
@@ -970,11 +981,26 @@ class Factory // factory data / big verbose stuff related to factory
                     case "stor":
                         for (int i=0;i<mach.inputs.Count;i++)
                         {
-                            // uhh finish later
+                            Tile tile = giveMeTheTile(mach.inputs[i]);
+                            if (mach.selectedRecipe == tile.subtype || mach.number < 1)
+                            {
+                                mach.selectedRecipe = tile.subtype;
+                                int giveItem = Math.Min(4000-mach.number, tile.amount);
+                                if (giveItem > 0)
+                                {
+                                    mach.number += giveItem;
+                                    tile.amount -= giveItem;
+                                    setTile(mach.inputs[i], tile);
+                                }
+                            }
                         }
-                        if (mach.output != null)
+                        if (mach.output != null && mach.number > 0)
                         {
-                            // this one too
+                            Tile tile = giveMeTheTile(mach.output);
+                            int giveItem = Math.Min(mach.number, defaultOutputLimit-tile.amount);
+                            tile.amount += giveItem;
+                            mach.number -= giveItem;
+                            setTile(mach.output, tile);
                         }
                         break;
                 }
@@ -996,7 +1022,7 @@ class Factory // factory data / big verbose stuff related to factory
                 updateMachine(macp[i]);
                 if (mac.isFormed && mac.output != null)
                 {
-                    Tile output = giveMeTheTile((Point)mac.output);
+                    Tile output = giveMeTheTile(mac.output);
                     switch (core.subtype)
                     {
                         case "cgen": case "ogen":

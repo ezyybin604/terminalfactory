@@ -113,16 +113,17 @@ public class GameData
 class FileManagement
 {
     // copying from docs
+    public const string worldFolder = "worlds";
     public const int regionLength = Factory.regionArea * Factory.regionArea;
     private void saveToFile(string fn, string savefile, object toSer)
     {
-        string file = Path.Join(savefile, fn + ".json");
+        string file = Path.Join(worldFolder, savefile, fn + ".json");
         File.WriteAllText(file, JsonSerializer.Serialize(toSer));
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
         Console.WriteLine("Loading file " + fn);
-        string file = Path.Join(savefile, fn + ".json");
+        string file = Path.Join(worldFolder, savefile, fn + ".json");
         object? result = null;
         if (File.Exists(file))
         {
@@ -238,7 +239,7 @@ class FileManagement
         int i=0;
         string save = fact.savefile;
         string fname = "region" + i.ToString();
-        while (File.Exists(Path.Join(save, fname + ".json")))
+        while (File.Exists(Path.Join(worldFolder, save, fname + ".json")))
         {
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {

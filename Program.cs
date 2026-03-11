@@ -18,7 +18,6 @@ namespace terminalfactory;
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - remove repetition where theres a lot of it
     - better tutorial that explains things more
-    - finish storage machinr
 */
 
 public struct Tile
@@ -86,6 +85,7 @@ class TopBar
     public bool manualTip;
     public int tipPriority;
     public string returnScene = "";
+    public int areyousure = 0;
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)
@@ -231,6 +231,7 @@ Nobody follows, so to keep secrecy while you travel.
         menus.Add("pause", [
             "Resume Game|resume",
             "Save|save",
+            "Delete Savefile (DANGER)|delete",
             "Quit (go away)|quit"
         ]);
         if (specialMode == "demo")
@@ -308,6 +309,7 @@ Nobody follows, so to keep secrecy while you travel.
     void selectItemMenu()
     {
         string[] st = menus[scene][topbar.menuSelection].Split("|");
+        string world = Path.Join(FileManagement.worldFolder, factory.savefile);
         switch (scene)
         {
             case "pause":
@@ -318,14 +320,28 @@ Nobody follows, so to keep secrecy while you travel.
                         displayStuff();
                         break;
                     case "save":
-                        if (!Directory.Exists(factory.savefile))
-                        {
-                            Directory.CreateDirectory(factory.savefile);
-                        }
+                        Directory.CreateDirectory(world);
                         gdm.SaveStuff(factory, cursor, scroll);
                         break;
                     case "quit":
                         scene = "end";
+                        break;
+                    case "delete":
+                        if (topbar.areyousure < 500)
+                        {
+                            topbar.areyousure++;
+                            topbar.changeTip(1, String.Format("/dAre you REALLY sure? ({0} left until deletion)", 500-topbar.areyousure));
+                        } else
+                        {
+                            if (!Directory.Exists(world)) return;
+                            if (Directory.EnumerateDirectories(world).Count() > 0) return;
+                            string[] fnames = Directory.EnumerateFiles(world).ToArray();
+                            for (int i=0;i<fnames.Length;i++)
+                            {
+                                File.Delete(fnames[i]);
+                            }
+                            Directory.Delete(world);
+                        }
                         break;
                 }
                 break;
@@ -608,10 +624,12 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'w':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
+                        topbar.areyousure = 0;
                         break;
                     case 's':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
+                        topbar.areyousure = 0;
                         break;
                     case 'z':
                         selectItemMenu();
@@ -873,6 +891,7 @@ Nobody follows, so to keep secrecy while you travel.
     public static void Main()
     {
         Game game = new Game();
+        Directory.CreateDirectory(FileManagement.worldFolder);
         if (File.Exists("data/splashes"))
         {
             game.splashes = File.ReadAllText("data/splashes").Split("\n");
@@ -883,7 +902,7 @@ Nobody follows, so to keep secrecy while you travel.
             Environment.Exit(0);
         }
         game.hi();
-        bool sf = Directory.Exists(game.factory.savefile);
+        bool sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
         bool alsf = true;
         if (sf)
         {
@@ -891,7 +910,7 @@ Nobody follows, so to keep secrecy while you travel.
             while (inp == null)
             {
                 Console.Clear();
-                Console.Write("A save was found. Load a different one? (Press ENTER for default):");
+                Console.WriteLine("A save was found. Load a different one?\n(Press ENTER for default):");
                 inp = Console.ReadLine();
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
                 {
@@ -911,15 +930,15 @@ Nobody follows, so to keep secrecy while you travel.
             }
             if (inp != "")
             {
-                alsf = Directory.Exists(game.factory.savefile);
-                if (!alsf)
-                {
-                    game.factory.savefile = inp;
-                }
+                game.factory.savefile = inp;
+                alsf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
             }
-            game.loadData();
+            if (alsf)
+            {
+                game.loadData();
+            }
         }
-        if (!sf && alsf)
+        if (!sf || !alsf)
         {
             if (sf)
             {
