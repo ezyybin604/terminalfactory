@@ -149,11 +149,27 @@ class FileManagement
     }
     private string getCompressed(Tile tile)
     {
+        if (tile.type == '`')
+        {
+            return "g"; // grass
+        }
+        if (tile.amount == 0 && tile.prog == 0)
+        {
+            return tile.type + tile.subtype;
+        }
         return tile.type + tile.subtype + "=" + tile.prog.ToString() + "=" + tile.amount.ToString();
     }
     private Tile getTile(string tile, Factory fact)
     {
+        if (tile == "g")
+        {
+            return new Tile('`', "", 0, 0);
+        }
         string[] res = tile.Split("=");
+        if (res.Length == 1)
+        {
+            return new Tile(res[0][0], res[0].Substring(1), 0, 0);
+        }
         return new Tile(res[0][0], res[0].Substring(1), fact.parseInt(res[1]), fact.parseInt(res[2]));
     }
     private string[][] convertChunk(Tile[][] chunk)
@@ -161,11 +177,36 @@ class FileManagement
         string[][] res = new string[chunk.Length][];
         for (int x=0;x<res.Length;x++)
         {
-            res[x] = new string[chunk[x].Length];
-            for (int y=0;y<res[x].Length;y++)
+            List<string> xto = new List<string>();
+            int grassChain = 0;
+            for (int y=0;y<chunk[x].Length;y++)
             {
-                res[x][y] = getCompressed(chunk[x][y]);
+                string ct = getCompressed(chunk[x][y]);
+                if (ct == "g")
+                {
+                    grassChain++;
+                } else
+                {
+                    if (grassChain == 1)
+                    {
+                        xto.Add("g");
+                    } else if (grassChain > 1)
+                    {
+                        xto.Add("g" + grassChain.ToString());
+                        
+                    }
+                    xto.Add(ct);
+                    grassChain = 0;
+                }
             }
+            if (grassChain == 1)
+            {
+                xto.Add("g");
+            } else if (grassChain > 1)
+            {
+                xto.Add("g" + grassChain.ToString());
+            }
+            res[x] = xto.ToArray();
         }
         return res;
     }
@@ -174,10 +215,24 @@ class FileManagement
         Tile[][] res = new Tile[chunk.Length][];
         for (int x=0;x<res.Length;x++)
         {
-            res[x] = new Tile[chunk[x].Length];
+            res[x] = new Tile[Factory.chunkSize];
+            int cidx = 0;
             for (int y=0;y<res[x].Length;y++)
             {
-                res[x][y] = getTile(chunk[x][y], fact);
+                if (chunk[x][cidx][0] == 'g' && chunk[x][cidx].Length > 1)
+                {
+                    int num = fact.parseInt(chunk[x][cidx].Substring(1));
+                    for (int i=0;i<num;i++)
+                    {
+                        res[x][y] = getTile("g", fact);
+                        y++;
+                    }
+                    y--;
+                } else
+                {
+                    res[x][y] = getTile(chunk[x][cidx], fact);
+                }
+                cidx++;
             }
         }
         return res;
