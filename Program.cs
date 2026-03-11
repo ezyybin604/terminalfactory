@@ -6,8 +6,6 @@ namespace terminalfactory;
 
 // todo:
 /*
-    i sure do hope theres no bugs when its time for arcade (:pray:)
-
     - world ticking
     - splitter of items when i do logistics
     - passthrough pipes too
