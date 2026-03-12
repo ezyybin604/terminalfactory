@@ -155,15 +155,15 @@ class Game
     {
         int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
         int h = (int)Math.Ceiling((double)((Console.WindowHeight-2)/Factory.chunkSize));
-        w+=2;
-        h+=2;
+        w+=3;
+        h+=3;
         int sx = (int)Math.Floor((double)(scroll.x/Factory.chunkSize));
         int sy = (int)Math.Floor((double)(scroll.y/Factory.chunkSize));
-        for (int x=0;x<w;x++)
+        for (int x=-1;x<w;x++)
         {
-            for (int y=0;y<h;y++)
+            for (int y=-1;y<h;y++)
             {
-                factory.generateChunk(x+sx, y+sy);
+                factory.generateChunk(Math.Max(x+sx, 0), y+sy);
             }
         }
     }
@@ -838,11 +838,11 @@ Nobody follows, so to keep secrecy while you travel.
             }
             if (scene != "pause")
             {
-                if (timer%10 == 0)
+                if (timer%50 == 0)
                 {
                     factory.updateMachines();
                 }
-                factory.tickMachines();
+                factory.tickStuff();
             }
             if (scene == "game")
             {
@@ -855,7 +855,7 @@ Nobody follows, so to keep secrecy while you travel.
                 readkeylog.RemoveAt(0);
             }
             timer++;
-            timer = Math.Max(-1, timer);
+            timer = Math.Max(0, timer);
             Thread.Sleep(50);
         }
         if (specialMode != "demo")

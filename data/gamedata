@@ -57,6 +57,7 @@ M.comp=Composter,comp
 M.stor=Storage Unit,stor
 M.sltr=Salter,sltr
 M.mixr=Mixer,mixr
+M.sscf=Super Scale Collection Facility,sscf
 !! 
 
 !itemToBlock
@@ -75,6 +76,7 @@ comp=M.comp
 stor=M.stor
 sltr=M.sltr
 mixr=M.mixr
+sscf=M.sscf
 # machine stuff
 worldintr=@
 pipe=h
@@ -146,6 +148,7 @@ comp=Composter
 stor=Storage Unit
 sltr=Salter
 mixr=Mixer
+sscf=Super Scale Collection Facility
 #other
 copper=Copper
 iron=Iron
@@ -212,6 +215,7 @@ sltr=x192,circ
 puri=x256,circ
 ogen=x256,circ,x8,frium
 dist=x512,circ
+sscf=x1024,circ,x16,frium
 carb=x2048,circ,carbon
 lasr=x8192,circ,x128,glass
 !! 

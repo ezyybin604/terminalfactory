@@ -64,6 +64,12 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(0, -1),
         new Point(0, 1)
     ];
+    Point[] arrowOffset = [ // v^><
+        new Point(0, 1),
+        new Point(0, -1),
+        new Point(1, 0),
+        new Point(-1, 0),
+    ];
     private int getWaterValue(string item)
     {
         if (item.Length == 4)
@@ -125,10 +131,15 @@ class Factory // factory data / big verbose stuff related to factory
     }
     private Point getRegion(Point point)
     {
-        return new Point(
+        Point reg = new Point(
             ((int)Math.Floor((double)(point.x/regionArea)))*3,
             ((int)Math.Floor((double)(point.y/regionArea)))*3
         );
+        if (point.y < 0)
+        {
+            reg.y--;
+        }
+        return reg;
     }
     public int parseInt(string inp)
     { // i didnt want to copy it and have the same thing twice
@@ -366,6 +377,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             index.y+=chunkSize;
             index.y%=chunkSize;
+            chunk.y--;
         }
         return world[chunk.x][chunk.y][index.x][index.y];
     }
@@ -386,6 +398,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             index.y+=chunkSize;
             index.y%=chunkSize;
+            chunk.y--;
         }
         world[chunk.x][chunk.y][index.x][index.y] = tl;
     }
@@ -903,7 +916,7 @@ class Factory // factory data / big verbose stuff related to factory
                     Slot[] recipe = inputInventory.getRecipe(rid, mach.selectedRecipe);
                     if (inputInventory.verifyRecipe(recipe))
                     {
-                        if (startMachine(mach, core.subtype)) // has enough energy?
+                        if (!mach.runningRecipe && startMachine(mach, core.subtype)) // has enough energy?
                         {
                             inputInventory.removeItems(recipe);
                             // restore inventory to inputs
@@ -930,7 +943,7 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     case "cgen": case "ogen":
                         string consumed = gd.getFromKey("generatorMaterial", core.subtype);
-                        if (mach.inputs.Count == 1 && mach.output != null)
+                        if (!mach.runningRecipe && mach.inputs.Count == 1 && mach.output != null)
                         {
                             Tile tile = giveMeTheTile(mach.inputs[0]);
                             Tile outputTile = giveMeTheTile(mach.output);
@@ -948,7 +961,7 @@ class Factory // factory data / big verbose stuff related to factory
                         {
                             cat = "tileToItem";
                         }
-                        if (mach.output != null && mach.worldInteractor != null)
+                        if (mach.output != null && mach.worldInteractor != null && !mach.runningRecipe)
                         {
                             Tile wi = giveMeTheTile(mach.worldInteractor);
                             string witi = wi.type.ToString() + "." + wi.subtype;
@@ -999,7 +1012,7 @@ class Factory // factory data / big verbose stuff related to factory
                                     validItems = false;
                                 }
                             }
-                            if (validItems)
+                            if (validItems && !mach.runningRecipe)
                             {
                                 mach.selectedRecipe = "@mfr"+ing[0]+","+ing[1];
                                 if (startMachine(mach, core.subtype))
@@ -1024,7 +1037,7 @@ class Factory // factory data / big verbose stuff related to factory
                                 input.amount--;
                             }
                         }
-                        if (mach.startedRecipe > 1000)
+                        if (mach.startedRecipe > 1000 && !mach.runningRecipe)
                         {
                             mach.number -= 1000;
                             mach.selectedRecipe = "compo";
@@ -1059,7 +1072,20 @@ class Factory // factory data / big verbose stuff related to factory
                 }
             }
         }
+        tickMachIO(mac);
         machines[mac] = mach; // is this redundant? (i see the changes in debugger without this)
+    }
+    private void tickMachIO(Point mac)
+    {
+        Machine mach = machines[mac];
+        if (mach.isFormed)
+        {
+            if (mach.output != null) nextUpdateTick.Add((Point)mach.output);
+            for (int i=0;i<mach.inputs.Count;i++)
+            {
+                nextUpdateTick.Add(mach.inputs[i]);
+            }
+        }
     }
     public void tickMachines()
     {
@@ -1082,7 +1108,7 @@ class Factory // factory data / big verbose stuff related to factory
                             mac.runningRecipe = false;
                             output.subtype = "energy";
                             output.amount += parseInt(gd.getFromKey("generatorOutput", core.subtype));
-                            updateMachine(macp[i]);
+                            tickMachIO(macp[i]);
                             break;
                         default:
                             mac.runningRecipe = false;
@@ -1091,7 +1117,7 @@ class Factory // factory data / big verbose stuff related to factory
                                 output.subtype = mac.selectedRecipe;
                                 output.amount++;
                             }
-                            updateMachine(macp[i]);
+                            tickMachIO(macp[i]);
                             break;
                     }
                 }
@@ -1113,6 +1139,7 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public void tickStuff()
     {
+        tickMachines();
         HashSet<Point> tickNow = copyHashPoint(nextUpdateTick);
         List<Point> tilesTick = nextUpdateTick.ToList();
         foreach (Point tp in tilesTick)
@@ -1141,6 +1168,23 @@ class Factory // factory data / big verbose stuff related to factory
         List<Point> tickLater = new List<Point>();
         Tile tct = giveMeTheTile(tp);
         // @ticktile
+        switch (tct.type)
+        {
+            case '+': // input
+                // map arrow to machine and update machine
+                if (tct.prog > 0)
+                {
+                    Point macht = tp.getTransform(arrowOffset[tct.prog-1]);
+                    Tile tile = giveMeTheTile(macht);
+                    if (tile.type == 'M')
+                    {
+                        updateMachine(macht);
+                    }
+                }
+                break;
+            case '-': // output
+                break;
+        }
         return tickLater.ToArray();
     }
 }
