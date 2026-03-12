@@ -705,10 +705,13 @@ Nobody follows, so to keep secrecy while you travel.
                             Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
                             if (inventory.verifyRecipe(recipe) || specialMode == "creative")
                             {
-                                if (inventory.addItem(new Slot(result)) && specialMode != "creative")
+                                if (inventory.addItem(new Slot(result)))
                                 {
                                     topbar.changeTip(String.Format("/gx{0} {1}", inventory.getItemAmount(result), factory.getItemName(result)), 2, 4500);
-                                    inventory.removeItems(recipe);
+                                    if (specialMode != "creative")
+                                    {
+                                        inventory.removeItems(recipe);
+                                    }
                                 }
                             } else
                             {
