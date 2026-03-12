@@ -224,6 +224,10 @@ containerTile=p+-
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
 chooseADefault=puri,dist,carb,lasr,comp
+#pipe tags: towards, backwards, dynamix
+pipeT=+]S
+pipeB=-
+pipeD=p
 !! 
 
 # pump

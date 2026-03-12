@@ -18,6 +18,7 @@ p: pipe (subtype determines direction)
 M: machine
 h: handle this pipe, make it face towards any adjacent things
 o: building stone
+S: splitter (outputs to machine output)
 */
 
 // Chunk: Tile[x][y] data;
@@ -43,7 +44,7 @@ class Factory // factory data / big verbose stuff related to factory
     Random rng = new Random();
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
-    public const int regionArea = 8;
+    public const int regionArea = 16;
     public const int defaultOutputLimit = 100; // max items in output (default number)
     public int energyInNetwork = 0;
     public const int maxEnergy = int.MaxValue-2000; // in network
@@ -52,6 +53,7 @@ class Factory // factory data / big verbose stuff related to factory
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
+    public HashSet<Point> nextUpdateTick = new HashSet<Point>();
     Point[] machineArea = [
         new Point(1, -1),
         new Point(1, 1),
@@ -419,6 +421,41 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return 0;
     }
+    private int getPipeDir(Point p)
+    {
+        // 0,1,2,3,4
+        int direction = 0;
+        Tile ctl = giveMeTheTile(p);
+        for (int i=4;i<machineArea.Length;i++)
+        {
+            Point pt = p.getTransform(machineArea[i]);
+            Tile tile = giveMeTheTile(pt);
+            if (gd.getFromKey("tags", "pipeT").Contains(tile.type))
+            {
+                // towards
+                direction = getArrow(machineArea[i].getReverse())-1;
+            } else if (gd.getFromKey("tags", "pipeB").Contains(tile.type))
+            {
+                // backwards
+                direction = getArrow(machineArea[i])+3; // if dir > 3 its backwards
+            } else if (gd.getFromKey("tags", "pipeD").Contains(tile.type))
+            {
+                // dynamic tile.prog == ctl.prog
+                if (tile.prog > 3)
+                {
+                    direction = getArrow(machineArea[i])+3;
+                    tile.prog = direction;
+                    setTile(pt, tile);
+                    linesToUpdate.Add(pt.y);
+                } else
+                {
+                    direction = getArrow(machineArea[i].getReverse())-1;
+                }
+            }
+            direction = Math.Max(0, direction);
+        }
+        return direction;
+    }
     public void displayLine(int y, Point cursor, Point scroll)
     {
         string[] lineResult;
@@ -464,7 +501,7 @@ class Factory // factory data / big verbose stuff related to factory
                 color = true;
                 colorNow = false;
             }
-            if ("@+-*".Contains(t.type))
+            if ("@+-*p".Contains(t.type))
             {
                 if (continueText && !color)
                 {
@@ -473,9 +510,15 @@ class Factory // factory data / big verbose stuff related to factory
                 currentColor = "cyan";
                 color = true;
                 colorNow = false;
-                if (t.type == '+' || t.type == '-')
+                string arrowmap = "?v^><";
+                if (t.type == 'p')
                 {
-                    addChar = "?v^><"[t.prog];
+                    arrowmap = arrowmap.Substring(1, arrowmap.Length-1);
+                    currentColor = "white";
+                }
+                if (t.type == '+' || t.type == '-' || t.type == 'p')
+                {
+                    addChar = arrowmap[t.prog%arrowmap.Length];
                 }
             }
             if (t.type == 'M')
@@ -653,7 +696,7 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public bool placeTile(int? usingItem, Point cursor)
     {
-        if (usingItem != null && cursor.x > 1)
+        if (usingItem != null && cursor.x > 0)
         {
             int invlen = inventory.fix();
             Tile tile = new Tile();
@@ -666,6 +709,11 @@ class Factory // factory data / big verbose stuff related to factory
                 if (infol.Length == 2)
                 {
                     tile.subtype = infol[1];
+                }
+                if (tile.type == 'h')
+                {
+                    tile.type = 'p';
+                    tile.prog = getPipeDir(cursor);
                 }
                 inventory.data[(int)usingItem].num--;
                 setTile(cursor, tile);
@@ -729,6 +777,7 @@ class Factory // factory data / big verbose stuff related to factory
             bool runningRecipe = false
         */
         Machine mach = machines[mac];
+        bool wasFormed = mach.isFormed;
         Tile core = giveMeTheTile(mac);
         if (core.type != 'M')
         {
@@ -807,6 +856,10 @@ class Factory // factory data / big verbose stuff related to factory
         if (core.subtype != "niem" && (mach.output == null || mach.inputs.Count == 0))
         {
             mach.isFormed = false;
+        }
+        if (mach.isFormed != wasFormed)
+        {
+            linesToUpdate.Add(mac.y);
         }
         bool machRecipes = gd.getFromKey("tags", "macWrecipe").Split(",").Contains(core.subtype);
         string rid = core.subtype + "Recipes";
@@ -1047,6 +1100,48 @@ class Factory // factory data / big verbose stuff related to factory
                 mac.startedRecipe++;
             }
         }
+    }
+    private HashSet<Point> copyHashPoint(HashSet<Point> inp)
+    {
+        HashSet<Point> hs = new HashSet<Point>();
+        Point[] inpa = inp.ToArray();
+        for (int i=0;i<inpa.Length;i++)
+        {
+            hs.Add(new Point(inpa[i]));
+        }
+        return hs;
+    }
+    public void tickStuff()
+    {
+        HashSet<Point> tickNow = copyHashPoint(nextUpdateTick);
+        List<Point> tilesTick = nextUpdateTick.ToList();
+        foreach (Point tp in tilesTick)
+        {
+            // did you know: i used the ~ symbol to seperate stuff for sublists in scratch
+            Point[] li = tickTile(tp);
+            foreach (Point p in li)
+            {
+                tickNow.Add(p);
+            }
+        }
+        tilesTick = tickNow.ToList();
+        while (tilesTick.Count > 0)
+        {
+            Point tp = tilesTick[0];
+            Point[] li = tickTile(tp);
+            foreach (Point p in li)
+            {
+                tickNow.Add(p);
+            }
+            tilesTick.RemoveAt(0);
+        }
+    }
+    private Point[] tickTile(Point tp)
+    {
+        List<Point> tickLater = new List<Point>();
+        Tile tct = giveMeTheTile(tp);
+        // @ticktile
+        return tickLater.ToArray();
     }
 }
 

@@ -6,13 +6,12 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - world ticking
+    - world ticking (resume at FactoryRunner.cs -> @ticktile)
     - splitter of items when i do logistics
     - passthrough pipes too
-    - make the machines do recipes/io stuff (doin this one)
-    - pipe stuff (and energy)
+    - make the machines do recipes/io stuff (make mach out push items)
+    - make pipes move items
     - tile updates, this tick and next tick updates
-    - make functions to determine the value of food/water
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - remove repetition where theres a lot of it
     - better tutorial that explains things more
@@ -708,6 +707,7 @@ Nobody follows, so to keep secrecy while you travel.
                             {
                                 if (inventory.addItem(new Slot(result)) && specialMode != "creative")
                                 {
+                                    topbar.changeTip(String.Format("/gx{0} {1}", inventory.getItemAmount(result), factory.getItemName(result)), 2, 4500);
                                     inventory.removeItems(recipe);
                                 }
                             } else
@@ -908,6 +908,7 @@ Nobody follows, so to keep secrecy while you travel.
             while (inp == null)
             {
                 Console.Clear();
+                game.hi();
                 Console.WriteLine("A save was found. Load a different one?\n(Press ENTER for default):");
                 inp = Console.ReadLine();
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
