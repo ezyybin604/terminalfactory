@@ -132,14 +132,14 @@ class Factory // factory data / big verbose stuff related to factory
     private Point getRegion(Point point)
     {
         Point reg = new Point(
-            ((int)Math.Floor((double)(point.x/regionArea)))*3,
-            ((int)Math.Floor((double)(point.y/regionArea)))*3
+            (int)Math.Floor((double)(point.x/regionArea)),
+            (int)Math.Floor((double)(point.y/regionArea))
         );
         if (point.y < 0)
         {
             reg.y--;
         }
-        return reg;
+        return reg.getMultiply(regionArea);
     }
     public int parseInt(string inp)
     { // i didnt want to copy it and have the same thing twice
@@ -158,11 +158,11 @@ class Factory // factory data / big verbose stuff related to factory
         world.Keys.CopyTo(yposb, 0);
         for (int x=0;x<yposb.Length;x++)
         {
-            xposb = new int[world[x].Keys.Count];
+            xposb = new int[world[yposb[x]].Keys.Count];
             world[x].Keys.CopyTo(xposb, 0);
-            for (int y=0;y<yposb.Length;y++)
+            for (int y=0;y<xposb.Length;y++)
             {
-                regions.Add(getRegion(new Point(x, y)));
+                regions.Add(getRegion(new Point(yposb[x], xposb[y])));
             }
         }
         return regions.ToList();
