@@ -25,15 +25,15 @@ S: splitter (outputs to machine output)
 
 public class Machine
 {
-    public bool isFormed = false;
-    public List<Point> inputs = new List<Point>();
-    public Point? output = null;
-    public Point? worldInteractor = null;
-    public Point? energyPort = null;
-    public bool runningRecipe = false;
-    public string selectedRecipe = ""; // no recipe
-    public int startedRecipe = 0;
-    public int number = 0;
+    public bool isFormed { get; set; } = false;
+    public List<Point> inputs { get; set; } = new List<Point>();
+    public Point? output { get; set; } = null;
+    public Point? worldInteractor { get; set; } = null;
+    public Point? energyPort { get; set; } = null;
+    public bool runningRecipe { get; set; } = false;
+    public string selectedRecipe { get; set; } = ""; // no recipe
+    public int startedRecipe { get; set; } = 0;
+    public int number { get; set; } = 0;
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -45,7 +45,7 @@ class Factory // factory data / big verbose stuff related to factory
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
     public const int regionArea = 16;
-    public const int defaultOutputLimit = 100; // max items in output (default number)
+    public const int defaultItemLimit = 1000000; // max items in output/input/pipe (default number)
     public int energyInNetwork = 0;
     public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
@@ -766,8 +766,8 @@ class Factory // factory data / big verbose stuff related to factory
     }
     private bool startMachine(Machine mac, string subt)
     {
-        int totalEnergyConsumed = parseInt(gd.getFromKey("generatorOutput", subt)) * parseInt(gd.getFromKey("machineTime", subt));
-        if (mac.energyPort != null && giveMeTheTile(mac.energyPort).amount >= totalEnergyConsumed)
+        int totalEnergyConsumed = parseInt(gd.getFromKey("energyConsume", subt)) * parseInt(gd.getFromKey("machineTime", subt));
+        if (totalEnergyConsumed < 1 || (mac.energyPort != null && giveMeTheTile(mac.energyPort).amount >= totalEnergyConsumed))
         {
             mac.runningRecipe = true;
             mac.startedRecipe = 0;
@@ -1063,7 +1063,7 @@ class Factory // factory data / big verbose stuff related to factory
                         if (mach.output != null && mach.number > 0)
                         {
                             Tile tile = giveMeTheTile(mach.output);
-                            int giveItem = Math.Min(mach.number, defaultOutputLimit-tile.amount);
+                            int giveItem = Math.Min(mach.number, defaultItemLimit-tile.amount);
                             tile.amount += giveItem;
                             mach.number -= giveItem;
                             setTile(mach.output, tile);
@@ -1183,6 +1183,26 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 break;
             case '-': // output
+                if (tct.prog > 0 && tct.amount > 0)
+                {
+                    Point pto = tp.getTransform(arrowOffset[tct.prog-1]);
+                    Tile tile = giveMeTheTile(pto);
+                    if (tile.type == 'p' && tct.subtype != "energy")
+                    {
+                        // put pipe
+                    } else if (tile.type == '~' && tct.subtype == "energy")
+                    {
+                        // put cable
+                        int giveEnergy = Math.Min(tct.amount, defaultItemLimit-tile.amount);
+                        if (giveEnergy > 0)
+                        {
+                            tct.amount -= giveEnergy;
+                            tile.amount += giveEnergy;
+                            setTile(pto, tile);
+                            setTile(tp, tct);
+                        }
+                    }
+                }
                 break;
         }
         return tickLater.ToArray();
