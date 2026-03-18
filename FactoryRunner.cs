@@ -25,15 +25,15 @@ S: splitter (outputs to machine output)
 
 public class Machine
 {
-    public bool isFormed { get; set; } = false;
-    public List<Point> inputs { get; set; } = new List<Point>();
-    public Point? output { get; set; } = null;
-    public Point? worldInteractor { get; set; } = null;
-    public Point? energyPort { get; set; } = null;
-    public bool runningRecipe { get; set; } = false;
-    public string selectedRecipe { get; set; } = ""; // no recipe
-    public int startedRecipe { get; set; } = 0;
-    public int number { get; set; } = 0;
+    public bool isFormed = false;
+    public List<Point> inputs = new List<Point>();
+    public Point? output = null;
+    public Point? worldInteractor = null;
+    public Point? energyPort = null;
+    public bool runningRecipe = false;
+    public string selectedRecipe = ""; // no recipe
+    public int startedRecipe = 0;
+    public int number = 0;
 }
 
 class Factory // factory data / big verbose stuff related to factory
@@ -1109,6 +1109,7 @@ class Factory // factory data / big verbose stuff related to factory
                             output.subtype = "energy";
                             output.amount += parseInt(gd.getFromKey("generatorOutput", core.subtype));
                             tickMachIO(macp[i]);
+                            setTile(mac.output, output);
                             break;
                         default:
                             mac.runningRecipe = false;
@@ -1116,6 +1117,7 @@ class Factory // factory data / big verbose stuff related to factory
                             {
                                 output.subtype = mac.selectedRecipe;
                                 output.amount++;
+                                setTile(mac.output, output);
                             }
                             tickMachIO(macp[i]);
                             break;

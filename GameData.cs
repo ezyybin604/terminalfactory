@@ -1,5 +1,6 @@
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace terminalfactory;
 
@@ -127,7 +128,8 @@ class FileManagement
         object? result = null;
         if (File.Exists(file))
         {
-            result = JsonSerializer.Deserialize(File.ReadAllText(file), type);
+            string data = File.ReadAllText(file);
+            result = JsonSerializer.Deserialize(data, type);
         }
         if (result == null)
         {
@@ -255,6 +257,7 @@ class FileManagement
         }
         return res;
     }
+    JsonPointInterface jsp = new JsonPointInterface();
     private Point getPointIndex(int inp)
     {
         return new Point(inp%Factory.regionArea, (int)Math.Floor((double)(inp/Factory.regionArea)));
@@ -266,10 +269,10 @@ class FileManagement
         string save = fact.savefile;
         saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data)});
         MachineCursor machineCursor = new MachineCursor{
-            macsk = Array.Empty<Point>(),
-            macsv = Array.Empty<Machine>(),
-            cursor = new JsonPoint(cursor),
-            camera = new JsonPoint(camera),
+            macsk = Array.Empty<string>(),
+            macsv = Array.Empty<MachineJson>(),
+            cursor = jsp.getJs(cursor),
+            camera = jsp.getJs(camera),
             energyInNetwork = fact.energyInNetwork
         };
         machineCursor.applyDictionary(fact.machines);
@@ -279,7 +282,7 @@ class FileManagement
         {
             Region region = new Region{
                 data = new string[regionLength][][],
-                regionLocation = new JsonPoint(regions[i])
+                regionLocation = jsp.getJs(regions[i])
             };
             for (int p=0;p<regionLength;p++)
             {
@@ -299,13 +302,13 @@ class FileManagement
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {
                 data = new string[regionLength][][],
-                regionLocation = new JsonPoint()
+                regionLocation = jsp.getJs()
             });
             for (int x=0;x<region.data.Length;x++)
             {
                 if (region.data[x].Length > 0)
                 {
-                    Point chunkLoc = region.regionLocation.getPoint().getTransform(getPointIndex(x));
+                    Point chunkLoc = jsp.getPoint(region.regionLocation).getTransform(getPointIndex(x));
                     fact.placeChunk(chunkLoc, convertChunk(region.data[x], fact));
                 }
             }
@@ -322,19 +325,19 @@ class FileManagement
     {
         MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor
         {
-            cursor = new JsonPoint(),
-            camera = new JsonPoint(),
-            macsk = Array.Empty<Point>(),
-            macsv = Array.Empty<Machine>()
+            cursor = jsp.getJs(),
+            camera = jsp.getJs(),
+            macsk = Array.Empty<string>(),
+            macsv = Array.Empty<MachineJson>()
         });
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
-        return [deser.cursor.getPoint(), deser.camera.getPoint()];
+        return [jsp.getPoint(deser.cursor), jsp.getPoint(deser.camera)];
     }
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
-public class JsonPoint
+/*public class JsonPoint
 {
     public int x { get; set; }
     public int y { get; set; }
@@ -343,10 +346,59 @@ public class JsonPoint
         x = point.x;
         y = point.y;
     }
-    public JsonPoint() {}
+    public JsonPoint()
+    {
+        x = 0;
+        y = 0;
+    }
     public Point getPoint()
     {
         return new Point(x, y);
+    }
+}*/
+class JsonPointInterface
+{// add to everything later
+    public int parseInt(string inp)
+    { // Yoink
+        int res;
+        if (!int.TryParse(inp, out res))
+        {
+            return 0;
+        }
+        return res;
+    }
+    public string getJs(Point p)
+    {
+        return p.x.ToString() + "," + p.y.ToString();
+    }
+    public string getJs()
+    {
+        return getJs(new Point());
+    }
+    public string getJs(Point? p)
+    {
+        if (p == null)
+        {
+            return getJs();
+        }
+        return getJs((Point)p);
+    }
+    public Point getPoint(string p)
+    {
+        string[] dec = p.Split(",");
+        if (dec.Length < 2)
+        {
+            return new Point();
+        }
+        return new Point(parseInt(dec[0]), parseInt(dec[1]));
+    }
+    public Point? getPointNull(string p, bool nil)
+    {
+        if (nil)
+        {
+            return null;
+        }
+        return getPoint(p);
     }
 }
 public class JsonSlot
@@ -372,40 +424,96 @@ public class InventoryData
 
 public class Region
 { // jsonserialize REALLY wants me to use { get; set; } so im going to blindly paste it all over my data classes
-    required public JsonPoint regionLocation { get; set; }
+    required public string regionLocation { get; set; }
     required public string[][][] data { get; set; } // data = new string[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
+}
+public class MachineJson // whyd i forget that this uses point and not jsonpoint this is so goofy
+{
+    public bool isFormed { get; set; }
+    public string[] inputs { get; set; }
+    public string output { get; set; }
+    public string worldInteractor { get; set; }
+    public string energyPort { get; set; }
+    public bool[] isNull { get; set; } = [false, false, false]; // output, wi, ep
+    public bool runningRecipe { get; set; }
+    public string selectedRecipe { get; set; }
+    public int startedRecipe { get; set; }
+    public int number { get; set; }
+    public MachineJson(Machine mac)
+    {
+        JsonPointInterface jsp = new JsonPointInterface();
+        isFormed = mac.isFormed;
+        inputs = new string[mac.inputs.Count];
+        for (int i=0;i<inputs.Length;i++)
+        {
+            inputs[i] = jsp.getJs(mac.inputs[i]);
+        }
+        output = jsp.getJs(mac.output);
+        worldInteractor = jsp.getJs(mac.worldInteractor);
+        energyPort = jsp.getJs(mac.energyPort);
+        isNull = [false, false, false];
+        if (mac.energyPort == null) isNull[2] = true;
+        if (mac.worldInteractor == null) isNull[1] = true;
+        if (mac.output == null) isNull[0] = true;
+        runningRecipe = mac.runningRecipe;
+        selectedRecipe = mac.selectedRecipe;
+        startedRecipe = mac.startedRecipe;
+        number = mac.number;
+    }
+    public Machine returnMachine()
+    {
+        JsonPointInterface jsp = new JsonPointInterface();
+        Machine mach = new Machine();
+        mach.isFormed = isFormed;
+        foreach (string p in inputs)
+        {
+            mach.inputs.Add(jsp.getPoint(p));
+        }
+        mach.output = jsp.getPointNull(output, isNull[0]);
+        mach.worldInteractor = jsp.getPointNull(worldInteractor, isNull[1]);
+        mach.energyPort = jsp.getPointNull(energyPort, isNull[2]);
+        mach.runningRecipe = runningRecipe;
+        mach.selectedRecipe = selectedRecipe;
+        mach.startedRecipe = startedRecipe;
+        mach.number = number;
+        return mach;
+    }
 }
 public class MachineCursor
 {
-    required public JsonPoint cursor { get; set; }
-    required public JsonPoint camera { get; set; }
-    required public Point[] macsk { get; set; }
-    required public Machine[] macsv { get; set; }
-    public int energyInNetwork { get; set; } = 0;
-    /*public MachineCursor(Dictionary<Point, Machine> macs, Point cursorp, Point camerap, Point ma) {
-        cursor = cursorp;
-        camera = camerap;
-    }*/
+    required public string cursor { get; set; }
+    required public string camera { get; set; }
+    required public string[] macsk { get; set; }
+    required public MachineJson[] macsv { get; set; }
+    public int energyInNetwork { get; set; }
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
-        macsk = new Point[macs.Count];
-        macsv = new Machine[macs.Count];
-        macs.Keys.CopyTo(macsk, 0);
+        JsonPointInterface jsp = new JsonPointInterface();
+        macsk = new string[macs.Count];
+        macsv = new MachineJson[macs.Count];
+        Point[] keysog = new Point[macs.Count];
+        //macs.Keys.CopyTo(macsk, 0);
+        macs.Keys.CopyTo(keysog, 0);
+        for (int i=0;i<macs.Count;i++)
+        {
+            macsk[i] = jsp.getJs(keysog[i]);
+        }
         for (int i=0;i<macsk.Length;i++)
         {
-            macsv[i] = macs[macsk[i]];
+            macsv[i] = new MachineJson(macs[keysog[i]]);
         }
     }
     public MachineCursor() {
-        macsk = Array.Empty<Point>();
-        macsv = Array.Empty<Machine>();
+        macsk = Array.Empty<string>();
+        macsv = Array.Empty<MachineJson>();
     }
     public Dictionary<Point, Machine> returnMachines()
     {
+        JsonPointInterface jsp = new JsonPointInterface();
         Dictionary<Point, Machine> res = new Dictionary<Point, Machine>();
         for (int i=0;i<macsk.Length;i++)
         {
-            res[macsk[i]] = macsv[i];
+            res[jsp.getPoint(macsk[i])] = macsv[i].returnMachine();
         }
         return res;
     }

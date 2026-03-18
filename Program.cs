@@ -202,7 +202,7 @@ Nobody follows, so to keep secrecy while you travel.
             "Press O to place",
             "Press I to open inventory",
             "Press L to view tile contents/view recipe",
-            "Press M to exhange contents with tile",
+            "Press J to exhange contents with tile",
             "Also press M to select machine recipe"
         ]);
         topbar.tips.Add("pause", [
@@ -576,11 +576,11 @@ Nobody follows, so to keep secrecy while you travel.
                         if (tic.amount > 0 && factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
                         {
                             string tip = "x" + tic.amount.ToString() + " " + factory.getItemName(tic.subtype);
-                            topbar.changeTip(2, tip);
+                            topbar.changeTip(tip, 2, 3000);
                         } else if (tic.type == 'M')
                         {
                             string tip = "Recipe: " + factory.getItemName(factory.machines[cursor].selectedRecipe);
-                            topbar.changeTip(2, tip);
+                            topbar.changeTip(tip, 2, 3000);
                         }
                         break;
                     case 'j': // exchange / select recipe for machine
