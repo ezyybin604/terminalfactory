@@ -337,25 +337,6 @@ class FileManagement
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
-/*public class JsonPoint
-{
-    public int x { get; set; }
-    public int y { get; set; }
-    public JsonPoint(Point point)
-    {
-        x = point.x;
-        y = point.y;
-    }
-    public JsonPoint()
-    {
-        x = 0;
-        y = 0;
-    }
-    public Point getPoint()
-    {
-        return new Point(x, y);
-    }
-}*/
 class JsonPointInterface
 {// add to everything later
     public int parseInt(string inp)
@@ -429,52 +410,56 @@ public class Region
 }
 public class MachineJson // whyd i forget that this uses point and not jsonpoint this is so goofy
 {
-    public bool isFormed { get; set; }
+    public int formed { get; set; } // boolean
     public string[] inputs { get; set; }
     public string output { get; set; }
-    public string worldInteractor { get; set; }
+    public string worldinteractor { get; set; }
     public string energyPort { get; set; }
-    public bool[] isNull { get; set; } = [false, false, false]; // output, wi, ep
-    public bool runningRecipe { get; set; }
-    public string selectedRecipe { get; set; }
-    public int startedRecipe { get; set; }
+    public string isnull { get; set; } // output, wi, ep (000, 010 format)
+    public int runningrecipe { get; set; } // boolean
+    public string selectedrecipe { get; set; }
+    public int startedrecipe { get; set; }
     public int number { get; set; }
+    public string stringCharSubt(string s, int i, char c)
+    {
+        return s.Substring(0, i) + c + s.Substring(Math.Min(i+1, s.Length-1), Math.Max(s.Length-i-1, 0));
+    }
     public MachineJson(Machine mac)
     {
         JsonPointInterface jsp = new JsonPointInterface();
-        isFormed = mac.isFormed;
+        formed = mac.isFormed ? 1 : 0;
         inputs = new string[mac.inputs.Count];
         for (int i=0;i<inputs.Length;i++)
         {
             inputs[i] = jsp.getJs(mac.inputs[i]);
         }
         output = jsp.getJs(mac.output);
-        worldInteractor = jsp.getJs(mac.worldInteractor);
+        worldinteractor = jsp.getJs(mac.worldInteractor);
         energyPort = jsp.getJs(mac.energyPort);
-        isNull = [false, false, false];
-        if (mac.energyPort == null) isNull[2] = true;
-        if (mac.worldInteractor == null) isNull[1] = true;
-        if (mac.output == null) isNull[0] = true;
-        runningRecipe = mac.runningRecipe;
-        selectedRecipe = mac.selectedRecipe;
-        startedRecipe = mac.startedRecipe;
+        isnull = "000";
+        if (mac.energyPort == null) isnull = stringCharSubt(isnull, 2, '1');
+        if (mac.worldInteractor == null) isnull = stringCharSubt(isnull, 1, '1');
+        if (mac.output == null) isnull = stringCharSubt(isnull, 0, '1');
+        runningrecipe = mac.runningRecipe ? 1 : 0;
+        selectedrecipe = mac.selectedRecipe;
+        startedrecipe = mac.startedRecipe;
         number = mac.number;
     }
     public Machine returnMachine()
     {
         JsonPointInterface jsp = new JsonPointInterface();
         Machine mach = new Machine();
-        mach.isFormed = isFormed;
+        mach.isFormed = formed == 1;
         foreach (string p in inputs)
         {
             mach.inputs.Add(jsp.getPoint(p));
         }
-        mach.output = jsp.getPointNull(output, isNull[0]);
-        mach.worldInteractor = jsp.getPointNull(worldInteractor, isNull[1]);
-        mach.energyPort = jsp.getPointNull(energyPort, isNull[2]);
-        mach.runningRecipe = runningRecipe;
-        mach.selectedRecipe = selectedRecipe;
-        mach.startedRecipe = startedRecipe;
+        mach.output = jsp.getPointNull(output, isnull[0] == '1');
+        mach.worldInteractor = jsp.getPointNull(worldinteractor, isnull[1] == '1');
+        mach.energyPort = jsp.getPointNull(energyPort, isnull[2] == '1');
+        mach.runningRecipe = runningrecipe == 1;
+        mach.selectedRecipe = selectedrecipe;
+        mach.startedRecipe = startedrecipe;
         mach.number = number;
         return mach;
     }
