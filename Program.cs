@@ -13,7 +13,6 @@ namespace terminalfactory;
     - make pipes move items
     - tile updates, this tick and next tick updates
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - remove repetition where theres a lot of it
     - better tutorial that explains things more
 */
 
