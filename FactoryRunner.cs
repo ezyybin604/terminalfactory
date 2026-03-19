@@ -77,7 +77,7 @@ class Factory // factory data / big verbose stuff related to factory
             if (item.Substring(0, 3) == "wat")
             {
                 // raw food
-                return 4*((int)Math.Pow(4, parseInt(item.Substring(3))-1));
+                return 4*((int)Math.Pow(4, JPI.parseInt(item.Substring(3))-1));
             }
         }
         return 0;
@@ -89,7 +89,7 @@ class Factory // factory data / big verbose stuff related to factory
             if (item.Substring(0, 2) == "fr")
             {
                 // raw food
-                return (int)Math.Pow(parseInt(item.Substring(2)), 3);
+                return (int)Math.Pow(JPI.parseInt(item.Substring(2)), 3);
             } else if (item.Substring(0, 2) == "sf")
             {
                 return getFoodValue("fr " + item.Substring(2))*2;
@@ -140,15 +140,6 @@ class Factory // factory data / big verbose stuff related to factory
             reg.y--;
         }
         return reg.getMultiply(regionArea);
-    }
-    public int parseInt(string inp)
-    { // i didnt want to copy it and have the same thing twice
-        int res;
-        if (!int.TryParse(inp, out res))
-        {
-            return 0;
-        }
-        return res;
     }
     public List<Point> getRegions()
     {
@@ -766,7 +757,7 @@ class Factory // factory data / big verbose stuff related to factory
     }
     private bool startMachine(Machine mac, string subt)
     {
-        int totalEnergyConsumed = parseInt(gd.getFromKey("energyConsume", subt)) * parseInt(gd.getFromKey("machineTime", subt));
+        int totalEnergyConsumed = JPI.parseInt(gd.getFromKey("energyConsume", subt)) * JPI.parseInt(gd.getFromKey("machineTime", subt));
         if (totalEnergyConsumed < 1 || (mac.energyPort != null && giveMeTheTile(mac.energyPort).amount >= totalEnergyConsumed))
         {
             mac.runningRecipe = true;
@@ -980,7 +971,7 @@ class Factory // factory data / big verbose stuff related to factory
                             if ((engout.subtype == "energy" || engout.amount < 1) && engout.amount < 9999)
                             {
                                 engout.subtype = "energy";
-                                giveEnergy = Math.Min(parseInt(mach.selectedRecipe), energyInNetwork);
+                                giveEnergy = Math.Min(JPI.parseInt(mach.selectedRecipe), energyInNetwork);
                                 engout.amount += giveEnergy;
                                 energyInNetwork -= giveEnergy;
                                 setTile(mach.output, engout);
@@ -1095,7 +1086,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             Machine mac = machines[macp[i]];
             Tile core = giveMeTheTile(macp[i]);
-            if (mac.runningRecipe && parseInt(gd.getFromKey("machineTime", core.subtype)) < mac.startedRecipe)
+            if (mac.runningRecipe && JPI.parseInt(gd.getFromKey("machineTime", core.subtype)) < mac.startedRecipe)
             {
                 // running recipe so it can start a chain
                 updateMachine(macp[i]);
@@ -1107,7 +1098,7 @@ class Factory // factory data / big verbose stuff related to factory
                         case "cgen": case "ogen":
                             mac.runningRecipe = false;
                             output.subtype = "energy";
-                            output.amount += parseInt(gd.getFromKey("generatorOutput", core.subtype));
+                            output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype));
                             tickMachIO(macp[i]);
                             setTile(mac.output, output);
                             break;

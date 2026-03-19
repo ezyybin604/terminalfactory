@@ -142,6 +142,7 @@ class Game
     int? usingItem = null;
     public void loadData()
     {
+        factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
         inventory.data = gdm.LoadWorld(factory);
         inventory.hasData = true;
         Point[] curscr = gdm.LoadMachines(factory);
@@ -323,10 +324,10 @@ Nobody follows, so to keep secrecy while you travel.
                         scene = "end";
                         break;
                     case "delete":
-                        if (topbar.areyousure < 500)
+                        if (topbar.areyousure < 100)
                         {
                             topbar.areyousure++;
-                            topbar.changeTip(1, String.Format("/dAre you REALLY sure? ({0} left until deletion)", 500-topbar.areyousure));
+                            topbar.changeTip(1, String.Format("/dAre you REALLY sure? ({0} left until deletion)", 100-topbar.areyousure));
                         } else
                         {
                             if (!Directory.Exists(world)) return;

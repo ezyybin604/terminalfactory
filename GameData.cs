@@ -1,8 +1,10 @@
 
+using System.Data.Common;
 using System.Text.Json;
 
 namespace terminalfactory;
 
+// this file handles file i/o
 // type = # of !s
 public class GameData
 {
@@ -161,7 +163,7 @@ class FileManagement
         }
         return tile.type + tile.subtype + "=" + tile.prog.ToString() + "=" + tile.amount.ToString();
     }
-    private Tile getTile(string tile, Factory fact)
+    private Tile getTile(string tile)
     {
         if (tile == "g")
         {
@@ -172,7 +174,7 @@ class FileManagement
         {
             return new Tile(res[0][0], res[0].Substring(1), 0, 0);
         }
-        return new Tile(res[0][0], res[0].Substring(1), fact.parseInt(res[1]), fact.parseInt(res[2]));
+        return new Tile(res[0][0], res[0].Substring(1), JPI.parseInt(res[1]), JPI.parseInt(res[2]));
     }
     private string[][] convertChunk(Tile[][] chunk)
     {
@@ -195,7 +197,6 @@ class FileManagement
                     } else if (grassChain > 1)
                     {
                         xto.Add("g" + grassChain.ToString());
-                        
                     }
                     xto.Add(ct);
                     grassChain = 0;
@@ -208,6 +209,10 @@ class FileManagement
             {
                 xto.Add("g" + grassChain.ToString());
             }
+            if (xto.Count == 1 && xto[0] == "g16")
+            {
+                xto.Clear();
+            }
             res[x] = xto.ToArray();
         }
         return res;
@@ -218,42 +223,52 @@ class FileManagement
         for (int x=0;x<res.Length;x++)
         {
             res[x] = new Tile[Factory.chunkSize];
+            if (chunk[x].Length == 0)
+            {
+                chunk[x] = ["g16"];
+            }
             int cidx = 0;
             for (int y=0;y<res[x].Length;y++)
             {
                 if (chunk[x][cidx][0] == 'g' && chunk[x][cidx].Length > 1)
                 {
-                    int num = fact.parseInt(chunk[x][cidx].Substring(1));
+                    int num = JPI.parseInt(chunk[x][cidx].Substring(1));
                     for (int i=0;i<num;i++)
                     {
-                        res[x][y] = getTile("g", fact);
+                        res[x][y] = getTile("g");
                         y++;
                     }
                     y--;
                 } else
                 {
-                    res[x][y] = getTile(chunk[x][cidx], fact);
+                    res[x][y] = getTile(chunk[x][cidx]);
                 }
                 cidx++;
             }
         }
         return res;
     }
-    private JsonSlot[] convertSlots(Slot[] slots)
+    private string[] convertSlots(Slot[] slots, int invlength)
     {
-        JsonSlot[] res = new JsonSlot[slots.Length];
+        string[] res = new string[invlength];
         for (int i=0;i<res.Length;i++)
         {
-            res[i] = new JsonSlot(slots[i]);
+            res[i] = JPI.convertSlot(slots[i]);
         }
         return res;
     }
-    private Slot[] convertSlots(JsonSlot[] slots)
+    private Slot[] convertSlots(string[] slots)
     {
-        Slot[] res = new Slot[slots.Length];
+        Slot[] res = new Slot[Inventory.Length];
         for (int i=0;i<res.Length;i++)
         {
-            res[i] = slots[i].getSlot();
+            if (i >= slots.Length)
+            {
+                res[i] = new Slot();
+            } else
+            {
+                res[i] = JPI.convertSlot(slots[i]);
+            }
         }
         return res;
     }
@@ -264,9 +279,9 @@ class FileManagement
     // for stuff
     public void SaveStuff(Factory fact, Point cursor, Point camera)
     {
-        fact.inventory.fix();
+        int invleng = fact.inventory.fix();
         string save = fact.savefile;
-        saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data)});
+        saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data, invleng)});
         MachineCursor machineCursor = new MachineCursor{
             macsd = new Dictionary<string, string>(),
             cursor = JPI.getJs(cursor),
@@ -282,11 +297,28 @@ class FileManagement
                 data = new string[regionLength][][],
                 regionLocation = JPI.getJs(regions[i])
             };
+            int emptyLength = 0;
+            List<string[][]> chunks = new List<string[][]>();
             for (int p=0;p<regionLength;p++)
             {
                 Point chunk = regions[i].getTransform(getPointIndex(p));
-                region.data[p] = convertChunk(getChunk(fact, chunk));
+                // fancy variable names so that ican pretend what im doing
+                string[][] chk = convertChunk(getChunk(fact, chunk));
+                if (chk.Length == 0)
+                {
+                    emptyLength++;
+                } else if (emptyLength == 0)
+                {
+                    chunks.Add(chk);
+                } else
+                {
+                    // add empty
+                    chunks.Add([["e" + emptyLength.ToString()]]);
+                    emptyLength = 0;
+                    chunks.Add(chk);
+                }
             }
+            region.data = chunks.ToArray();
             saveToFile("region" + i.ToString(), save, region);
         }
     }
@@ -302,12 +334,29 @@ class FileManagement
                 data = new string[regionLength][][],
                 regionLocation = JPI.getJs()
             });
-            for (int x=0;x<region.data.Length;x++)
+            int rli = 0; // real index in loaded region
+            int rem = -1; // not rem (basic), remaining
+            for (int x=0;x<regionLength;x++)
             {
-                if (region.data[x].Length > 0)
+                if (rem > 0 || rli >= region.data.Length)
+                {
+                    rem--;
+                } else if (region.data[rli].Length == 1)
+                {
+                    string cmod = region.data[rli][0][0];
+                    if (cmod.Length > 1 && cmod[0] == 'e')
+                    {
+                        rem = JPI.parseInt(cmod.Substring(1))-1;
+                        rli++;
+                    }
+                } else if (region.data[rli].Length > 0)
                 {
                     Point chunkLoc = JPI.getPoint(region.regionLocation).getTransform(getPointIndex(x));
-                    fact.placeChunk(chunkLoc, convertChunk(region.data[x], fact));
+                    fact.placeChunk(chunkLoc, convertChunk(region.data[rli], fact));
+                    rli++;
+                } else if (region.data[rli].Length == 0)
+                {
+                    rli++;
                 }
             }
             i++;
@@ -315,7 +364,7 @@ class FileManagement
         }
         InventoryData id = (InventoryData)loadFromFile(typeof(InventoryData), "invdata", save, new InventoryData
         {
-            data = new JsonSlot[Inventory.Length]
+            data = new string[Inventory.Length]
         });
         return convertSlots(id.data);
     }
@@ -438,26 +487,20 @@ class JPI // JsonPointInterface / other things because i felt like it
         macr.number = parseInt(mac[9]);
         return macr;
     }
-}
-public class JsonSlot
-{
-    public int num { get; set; }
-    public string item { get; set; } = "";
-    public JsonSlot(Slot slot)
+    public static string convertSlot(Slot slot)
     {
-        item = slot.item;
-        num = slot.num;
+        return slot.num.ToString() + "=" + slot.item;
     }
-    public JsonSlot() {}
-    public Slot getSlot()
+    public static Slot convertSlot(string slot)
     {
-        return new Slot(item, num);
+        string[] spl = slot.Split("=");
+        return new Slot(spl[1], parseInt(spl[0]));
     }
 }
 
 public class InventoryData
 { // for serization or however you spell it
-    required public JsonSlot[] data { get; set; } = new JsonSlot[Inventory.Length];
+    required public string[] data { get; set; } = new string[Inventory.Length]; // also use fix to get length later
 }
 
 public class Region
