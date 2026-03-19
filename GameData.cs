@@ -114,12 +114,13 @@ public class GameData
 class FileManagement
 {
     // copying from docs
+    JsonSerializerOptions jso = new JsonSerializerOptions(); // ignore, maybe use for something later
     public const string worldFolder = "worlds";
     public const int regionLength = Factory.regionArea * Factory.regionArea;
     private void saveToFile(string fn, string savefile, object toSer)
     {
         string file = Path.Join(worldFolder, savefile, fn + ".json");
-        File.WriteAllText(file, JsonSerializer.Serialize(toSer));
+        File.WriteAllText(file, JsonSerializer.Serialize(toSer, jso));
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
@@ -129,7 +130,7 @@ class FileManagement
         if (File.Exists(file))
         {
             string data = File.ReadAllText(file);
-            result = JsonSerializer.Deserialize(data, type);
+            result = JsonSerializer.Deserialize(data, type, jso);
         }
         if (result == null)
         {
@@ -257,7 +258,6 @@ class FileManagement
         }
         return res;
     }
-    JsonPointInterface jsp = new JsonPointInterface();
     private Point getPointIndex(int inp)
     {
         return new Point(inp%Factory.regionArea, (int)Math.Floor((double)(inp/Factory.regionArea)));
@@ -269,10 +269,9 @@ class FileManagement
         string save = fact.savefile;
         saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data)});
         MachineCursor machineCursor = new MachineCursor{
-            macsk = Array.Empty<string>(),
-            macsv = Array.Empty<MachineJson>(),
-            cursor = jsp.getJs(cursor),
-            camera = jsp.getJs(camera),
+            macsd = new Dictionary<string, string>(),
+            cursor = JPI.getJs(cursor),
+            camera = JPI.getJs(camera),
             energyInNetwork = fact.energyInNetwork
         };
         machineCursor.applyDictionary(fact.machines);
@@ -282,7 +281,7 @@ class FileManagement
         {
             Region region = new Region{
                 data = new string[regionLength][][],
-                regionLocation = jsp.getJs(regions[i])
+                regionLocation = JPI.getJs(regions[i])
             };
             for (int p=0;p<regionLength;p++)
             {
@@ -302,13 +301,13 @@ class FileManagement
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {
                 data = new string[regionLength][][],
-                regionLocation = jsp.getJs()
+                regionLocation = JPI.getJs()
             });
             for (int x=0;x<region.data.Length;x++)
             {
                 if (region.data[x].Length > 0)
                 {
-                    Point chunkLoc = jsp.getPoint(region.regionLocation).getTransform(getPointIndex(x));
+                    Point chunkLoc = JPI.getPoint(region.regionLocation).getTransform(getPointIndex(x));
                     fact.placeChunk(chunkLoc, convertChunk(region.data[x], fact));
                 }
             }
@@ -325,21 +324,20 @@ class FileManagement
     {
         MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor
         {
-            cursor = jsp.getJs(),
-            camera = jsp.getJs(),
-            macsk = Array.Empty<string>(),
-            macsv = Array.Empty<MachineJson>()
+            cursor = JPI.getJs(),
+            camera = JPI.getJs(),
+            macsd = new Dictionary<string, string>()
         });
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
-        return [jsp.getPoint(deser.cursor), jsp.getPoint(deser.camera)];
+        return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
     }
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
-class JsonPointInterface
-{// add to everything later
-    public int parseInt(string inp)
+class JPI // JsonPointInterface / other things because i felt like it
+{
+    public static int parseInt(string inp)
     { // Yoink
         int res;
         if (!int.TryParse(inp, out res))
@@ -348,15 +346,15 @@ class JsonPointInterface
         }
         return res;
     }
-    public string getJs(Point p)
+    public static string getJs(Point p)
     {
         return p.x.ToString() + "," + p.y.ToString();
     }
-    public string getJs()
+    public static string getJs()
     {
         return getJs(new Point());
     }
-    public string getJs(Point? p)
+    public static string getJs(Point? p)
     {
         if (p == null)
         {
@@ -364,7 +362,7 @@ class JsonPointInterface
         }
         return getJs((Point)p);
     }
-    public Point getPoint(string p)
+    public static Point getPoint(string p)
     {
         string[] dec = p.Split(",");
         if (dec.Length < 2)
@@ -373,13 +371,73 @@ class JsonPointInterface
         }
         return new Point(parseInt(dec[0]), parseInt(dec[1]));
     }
-    public Point? getPointNull(string p, bool nil)
+    public static Point? getPointNull(string p, bool nil)
     {
         if (nil)
         {
             return null;
         }
         return getPoint(p);
+    }
+    public static string stringCharSubt(string s, int i, char c)
+    {
+        return s.Substring(0, i) + c + s.Substring(Math.Min(i+1, s.Length-1), Math.Max(s.Length-i-1, 0));
+    }
+    public static string convertMachine(Machine mac)
+    {
+        List<string> outs = new List<string>();
+        outs.Add((mac.isFormed ? 1 : 0).ToString());
+        string[] inputs = new string[mac.inputs.Count];
+        for (int i=0;i<inputs.Length;i++)
+        {
+            inputs[i] = JPI.getJs(mac.inputs[i]);
+        }
+        outs.Add(String.Join('.', inputs)); // this will go well
+        outs.Add(JPI.getJs(mac.output));
+        outs.Add(JPI.getJs(mac.worldInteractor));
+        outs.Add(JPI.getJs(mac.energyPort));
+        string isnull = "000";
+        if (mac.energyPort == null) isnull = JPI.stringCharSubt(isnull, 2, '1');
+        if (mac.worldInteractor == null) isnull = JPI.stringCharSubt(isnull, 1, '1');
+        if (mac.output == null) isnull = JPI.stringCharSubt(isnull, 0, '1');
+        outs.Add(isnull);
+        outs.Add((mac.runningRecipe ? 1 : 0).ToString());
+        outs.Add(mac.selectedRecipe);
+        outs.Add(mac.startedRecipe.ToString());
+        outs.Add(mac.number.ToString());
+        return String.Join('=', outs);
+    }
+    public static Machine convertMachine(string mach)
+    {
+        string[] mac = mach.Split('=');
+        Machine macr = new Machine(); // mac Real
+        /*
+            0 public int formed { get; set; } = 0; // boolean
+            1 public string[] inputs { get; set; } = [];
+            2 public string output { get; set; } = "0,0";
+            3 public string worldinteractor { get; set; } = "0,0";
+            4 public string energyPort { get; set; } = "0,0";
+            5 public string isnull { get; set; } = "111"; // output, wi, ep (000, 010 format)
+            6 public int runningrecipe { get; set; } = 0; // boolean
+            7 public string selectedrecipe { get; set; } = "";
+            8 public int startedrecipe { get; set; } = 0;
+            9 public int number { get; set; } = 0;
+        */
+        macr.isFormed = parseInt(mac[0]) == 1;
+        macr.inputs = new List<Point>();
+        foreach (string p in mac[1].Split("."))
+        {
+            macr.inputs.Add(getPoint(p));
+        }
+        string isnull = mac[5];
+        macr.output = getPointNull(mac[2], isnull[0] == '1');
+        macr.worldInteractor = JPI.getPointNull(mac[3], isnull[1] == '1');
+        macr.energyPort = JPI.getPointNull(mac[4], isnull[2] == '1');
+        macr.runningRecipe = parseInt(mac[6]) == 1; // Generally Perposturus Tenitis (Desicion)
+        macr.selectedRecipe = mac[7];
+        macr.startedRecipe = parseInt(mac[8]);
+        macr.number = parseInt(mac[9]);
+        return macr;
     }
 }
 public class JsonSlot
@@ -408,97 +466,29 @@ public class Region
     required public string regionLocation { get; set; }
     required public string[][][] data { get; set; } // data = new string[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
 }
-public class MachineJson // whyd i forget that this uses point and not jsonpoint this is so goofy
-{
-    public int formed { get; set; } // boolean
-    public string[] inputs { get; set; }
-    public string output { get; set; }
-    public string worldinteractor { get; set; }
-    public string energyPort { get; set; }
-    public string isnull { get; set; } // output, wi, ep (000, 010 format)
-    public int runningrecipe { get; set; } // boolean
-    public string selectedrecipe { get; set; }
-    public int startedrecipe { get; set; }
-    public int number { get; set; }
-    public string stringCharSubt(string s, int i, char c)
-    {
-        return s.Substring(0, i) + c + s.Substring(Math.Min(i+1, s.Length-1), Math.Max(s.Length-i-1, 0));
-    }
-    public MachineJson(Machine mac)
-    {
-        JsonPointInterface jsp = new JsonPointInterface();
-        formed = mac.isFormed ? 1 : 0;
-        inputs = new string[mac.inputs.Count];
-        for (int i=0;i<inputs.Length;i++)
-        {
-            inputs[i] = jsp.getJs(mac.inputs[i]);
-        }
-        output = jsp.getJs(mac.output);
-        worldinteractor = jsp.getJs(mac.worldInteractor);
-        energyPort = jsp.getJs(mac.energyPort);
-        isnull = "000";
-        if (mac.energyPort == null) isnull = stringCharSubt(isnull, 2, '1');
-        if (mac.worldInteractor == null) isnull = stringCharSubt(isnull, 1, '1');
-        if (mac.output == null) isnull = stringCharSubt(isnull, 0, '1');
-        runningrecipe = mac.runningRecipe ? 1 : 0;
-        selectedrecipe = mac.selectedRecipe;
-        startedrecipe = mac.startedRecipe;
-        number = mac.number;
-    }
-    public Machine returnMachine()
-    {
-        JsonPointInterface jsp = new JsonPointInterface();
-        Machine mach = new Machine();
-        mach.isFormed = formed == 1;
-        foreach (string p in inputs)
-        {
-            mach.inputs.Add(jsp.getPoint(p));
-        }
-        mach.output = jsp.getPointNull(output, isnull[0] == '1');
-        mach.worldInteractor = jsp.getPointNull(worldinteractor, isnull[1] == '1');
-        mach.energyPort = jsp.getPointNull(energyPort, isnull[2] == '1');
-        mach.runningRecipe = runningrecipe == 1;
-        mach.selectedRecipe = selectedrecipe;
-        mach.startedRecipe = startedrecipe;
-        mach.number = number;
-        return mach;
-    }
-}
 public class MachineCursor
 {
     required public string cursor { get; set; }
     required public string camera { get; set; }
-    required public string[] macsk { get; set; }
-    required public MachineJson[] macsv { get; set; }
+    public Dictionary<string, string> macsd { get; set; }
     public int energyInNetwork { get; set; }
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
-        JsonPointInterface jsp = new JsonPointInterface();
-        macsk = new string[macs.Count];
-        macsv = new MachineJson[macs.Count];
-        Point[] keysog = new Point[macs.Count];
-        //macs.Keys.CopyTo(macsk, 0);
-        macs.Keys.CopyTo(keysog, 0);
-        for (int i=0;i<macs.Count;i++)
+        macsd = new Dictionary<string, string>();
+        foreach (KeyValuePair<Point, Machine> kv in macs)
         {
-            macsk[i] = jsp.getJs(keysog[i]);
-        }
-        for (int i=0;i<macsk.Length;i++)
-        {
-            macsv[i] = new MachineJson(macs[keysog[i]]);
+            macsd[JPI.getJs(kv.Key)] = JPI.convertMachine(kv.Value);
         }
     }
     public MachineCursor() {
-        macsk = Array.Empty<string>();
-        macsv = Array.Empty<MachineJson>();
+        macsd = new Dictionary<string, string>();
     }
     public Dictionary<Point, Machine> returnMachines()
     {
-        JsonPointInterface jsp = new JsonPointInterface();
         Dictionary<Point, Machine> res = new Dictionary<Point, Machine>();
-        for (int i=0;i<macsk.Length;i++)
+        foreach (KeyValuePair<string, string> kv in macsd)
         {
-            res[jsp.getPoint(macsk[i])] = macsv[i].returnMachine();
+            res[JPI.getPoint(kv.Key)] = JPI.convertMachine(kv.Value);
         }
         return res;
     }
