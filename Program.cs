@@ -418,6 +418,13 @@ Nobody follows, so to keep secrecy while you travel.
         }
         factory.linesToUpdate.Clear();
     }
+    public void forceUpdateAll()
+    { // only for game
+        for (int i=0;i<Console.WindowHeight-2;i++)
+        {
+            factory.linesToUpdate.Add(i+scroll.y);
+        }
+    }
     void adjustCamera()
     {
         if (scene != "game")
@@ -434,7 +441,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
             if (prevScroll != topbar.menuScroll)
             {
-                menuDisplay();
+                forceUpdateAll();
             }
             return;
         }
@@ -812,6 +819,8 @@ Nobody follows, so to keep secrecy while you travel.
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
         int timer = 0;
+        generateNeeded();
+        displayStuff();
         while (scene != "end")
         {
             if (previousScene != scene)
@@ -823,7 +832,7 @@ Nobody follows, so to keep secrecy while you travel.
             if (!previousCamera.Equals(scroll))
             {
                 generateNeeded();
-                displayStuff();
+                forceUpdateAll();
                 previousCamera = scroll;
             }
             time = DateTime.Now;
@@ -868,6 +877,7 @@ Nobody follows, so to keep secrecy while you travel.
         Console.ResetColor();
         Console.Clear();
         Console.WriteLine("bye");
+        gdm.saveDefualt(factory);
         Thread.Sleep(1000);
         Environment.Exit(0);
     }
@@ -905,14 +915,25 @@ Nobody follows, so to keep secrecy while you travel.
         game.hi();
         bool sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
         bool alsf = true;
-        if (sf)
+        if (sf || Directory.GetDirectories(FileManagement.worldFolder).Length > 0)
         {
+            if (!sf)
+            {
+                game.factory.savefile = Directory.GetDirectories(FileManagement.worldFolder)[0].Split("\\").Last();
+                sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
+                if (!sf)
+                {
+                    Console.WriteLine("Oh no something REALLY went wrong with save " + game.factory.savefile);
+                    Console.ReadLine();
+                    return;
+                }
+            }
             string? inp = null;
             while (inp == null)
             {
                 Console.Clear();
                 game.hi();
-                Console.WriteLine("A save was found. Load a different one?\n(Press ENTER for default):");
+                Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected)\n(Press ENTER for default):", game.factory.savefile));
                 inp = Console.ReadLine();
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
                 {

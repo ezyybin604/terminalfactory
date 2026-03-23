@@ -379,6 +379,14 @@ class FileManagement
         fact.energyInNetwork = deser.energyInNetwork;
         return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
     }
+    public void saveDefualt(Factory fact)
+    {
+        File.WriteAllText(Path.Join(worldFolder, "selectedSave"), fact.savefile);
+    }
+    public string getDefualt()
+    {
+        return File.ReadAllText(Path.Join(worldFolder, "selectedSave"));
+    }
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
