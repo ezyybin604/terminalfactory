@@ -175,7 +175,7 @@ class Inventory
     public Slot[] getRecipe(string catg, string result)
     {
         List<Slot> recipe = new List<Slot>();
-        string[] ing = gd.getFromKey(catg, result).Split(",");
+        string[] ing = gd.getSplit(catg, result);
         int numitem = 0;
         for (int i=0;i<ing.Length;i++)
         {

@@ -14,12 +14,11 @@ namespace terminalfactory;
     - tile updates, this tick and next tick updates
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - better tutorial that explains things more
-    - show machine progress in inspect
 */
 
 class Game
 {
-    // 4 Scenes: game,end,(invintory/inv caus i dont know how to spell),pause,craft
+    // Scenes: game,end,inv,pause,craft
     string scene = "game";
     Thread? gameThread;
     Point scroll = new Point();
@@ -33,7 +32,7 @@ class Game
     FileManagement gdm = new FileManagement();
     string currentTipText = "";
     string specialMode = "";
-    string[] splashes = new string[0]; // yoinking yet another concept from minecraft
+    string[] splashes = Array.Empty<string>(); // yoinking yet another concept from minecraft
     int? usingItem = null;
     public void loadData()
     {
@@ -98,7 +97,8 @@ Nobody follows, so to keep secrecy while you travel.
             "Press I to open inventory",
             "Press L to view tile contents/view recipe",
             "Press J to exhange contents with tile",
-            "Also press M to select machine recipe"
+            "Also press J to select machine recipe",
+            "Press I to show machine progress"
         ]);
         topbar.tips.Add("pause", [
             "Use WS to change selection",
@@ -140,8 +140,10 @@ Nobody follows, so to keep secrecy while you travel.
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
 
-        gameThread = new Thread(runTheGameIg);
-        gameThread.Name = "Game Logic";
+        gameThread = new Thread(runTheGameIg)
+        {
+            Name = "Game Logic"
+        };
 
         for (int i=0;i<Inventory.Length && !inventory.hasData;i++)
         {
@@ -325,7 +327,6 @@ Nobody follows, so to keep secrecy while you travel.
         if (scene != "game")
         {
             int prevScroll = topbar.menuScroll;
-            //topbar.menuScroll = -(Math.Clamp(topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3)-topbar.menuSelection);
             while (!(topbar.menuScroll <= topbar.menuSelection))
             {
                 topbar.menuScroll--;
@@ -374,7 +375,7 @@ Nobody follows, so to keep secrecy while you travel.
         menus["craft_raw"] = new string[ent.Length];
         for (int i=0;i<ent.Length;i++)
         {
-            string[] ing = factory.gd.getFromKey(catg, ent[i]).Split(",");
+            string[] ing = factory.gd.getSplit(catg, ent[i]);
             int numitem = 0;
             List<string> res = new List<string>();
             for (int x=0;x<ing.Length;x++)
@@ -446,16 +447,26 @@ Nobody follows, so to keep secrecy while you travel.
                         forceDisplay = true;
                         break;
                     case 'i':
-                        topbar.menuSelection = 0;
-                        inventory.fix();
-                        menus["inv"] = inventory.getMenu(factory);
-                        if (inventory.data[0].num > 0)
+                        if (tic.type == 'M')
                         {
-                            scene = "inv";
-                            forceDisplay = true;
+                            // show machine progress
+                            Machine mac = factory.machines[cursor];
+                            string ntip = "/dNo recipe running";
+                            if (mac.runningRecipe) ntip = mac.startedRecipe.ToString() + " / " + factory.gd.getFromKey("machineTime", tic.subtype);
+                            topbar.changeTip(ntip, 1, 3000);
                         } else
                         {
-                            topbar.changeTip("/dInventory empty.", 1, 3000);
+                            topbar.menuSelection = 0;
+                            inventory.fix();
+                            menus["inv"] = inventory.getMenu(factory);
+                            if (inventory.data[0].num > 0)
+                            {
+                                scene = "inv";
+                                forceDisplay = true;
+                            } else
+                            {
+                                topbar.changeTip("/dInventory empty.", 1, 3000);
+                            }
                         }
                         break;
                     case 'k':
@@ -491,7 +502,7 @@ Nobody follows, so to keep secrecy while you travel.
                             if (tic.amount > 0)
                             {
                                 // extract
-                                if (!factory.gd.getFromKey("tags", "fluids").Split(",").Contains(tic.subtype) && inventory.addItem(new Slot(tic.subtype, tic.amount)))
+                                if (!factory.gd.getSplit("tags", "fluids").Contains(tic.subtype) && inventory.addItem(new Slot(tic.subtype, tic.amount)))
                                 {
                                     tic.amount = 0;
                                     factory.setTile(cursor, tic);
@@ -506,7 +517,7 @@ Nobody follows, so to keep secrecy while you travel.
                                 inventory.fix();
                                 usingItem = null;
                             }
-                        } else if (tic.type == 'M' && factory.gd.getFromKey("tags", "macWrecipe").Split(",").Contains(tic.subtype))
+                        } else if (tic.type == 'M' && factory.gd.getSplit("tags", "macWrecipe").Contains(tic.subtype))
                         {
                             scene = "craft";
                             topbar.returnScene = "game";

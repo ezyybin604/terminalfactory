@@ -26,6 +26,8 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
 
 ### Actually, I give up giving the controls slowly and carefully. Here's all of them! (all of the controls n stuff)
 
+#### Actually i couldnt be bothered to update this but it works for a little bit
+
 1. Game
     - Use WASD to move
     - Press P to pause
@@ -33,8 +35,8 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press O to place
     - Press I to open inventory
     - Press L to view tile contents/view recipe
-    - Press M to exhange contents with tile
-    - Press M to change machine recipe
+    - Press J to exhange contents with tile
+    - Press J to change machine recipe
 
 2. Pause
     - Use WS to change selection
@@ -52,7 +54,7 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press Z to select",
     - Press X to go back"
 
-### "What are the endings"
+### Endgame
 ```
 There are no "endings".
 -The factory must grow.
@@ -60,12 +62,8 @@ Let the smoke pollute the air-
 Oh wait, wrong game
 But do grow your factory though.
 And since this game basically goes on however long you feel like,
-There's a button to save your progress if you want that.
-
-And if you're asking this question, do you even know what the factory genre is
+There's a button to save your progress after all.
 
 But basically the end of the game is you shoot a giant high-tech missile at the dragon.
 (This isn't in the game yet)
-
-this message is only here as (basically) required by assignment
 ```

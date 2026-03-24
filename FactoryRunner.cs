@@ -18,7 +18,7 @@ p: pipe (subtype determines direction)
 M: machine
 h: handle this pipe, make it face towards any adjacent things
 o: building stone
-S: splitter (outputs to machine output)
+S: splitter (outputs to machine output, actually just make it a machine in pretend but with S symbol: M.splt)
 */
 
 // Chunk: Tile[x][y] data;
@@ -76,11 +76,10 @@ class Factory // factory data / big verbose stuff related to factory
         {
             if (item.Substring(0, 3) == "wat")
             {
-                // raw food
-                return 4*((int)Math.Pow(4, JPI.parseInt(item.Substring(3))-1));
+                return (int)Math.Pow(4, JPI.parseInt(item.Substring(3)));
             }
         }
-        return 0;
+        return 0; // no water
     }
     private int getFoodValue(string item)
     {
@@ -592,6 +591,7 @@ class Factory // factory data / big verbose stuff related to factory
                     addChar = 'c';
                 }
             }
+            if (t.type == 'M' && t.subtype == "splt") addChar = 'S'; // splitter
             if (t.type == 'o')
             {
                 addChar = 'b';
@@ -724,7 +724,7 @@ class Factory // factory data / big verbose stuff related to factory
                 if (tile.type == 'M')
                 {
                     machines.Add(cursor, new Machine());
-                    if (gd.getFromKey("tags", "chooseADefault").Split(",").Contains(tile.subtype))
+                    if (gd.getSplit("tags", "chooseADefault").Contains(tile.subtype))
                     {
                         machines[cursor].selectedRecipe = gd.getKeys(tile.subtype + "Recipes")[0];
                     }
@@ -865,7 +865,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             linesToUpdate.Add(mac.y);
         }
-        bool machRecipes = gd.getFromKey("tags", "macWrecipe").Split(",").Contains(core.subtype);
+        bool machRecipes = gd.getSplit("tags", "macWrecipe").Contains(core.subtype);
         string rid = core.subtype + "Recipes";
         if (!mach.isFormed && mach.runningRecipe)
         {
@@ -1179,10 +1179,25 @@ class Factory // factory data / big verbose stuff related to factory
                 if (tct.prog > 0 && tct.amount > 0)
                 {
                     Point pto = tp.getTransform(arrowOffset[tct.prog-1]); // dest
-                    Tile tile = giveMeTheTile(pto);
+                    Tile tile = giveMeTheTile(pto); // dest tile
                     if (tile.type == 'p' && tct.subtype != "energy")
                     {
                         // put pipe
+                        int giveItem = Math.Min(tct.amount, defaultItemLimit-tile.amount);
+                        bool sameType = tct.subtype == tile.subtype;
+                        if (tile.subtype == "" || tile.amount < 1)
+                        {
+                            tile.subtype = tct.subtype;
+                            sameType = true;
+                        }
+                        if (sameType && giveItem > 0)
+                        {
+                            tct.amount -= giveItem;
+                            tile.amount += giveItem;
+                            setTile(pto, tile);
+                            setTile(tp, tct);
+                            tickLater.Add(pto); // tick destination
+                        }
                     } else if (tile.type == '~' && tct.subtype == "energy")
                     {
                         // put cable
@@ -1196,7 +1211,7 @@ class Factory // factory data / big verbose stuff related to factory
                             tickLater.Add(pto); // tick destination
                         }
                     }
-                }
+                } // DO PIPES AND STUFF LIKE THAT WHEN I GET BACK QUICKLY CMON DO IT PLEASEEEEEEEEEEE
                 break;
         }
         return tickLater.ToArray();

@@ -4,3 +4,4 @@ obj/
 .DS_Store
 .vscode/
 worlds/
+worlds/selectedSave

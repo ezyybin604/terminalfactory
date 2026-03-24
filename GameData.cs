@@ -26,6 +26,10 @@ public class GameData
         }
         return info.Split(",");
     }
+    public string[] getSplit(string infokey, string src)
+    {
+        return getFromKey(infokey, src).Split(",");
+    }
     public string[] getKeys(string catg)
     {
         // c# overcomplicating things for no reason :skull:

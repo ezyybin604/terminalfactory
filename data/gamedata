@@ -58,6 +58,7 @@ M.stor=Storage Unit,stor
 M.sltr=Salter,sltr
 M.mixr=Mixer,mixr
 M.sscf=Super Scale Collection Facility,sscf
+M.splt=Splitter,split
 !! 
 
 !itemToBlock
@@ -77,6 +78,7 @@ stor=M.stor
 sltr=M.sltr
 mixr=M.mixr
 sscf=M.sscf
+split=M.splt
 # machine stuff
 worldintr=@
 pipe=h
@@ -149,6 +151,7 @@ stor=Storage Unit
 sltr=Salter
 mixr=Mixer
 sscf=Super Scale Collection Facility
+split=Splitter Core
 #other
 copper=Copper
 iron=Iron
@@ -202,6 +205,7 @@ energyport=x64,copper,x4,circ
 min=x16,iron,x32,copper
 mout=x16,iron,x32,copper
 circ=x16,copper,iron
+split=x4,circ,x32,iron
 #machines (real more circuits=more tier)
 miner=x8,circ
 comp=x12,circ,x24,fr1
@@ -224,11 +228,12 @@ lasr=x8192,circ,x128,glass
 !tags
 machineblock=@+-m*
 containerTile=p+-
-# just get outputs to turn energy item into actual energy
+# just get outputs to turn energy item into actual energy (just blacklist for items that can be taken by player)
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
 chooseADefault=puri,dist,carb,lasr,comp
-#pipe tags: towards, backwards, dynamix
+looseReq=splt
+#pipe tags: towards, backwards, dynamic
 pipeT=+]S
 pipeB=-
 pipeD=p
