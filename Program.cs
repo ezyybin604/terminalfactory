@@ -14,113 +14,8 @@ namespace terminalfactory;
     - tile updates, this tick and next tick updates
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - better tutorial that explains things more
+    - show machine progress in inspect
 */
-
-public struct Tile
-{
-    public char type = ' ';
-    public string subtype = ""; ///machine type/resource in tile/fruit type
-    public int prog; // Amount of tile in tile/machine progress/stored amount/energy amount
-    //public string item; // machine output/storage type
-    public int amount; // amount of item for those tiles that need it
-    public Tile() {}
-    public Tile(char t, string subt, int prg, int amt)
-    {
-        type = t;
-        subtype = subt;
-        prog = prg;
-        amount = amt;
-    }
-}
-public struct Point
-{
-    public int x;
-    public int y;
-    public Point(int ix, int iy)
-    {
-        x = ix;
-        y = iy;
-    }
-    public Point()
-    {
-        x = 0;
-        y = 0;
-    }
-    public Point(Point point)
-    {
-        x = point.x;
-        y = point.y;
-    }
-    public void transform(Point point)
-    {
-        x += point.x;
-        y += point.y;
-    }
-    public Point getTransform(Point point)
-    {
-        return new Point(x+point.x, y+point.y);
-    }
-    public Point getReverse()
-    {
-        return new Point(-x, -y);
-    }
-    public Point getMultiply(int m)
-    {
-        return new Point(x*m, y*m);
-    }
-}
-
-class TopBar
-{
-    //couldnt bother to go through all tip variable refs so i renamed it
-    public string tipt = "Have you tried waiting?";
-    public long lastTipChange = DateTime.MinValue.Ticks;
-    public Dictionary<string, string[]> tips = new Dictionary<string, string[]>();
-    public int menuSelection = 0;
-    public int menuScroll = 0;
-    public bool manualTip;
-    public int tipPriority;
-    public string returnScene = "";
-    public int areyousure = 0;
-    public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
-    {
-        if (priority >= tipPriority || forced)
-        {
-            lastTipChange = DateTime.Now.Ticks - (extrams * TimeSpan.TicksPerMillisecond);
-            tipPriority = priority;
-            tipt = tipi;
-        }
-    }
-    public void changeTip(int priority, string tipi, bool forced=false)
-    {
-        changeTip(tipi, priority, 0, forced);
-    }
-}
-
-// in-ven-tory
-public class Slot
-{
-    public int num = 0;
-    public string item = "";
-    public Slot Copy()
-    {
-        Slot slot = new Slot();
-        slot.item = item;
-        slot.num = num;
-        return slot;
-    }
-    public Slot(string ite, int nu)
-    {
-        item = ite;
-        num = nu;
-    }
-    public Slot(string ite)
-    {
-        item = ite;
-        num = 1;
-    }
-    public Slot() {}
-}
 
 class Game
 {
@@ -512,7 +407,7 @@ Nobody follows, so to keep secrecy while you travel.
     void useInput(ConsoleKeyInfo key)
     {
         bool forceDisplay = false; // (i have no idea what im doing send help)
-        char ch = key.KeyChar;
+        char ch = key.KeyChar.ToString().ToLower()[0];
         if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
         {
             return;
@@ -885,16 +780,9 @@ Nobody follows, so to keep secrecy while you travel.
     {
         Console.ResetColor();
         Console.Clear();
-        Console.WriteLine(@"TERMINALFACTORY");
-        string splash = splashes[factory.generateIntRange(1, splashes.Length)-1];
-        bool windows = Environment.OSVersion.ToString().ToLower().Contains("windows");
-        if (windows)
-        {
-            Console.Write("\"" + splash.Substring(0, splash.Length-1) + "\"");
-        } else
-        {
-            Console.Write("\"" + splash + "\"");
-        }
+        Console.WriteLine("TERMINALFACTORY");
+        string splash = splashes[factory.generateIntRange(1, splashes.Length)-1].Replace('\r', '\0');
+        Console.Write("\"" + splash + "\"");
         Console.SetCursorPosition(0, Console.WindowHeight-1);
         Console.Write("v0.1");
         Console.SetCursorPosition(0, 3);
@@ -913,7 +801,12 @@ Nobody follows, so to keep secrecy while you travel.
             Environment.Exit(0);
         }
         game.hi();
-        bool sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
+        bool sf = game.gdm.savefileExists(game.factory);
+        if (!sf && game.gdm.isDefualt())
+        {
+            game.factory.savefile = game.gdm.getDefualt();
+            sf = game.gdm.savefileExists(game.factory);
+        }
         bool alsf = true;
         if (sf || Directory.GetDirectories(FileManagement.worldFolder).Length > 0)
         {
@@ -923,7 +816,7 @@ Nobody follows, so to keep secrecy while you travel.
                 sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
                 if (!sf)
                 {
-                    Console.WriteLine("Oh no something REALLY went wrong with save " + game.factory.savefile);
+                    Console.WriteLine("Oh no something REALLY went wrong with save " + game.factory.savefile + "\n\nalso Yeah no. I'm not making a edge case for this one. Go away.");
                     Console.ReadLine();
                     return;
                 }
@@ -933,10 +826,22 @@ Nobody follows, so to keep secrecy while you travel.
             {
                 Console.Clear();
                 game.hi();
-                Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected)\n(Press ENTER for default):", game.factory.savefile));
+                Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile));
                 inp = Console.ReadLine();
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
                 {
+                    inp = null;
+                }
+                if (inp == "list")
+                {
+                    string[] saves = Directory.GetDirectories(FileManagement.worldFolder);
+                    Console.Clear();
+                    for (int i=0;i<saves.Length;i++)
+                    {
+                        Console.WriteLine(saves[i].Split("\\").Last());
+                    }
+                    Console.WriteLine("(Press ENTER to exit)");
+                    Console.ReadLine();
                     inp = null;
                 }
                 if (inp == "creative" || inp == "demo")

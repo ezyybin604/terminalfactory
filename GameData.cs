@@ -387,6 +387,14 @@ class FileManagement
     {
         return File.ReadAllText(Path.Join(worldFolder, "selectedSave"));
     }
+    public bool isDefualt()
+    {
+        return File.Exists(Path.Join(worldFolder, "selectedSave"));
+    }
+    public bool savefileExists(Factory fact)
+    {
+        return Directory.Exists(Path.Join(worldFolder, fact.savefile));
+    }
 }
 
 // 100% Ridiclous (looking) use of classes (or not depending on how judgy you feel like today)
