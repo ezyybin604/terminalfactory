@@ -813,7 +813,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         game.hi();
         bool sf = game.gdm.savefileExists(game.factory);
-        if (!sf && game.gdm.isDefualt())
+        if (game.gdm.isDefualt())
         {
             game.factory.savefile = game.gdm.getDefualt();
             sf = game.gdm.savefileExists(game.factory);
