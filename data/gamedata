@@ -307,7 +307,7 @@ lasr=20
 cgen=2
 ogen=1
 pump=2
-mine=2
+mine=5
 asmb=5
 #these one store things
 niem=0

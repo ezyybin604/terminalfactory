@@ -34,6 +34,7 @@ class Game
     string specialMode = "";
     string[] splashes = Array.Empty<string>(); // yoinking yet another concept from minecraft
     int? usingItem = null;
+    int timer = 0;
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -727,7 +728,6 @@ Nobody follows, so to keep secrecy while you travel.
         Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
-        int timer = 0;
         generateNeeded();
         displayStuff();
         while (scene != "end")

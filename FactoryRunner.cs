@@ -459,7 +459,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return direction;
     }
-    public void displayLine(int y, Point cursor, Point scroll)
+    public void displayLine(int y, Point? cursor, Point scroll)
     {
         string[] lineResult;
         int idx = 0;
@@ -557,7 +557,7 @@ class Factory // factory data / big verbose stuff related to factory
                 lineResult[idx] = "/" + currentColor;
                 idx++;
             }
-            if (y == cursor.y && x+scroll.x == cursor.x)
+            if (cursor != null && y == ((Point)cursor).y && x+scroll.x == ((Point)cursor).x)
             {
                 if (lineResult[idx] != null)
                 {
@@ -857,7 +857,7 @@ class Factory // factory data / big verbose stuff related to factory
                 }
             }
         }
-        if (core.subtype != "niem" && (mach.output == null || mach.inputs.Count == 0))
+        if (core.subtype != "niem" && (mach.output == null || (mach.inputs.Count == 0 && mach.worldInteractor == null)))
         {
             mach.isFormed = false;
         }
@@ -1157,25 +1157,18 @@ class Factory // factory data / big verbose stuff related to factory
         List<Point> tickLater = new List<Point>();
         Tile tct = giveMeTheTile(tp);
         // @ticktile
+        Tile tile;
         switch (tct.type)
         {
-            case '+': // input
-                // map arrow to machine and update machine
-                if (tct.prog > 0)
-                {
-                    Point macht = tp.getTransform(arrowOffset[tct.prog-1]);
-                    Tile tile = giveMeTheTile(macht);
-                    if (tile.type == 'M')
-                    {
-                        updateMachine(macht);
-                    }
-                }
+            case 'M': // so i can call from here
+                updateMachine(tp);
                 break;
             case '-': // output
                 if (tct.prog > 0 && tct.amount > 0)
                 {
                     Point pto = tp.getTransform(arrowOffset[tct.prog-1]); // dest
-                    Tile tile = giveMeTheTile(pto); // dest tile
+                    tile = giveMeTheTile(pto); // dest tile
+                    Point machp = tp.getTransform(arrowOffset[tct.prog-1].getReverse());
                     if (tile.type == 'p' && tct.subtype != "energy")
                     {
                         // put pipe
@@ -1193,6 +1186,10 @@ class Factory // factory data / big verbose stuff related to factory
                             setTile(pto, tile);
                             setTile(tp, tct);
                             tickLater.Add(pto); // tick destination
+                            if (machines[machp].isFormed)
+                            {
+                                tickLater.Add(machp);
+                            }
                         }
                     } else if (tile.type == '~' && tct.subtype == "energy")
                     {
@@ -1210,9 +1207,9 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 break;
             case 'p':
-                Point desp = tp.getTransform(arrowOffset[tct.prog-1]);
+                Point desp = tp.getTransform(arrowOffset[tct.prog%4]);
                 Tile dest = giveMeTheTile(desp);
-                if (gd.getFromKey("tags", "pipeT").Contains(dest.type) && tct.amount > 0)
+                if ((dest.type == 'p' || gd.getFromKey("tags", "pipeT").Contains(dest.type)) && tct.amount > 0)
                 {
                     int giveItem = Math.Min(tct.amount, defaultItemLimit-dest.amount);
                     if (dest.subtype != tct.subtype && dest.subtype != "" && dest.amount < 1)
