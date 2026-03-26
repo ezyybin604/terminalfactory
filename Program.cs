@@ -7,7 +7,7 @@ namespace terminalfactory;
 // todo:
 /*
     - world ticking (resume at FactoryRunner.cs -> @ticktile)
-    - splitter of items when i do logistics
+    - splitter of items when i do logistics (MACHINE DO THIS ONE PLEASE)
     - passthrough pipes too
     - make the machines do recipes/io stuff (make mach out push items)
     - make pipes move items
@@ -494,6 +494,9 @@ Nobody follows, so to keep secrecy while you travel.
                         {
                             string tip = "Recipe: " + factory.getItemName(factory.machines[cursor].selectedRecipe);
                             topbar.changeTip(tip, 2, 3000);
+                        } else if (factory.gd.getFromKey("tags", "engrec").Contains(tic.type))
+                        {
+                            topbar.changeTip("Energy: " + tic.amount, 2, 1000);
                         }
                         break;
                     case 'j': // exchange / select recipe for machine
@@ -849,7 +852,7 @@ Nobody follows, so to keep secrecy while you travel.
                     Console.Clear();
                     for (int i=0;i<saves.Length;i++)
                     {
-                        Console.WriteLine(saves[i].Split("\\").Last());
+                        Console.WriteLine(saves[i].Split("\\").Last().Split("/").Last());
                     }
                     Console.WriteLine("(Press ENTER to exit)");
                     Console.ReadLine();

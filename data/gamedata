@@ -228,13 +228,15 @@ lasr=x8192,circ,x128,glass
 !tags
 machineblock=@+-m*
 containerTile=p+-
+# energy recevier
+engrec=~*
 # just get outputs to turn energy item into actual energy (just blacklist for items that can be taken by player)
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
 chooseADefault=puri,dist,carb,lasr,comp
 looseReq=splt
 #pipe tags: towards, backwards, dynamic
-pipeT=+]S
+pipeT=+]
 pipeB=-
 pipeD=p
 !! 

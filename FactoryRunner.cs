@@ -1134,17 +1134,8 @@ class Factory // factory data / big verbose stuff related to factory
     {
         tickMachines();
         HashSet<Point> tickNow = copyHashPoint(nextUpdateTick);
-        List<Point> tilesTick = nextUpdateTick.ToList();
-        foreach (Point tp in tilesTick)
-        {
-            // did you know: i used the ~ symbol to seperate stuff for sublists in scratch
-            Point[] li = tickTile(tp);
-            foreach (Point p in li)
-            {
-                tickNow.Add(p);
-            }
-        }
-        tilesTick = tickNow.ToList();
+        List<Point> tilesTick = tickNow.ToList();
+        tickNow.Clear();
         while (tilesTick.Count > 0)
         {
             Point tp = tilesTick[0];
@@ -1154,6 +1145,11 @@ class Factory // factory data / big verbose stuff related to factory
                 tickNow.Add(p);
             }
             tilesTick.RemoveAt(0);
+        }
+        tilesTick = tickNow.ToList();
+        foreach (Point tp in tilesTick)
+        {
+            nextUpdateTick.Add(tp);
         }
     }
     private Point[] tickTile(Point tp)
@@ -1211,7 +1207,64 @@ class Factory // factory data / big verbose stuff related to factory
                             tickLater.Add(pto); // tick destination
                         }
                     }
-                } // DO PIPES AND STUFF LIKE THAT WHEN I GET BACK QUICKLY CMON DO IT PLEASEEEEEEEEEEE
+                }
+                break;
+            case 'p':
+                Point desp = tp.getTransform(arrowOffset[tct.prog-1]);
+                Tile dest = giveMeTheTile(desp);
+                if (gd.getFromKey("tags", "pipeT").Contains(dest.type) && tct.amount > 0)
+                {
+                    int giveItem = Math.Min(tct.amount, defaultItemLimit-dest.amount);
+                    if (dest.subtype != tct.subtype && dest.subtype != "" && dest.amount < 1)
+                    {
+                        giveItem = 0;
+                    } else if (dest.subtype != tct.subtype)
+                    {
+                        dest.subtype = tct.subtype;
+                    }
+                    if (giveItem > 0)
+                    {
+                        tct.amount -= giveItem;
+                        dest.amount += giveItem;
+                        setTile(desp, dest);
+                        setTile(tp, tct);
+                        tickLater.Add(desp); // tick destination
+                    }
+                }
+                break;
+            case '~':
+                bool[] aval = new bool[4];
+                int amtspl = 0; // how much to split between
+                string enrec = gd.getFromKey("tags", "engrec");
+                for (int i=0;i<arrowOffset.Length;i++)
+                {
+                    Point pt = tp.getTransform(arrowOffset[i]);
+                    aval[i] = enrec.Contains(giveMeTheTile(pt).type);
+                    if (aval[i]) amtspl++;
+                }
+                int givper = (int)Math.Floor((double)tct.amount/amtspl);
+                int given = 0;
+                for (int i=0;i<arrowOffset.Length;i++)
+                {
+                    if (aval[i])
+                    {
+                        Point pt = tp.getTransform(arrowOffset[i]);
+                        Tile tl = giveMeTheTile(pt);
+                        int giveto = Math.Min(givper, defaultItemLimit-tl.amount);
+                        if (giveto > 0)
+                        {
+                            given += giveto;
+                            tl.amount += giveto;
+                            setTile(pt, tl);
+                            tickLater.Add(pt); // tick destination
+                        }
+                    }
+                }
+                if (given > 0)
+                {
+                    tct.amount -= given;
+                    setTile(tp, tct);
+                }
                 break;
         }
         return tickLater.ToArray();
