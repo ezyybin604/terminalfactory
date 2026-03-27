@@ -41,6 +41,7 @@ m.3=Machine Block (T3),mab3
 p=Pipe,pipe
 ~=Cable,energycable
 @=World Interactor,worldintr
+F=Filler Block
 # machine blocks (the machines)
 M=Unlabeled Machine
 M.puri=Purifier (Waterline T1 -> T2),puri
@@ -126,6 +127,7 @@ p=white
 -=cyan
 *=cyan
 ]=gray
+t=blue
 !! 
 
 !tileRemaps
@@ -143,6 +145,7 @@ m.3=darkyellow
 i.water1=░
 i.water2=░
 i.water3=░
+t=~
 !! 
 
 # @ at the start of a item name means it should have special handling

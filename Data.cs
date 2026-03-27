@@ -55,6 +55,10 @@ public struct Point
     {
         return new Point(x*m, y*m);
     }
+    public Point getDivide(int m)
+    {
+        return new Point(x/m, y/m);
+    }
 }
 
 class TopBar
@@ -281,6 +285,7 @@ class Inventory
 
 class FTutorial
 { // tutorial controller
+    public Point boxpos = new Point(64, 64);
     public Point size = new Point(60, 15);
     public FTutorial()
     {

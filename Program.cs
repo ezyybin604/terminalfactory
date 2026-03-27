@@ -15,7 +15,7 @@ namespace terminalfactory;
     - dragon feeding
     - dragon shedding
     - add speical demo file select screen
-    - fix the bug where you exit tutorial and it exits quickly when keypress/shortly?
+    - fix tutorial stuff like box spawn PLEASE
 */
 
 class Game
@@ -154,12 +154,13 @@ Nobody follows, so to keep secrecy while you travel.
                 "Resume Game|resume",
                 "Restart|quit"
             ];
-        } else if (specialMode == "tutorial")
+        } else if (specialMode == "tutorial" && factory.tutorial != null)
         {
             menus["pause"] = [
                 "Resume Game|resume",
                 "Exit tutorial|quit"
             ];
+            cursor = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2));
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
         menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
@@ -310,8 +311,11 @@ Nobody follows, so to keep secrecy while you travel.
     void lookThisOneIsJustToDrawTheBigLine()
     {
         Console.ResetColor();
-        Console.SetCursorPosition(0, 1);
-        Console.WriteLine(new string('~', Console.WindowWidth));
+        if (Console.WindowHeight > 1)
+        {
+            Console.SetCursorPosition(0, 1);
+            Console.WriteLine(new string('~', Console.WindowWidth));
+        }
     }
     void displayStuff()
     {
@@ -760,6 +764,7 @@ Nobody follows, so to keep secrecy while you travel.
         Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
+        adjustCamera();
         generateNeeded();
         displayStuff();
         while (scene != "end")
@@ -800,7 +805,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
             if (specialMode == "tutorial" && factory.tutorial != null && (factory.tutorial.size.x >= Console.WindowWidth || factory.tutorial.size.y+3 > Console.WindowHeight))
             {
-                topbar.changeTip(10, "/dWindow size too small!", true);
+                topbar.changeTip("/dWindow size too small!", 10, 4500, true);
             }
             updateBar();
             while (readkeylog.Count > 0)
@@ -812,7 +817,7 @@ Nobody follows, so to keep secrecy while you travel.
             timer = Math.Max(0, timer);
             Thread.Sleep(50);
         }
-        if (specialMode != "demo")
+        if (specialMode == "")
         {
             bye();
         }

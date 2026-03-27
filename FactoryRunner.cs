@@ -20,6 +20,7 @@ h: handle this pipe, make it face towards any adjacent things
 o: building stone
 S: splitter (outputs to machine output, actually just make it a machine in pretend but with S symbol: M.splt)
 t: Cursor stopper
+F: filler block
 */
 
 // Chunk: Tile[x][y] data;
@@ -246,17 +247,14 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 if (tutorial != null)
                 { // @tutorialgen dynamic grid
-                    bool border = false;
+                    Point offs = tutorial.boxpos;
+                    int which = 0;
+                    char[] getc = [' ', 't', 'F'];
                     Point gx = new Point(getAxis(x, i), getAxis(y, o)); // got axis
-                    if ((gx.y == 1 || gx.y == tutorial.size.y) && JPI.inRange(0, gx.x, tutorial.size.x)) border = true;
-                    if ((gx.x == tutorial.size.x || gx.x == 0) && JPI.inRange(1, gx.y, tutorial.size.y)) border = true;
-                    if (border)
-                    {
-                        chunk[i][o].type = 't';
-                    } else
-                    {
-                        chunk[i][o].type = ' ';
-                    }
+                    if (!(JPI.inRange(offs.x, gx.x, tutorial.size.x) && JPI.inRange(1+offs.y, gx.y, tutorial.size.y))) which = 2;
+                    if ((gx.y == 1+offs.y || gx.y == tutorial.size.y) && JPI.inRange(offs.x, gx.x, tutorial.size.x)) which = 1;
+                    if ((gx.x == tutorial.size.x || gx.x == offs.x) && JPI.inRange(offs.y, gx.y, tutorial.size.y)) which = 1;
+                    chunk[i][o].type = getc[which];
                 }
             }
         }
