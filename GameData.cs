@@ -18,7 +18,7 @@ public class GameData
         return strings[idx];
     }
     public string[] autoTilePick(Tile tile, string infokey="blockinfo")
-    {
+    { // why does this eveen return a array of strings
         string info = getFromKey(infokey, tile.type.ToString() + "." + tile.subtype);
         if (info == "")
         {
@@ -88,6 +88,18 @@ public class GameData
                                 {
                                     stuff[keys[x]] = data[after][keys[x]];
                                 }
+                            } else if (i == 4 && sect != null)
+                            { // 2&3
+                                // !!! copy
+                                string[] keys = new string[data[after].Count];
+                                data[after].Keys.CopyTo(keys, 0);
+                                for (int x=0;x<keys.Length;x++)
+                                {
+                                    stuff[keys[x]] = data[after][keys[x]];
+                                }
+                                // !! stop
+                                data[sect] = stuff;
+                                sect = null;
                             } else
                             {
                                 Console.Error.WriteLine("gamedata ohno");
@@ -514,6 +526,14 @@ class JPI // JsonPointInterface / other things because i felt like it
     {
         string[] spl = slot.Split("=");
         return new Slot(spl[1], parseInt(spl[0]));
+    }
+    public static string getFilename(string dirf)
+    {
+        return dirf.Split("\\").Last().Split("/").Last();
+    }
+    public static bool inRange(int min, int n, int max)
+    { // yoink stackover flowing
+        return min <= n && n <= max;
     }
 }
 

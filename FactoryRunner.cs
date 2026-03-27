@@ -19,6 +19,7 @@ M: machine
 h: handle this pipe, make it face towards any adjacent things
 o: building stone
 S: splitter (outputs to machine output, actually just make it a machine in pretend but with S symbol: M.splt)
+t: Cursor stopper
 */
 
 // Chunk: Tile[x][y] data;
@@ -38,6 +39,7 @@ public class Machine
 
 class Factory // factory data / big verbose stuff related to factory
 {
+    public FTutorial? tutorial = null;
     public GameData gd = new GameData("data/gamedata");
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
@@ -223,6 +225,10 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return result;
     }
+    int getAxis(int chunk, int pos)
+    { // chunk,pos in chunk -> position in world
+        return (chunk*chunkSize)+pos;
+    }
     public void generateChunk(int x, int y)
     {
         Tile[][] chunk = new Tile[chunkSize][];
@@ -234,13 +240,27 @@ class Factory // factory data / big verbose stuff related to factory
             {
                 chunk[i][o] = new Tile();
                 chunk[i][o].type = '`';
-                if (x == 0 && i == 0)
+                if (x == 0 && i == 0) // x=i, y=o
                 {
                     chunk[i][o].type = ']';
                 }
+                if (tutorial != null)
+                { // @tutorialgen dynamic grid
+                    bool border = false;
+                    Point gx = new Point(getAxis(x, i), getAxis(y, o)); // got axis
+                    if ((gx.y == 1 || gx.y == tutorial.size.y) && JPI.inRange(0, gx.x, tutorial.size.x)) border = true;
+                    if ((gx.x == tutorial.size.x || gx.x == 0) && JPI.inRange(1, gx.y, tutorial.size.y)) border = true;
+                    if (border)
+                    {
+                        chunk[i][o].type = 't';
+                    } else
+                    {
+                        chunk[i][o].type = ' ';
+                    }
+                }
             }
         }
-        for (int cnt=0;cnt<2;cnt++)
+        for (int cnt=0;cnt<2&&tutorial==null;cnt++)
         {
             int fx = (int)(rng.NextDouble()*10);
             int fy = (int)(rng.NextDouble()*10);
@@ -339,7 +359,8 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public void initFactory()
     {
-        strColor.Add("blue", ConsoleColor.Cyan);
+        strColor.Add("darkred", ConsoleColor.DarkRed);
+        strColor.Add("blue", ConsoleColor.Blue);
         strColor.Add("darkgray", ConsoleColor.DarkGray);
         strColor.Add("cyan", ConsoleColor.Cyan);
         strColor.Add("darkyellow", ConsoleColor.DarkYellow);
@@ -477,22 +498,11 @@ class Factory // factory data / big verbose stuff related to factory
             Point cur = new Point(x+scroll.x, y);
             Tile t = giveMeTheTile(cur);
             char addChar = t.type;
-            string state = "";
+            string newChar = gd.autoTilePick(t, 0, "tileRemaps");
+            if (newChar != "") addChar = newChar[0];
             if (t.subtype == null)
             {
                 t.subtype = "";
-            }
-            string subtc = gd.autoTilePick(t, 0, "tileRecolors");// add gd.autotilepick
-            if (subtc != "" && natrualTiles.Contains(t.type)) // for natrually generating stuff only
-            {
-                if (continueText && !color)
-                {
-                    idx++;
-                }
-                currentColor = subtc;
-                state = "natrualColor";
-                color = true;
-                colorNow = false;
             }
             if (t.type == ']')
             {
@@ -500,29 +510,17 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     idx++;
                 }
-                currentColor = "gray";
                 color = true;
                 colorNow = false;
             }
-            if ("@+-*p".Contains(t.type))
+            if ("+-p".Contains(t.type))
             {
-                if (continueText && !color)
-                {
-                    idx++;
-                }
-                currentColor = "cyan";
-                color = true;
-                colorNow = false;
                 string arrowmap = "?v^><";
                 if (t.type == 'p')
                 {
                     arrowmap = arrowmap.Substring(1, arrowmap.Length-1);
-                    currentColor = "white";
                 }
-                if (t.type == '+' || t.type == '-' || t.type == 'p')
-                {
-                    addChar = arrowmap[t.prog%arrowmap.Length];
-                }
+                addChar = arrowmap[t.prog%arrowmap.Length];
             }
             if (t.type == 'M')
             {
@@ -540,11 +538,18 @@ class Factory // factory data / big verbose stuff related to factory
             }
             if (t.type == 'm')
             {
-                string macs = "+|-";
-                currentColor = gd.getFromKey("machineColor", t.subtype);
+                addChar = "+|-"[t.prog];
+            }
+            string subtc = gd.autoTilePick(t, 0, "tileRecolors");
+            if (subtc != "")
+            {
+                if (continueText && !color)
+                {
+                    idx++;
+                }
+                currentColor = subtc;
                 color = true;
                 colorNow = false;
-                addChar = macs[t.prog];
             }
             bool colorLoop = false;
             if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
@@ -570,31 +575,6 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 invertedColor = 2;
                 lineResult[idx] = "/invert";
-                //idx++;
-            }
-            if (state == "natrualColor")
-            {
-                if (t.subtype.Contains("water"))
-                {
-                    addChar = '░';
-                } else if (t.subtype == "stone")
-                {
-                    addChar = 's';
-                } else if (t.subtype == "bone")
-                {
-                    addChar = '3';
-                } else if (t.subtype == "oil")
-                {
-                    addChar = 'o';
-                } else if (t.subtype == "coal")
-                {
-                    addChar = 'c';
-                }
-            }
-            if (t.type == 'M' && t.subtype == "splt") addChar = 'S'; // splitter
-            if (t.type == 'o')
-            {
-                addChar = 'b';
             }
             if (colorNow && color)
             {
@@ -755,16 +735,31 @@ class Factory // factory data / big verbose stuff related to factory
             updateMachine(macp[i]);
         }
     }
+    int getEnergyReq(string subt)
+    { // its called "i couldnt be bothered to do this 50 more times" and YOURE GETTING 3 MORE SEASONS!!!!
+        return JPI.parseInt(gd.getFromKey("energyConsume", subt));
+    }
+    bool hasRequiredEnergy(Machine mach, string subt)
+    {
+        int requirement = getEnergyReq(subt);
+        if (requirement < 1)
+        {
+            return true;
+        } else if (mach.energyPort != null && giveMeTheTile(mach.energyPort).amount >= requirement)
+        {
+            return true;
+        }
+        return false;
+    }
     private bool startMachine(Machine mac, string subt)
     {
-        int totalEnergyConsumed = JPI.parseInt(gd.getFromKey("energyConsume", subt)) * JPI.parseInt(gd.getFromKey("machineTime", subt));
-        if (totalEnergyConsumed < 1 || (mac.energyPort != null && giveMeTheTile(mac.energyPort).amount >= totalEnergyConsumed))
+        if (hasRequiredEnergy(mac, subt))
         {
             mac.runningRecipe = true;
-            mac.startedRecipe = 0;
+            mac.startedRecipe = 0; 
             Tile ep = giveMeTheTile(mac.energyPort);
-            ep.amount -= totalEnergyConsumed;
-            setTile(mac.energyPort, ep);
+            ep.amount -= getEnergyReq(subt);
+            setTile(mac.energyPort, ep); // is just letting the functions accept null vars a bad idea
             return true;
         }
         return false;
@@ -1067,15 +1062,11 @@ class Factory // factory data / big verbose stuff related to factory
         machines[mac] = mach; // is this redundant? (i see the changes in debugger without this)
     }
     private void tickMachIO(Point mac)
-    {
+    { // i would like to ask why this is a thing somebody tell me why i made this
         Machine mach = machines[mac];
         if (mach.isFormed)
         {
             if (mach.output != null) nextUpdateTick.Add((Point)mach.output);
-            for (int i=0;i<mach.inputs.Count;i++)
-            {
-                nextUpdateTick.Add(mach.inputs[i]);
-            }
         }
     }
     public void tickMachines()
@@ -1099,8 +1090,8 @@ class Factory // factory data / big verbose stuff related to factory
                             mac.runningRecipe = false;
                             output.subtype = "energy";
                             output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype));
-                            tickMachIO(macp[i]);
                             setTile(mac.output, output);
+                            tickMachIO(macp[i]);
                             break;
                         default:
                             mac.runningRecipe = false;
@@ -1114,9 +1105,12 @@ class Factory // factory data / big verbose stuff related to factory
                             break;
                     }
                 }
-            } else if (mac.runningRecipe)
+            } else if (mac.runningRecipe && hasRequiredEnergy(mac, core.subtype))
             {
                 mac.startedRecipe++;
+                Tile ep = giveMeTheTile(mac.energyPort);
+                ep.amount -= getEnergyReq(core.subtype);
+                setTile(mac.energyPort, ep);
             }
         }
     }
@@ -1202,6 +1196,10 @@ class Factory // factory data / big verbose stuff related to factory
                             setTile(pto, tile);
                             setTile(tp, tct);
                             tickLater.Add(pto); // tick destination
+                            if (machines[machp].isFormed)
+                            {
+                                tickLater.Add(machp);
+                            }
                         }
                     }
                 }

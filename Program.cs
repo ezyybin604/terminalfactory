@@ -6,14 +6,16 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - world ticking (resume at FactoryRunner.cs -> @ticktile)
-    - splitter of items when i do logistics (MACHINE DO THIS ONE PLEASE)
-    - passthrough pipes too
-    - make the machines do recipes/io stuff (make mach out push items)
-    - make pipes move items
-    - tile updates, this tick and next tick updates
+    - splitter core machine
+    - passthrough pipes
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - better tutorial that explains things more
+    - hope that all the machines are functional
+    - super scale collection facility
+    - dragon feeding
+    - dragon shedding
+    - add speical demo file select screen
+    - fix the bug where you exit tutorial and it exits quickly when keypress/shortly?
 */
 
 class Game
@@ -64,9 +66,8 @@ class Game
     }
     public void introduction()
     {
-        Console.Write("Skip intro? (y/n):");
-        char res = '\0';
-        if (!((res = Console.ReadKey().KeyChar) == 'y'))
+        Console.Write("Skip intro? (Press key: y/n):");
+        if (!(Console.ReadKey().KeyChar == 'y'))
         {
             Console.Clear();
             Console.WriteLine(@"
@@ -85,6 +86,26 @@ Nobody follows, so to keep secrecy while you travel.
 
 (Press ENTER to start)");
             Console.ReadLine();
+        }
+        char res = '\0';
+        while (res == '\0')
+        {
+            Console.Clear();
+            Console.Write("\nDo you want a tutorial?\n(y/n):");
+            res = Console.ReadKey().KeyChar.ToString().ToLower()[0];
+            if (res != 'y' && res != 'n')
+            {
+                res = '\0';
+            }
+        }
+        if (res == 'y')
+        {
+            // do tutorial stuff
+            Game tutr = new Game();
+            tutr.specialMode = "tutorial";
+            tutr.factory.tutorial = new FTutorial();
+            tutr.initStuff();
+            tutr.startGame();
         }
     }
     void initStuff()
@@ -132,6 +153,12 @@ Nobody follows, so to keep secrecy while you travel.
             menus["pause"] = [
                 "Resume Game|resume",
                 "Restart|quit"
+            ];
+        } else if (specialMode == "tutorial")
+        {
+            menus["pause"] = [
+                "Resume Game|resume",
+                "Exit tutorial|quit"
             ];
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
@@ -316,7 +343,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         factory.linesToUpdate.Clear();
     }
-    public void forceUpdateAll()
+    void forceUpdateAll()
     { // only for game
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
@@ -422,23 +449,27 @@ Nobody follows, so to keep secrecy while you travel.
                 {
                     case 'a':
                         cursor.x--;
+                        if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.x++;
                         factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
                         break;
                     case 's':
                         cursor.y++;
+                        if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.y--;
                         factory.linesToUpdate.Add(cursor.y);
                         factory.linesToUpdate.Add(cursor.y-1);
                         adjustCamera();
                         break;
                     case 'w':
                         cursor.y--;
+                        if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.y++;
                         factory.linesToUpdate.Add(cursor.y);
                         factory.linesToUpdate.Add(cursor.y+1);
                         adjustCamera();
                         break;
                     case 'd':
                         cursor.x++;
+                        if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.x--;
                         factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
                         break;
@@ -454,7 +485,7 @@ Nobody follows, so to keep secrecy while you travel.
                             Machine mac = factory.machines[cursor];
                             string ntip = "/dNo recipe running";
                             if (mac.runningRecipe) ntip = mac.startedRecipe.ToString() + " / " + factory.gd.getFromKey("machineTime", tic.subtype);
-                            topbar.changeTip(ntip, 1, 3000);
+                            topbar.changeTip(ntip, 2, 3000);
                         } else
                         {
                             topbar.menuSelection = 0;
@@ -707,12 +738,13 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
     {
+        string[] instantExitModes = ["demo", "tutorial"];
         ConsoleKeyInfo input;
         while (scene != "end")
         {
             input = Console.ReadKey(true);
             readkeylog.Add(input);
-            if (specialMode == "demo" && scene == "pause" && input.KeyChar == 'z' && topbar.menuSelection == 1)
+            if (instantExitModes.Contains(specialMode) && scene == "pause" && input.KeyChar == 'z' && topbar.menuSelection == 1)
             {
                 while (scene != "end")
                 {
@@ -766,6 +798,10 @@ Nobody follows, so to keep secrecy while you travel.
             {
                 updateScreen();
             }
+            if (specialMode == "tutorial" && factory.tutorial != null && (factory.tutorial.size.x >= Console.WindowWidth || factory.tutorial.size.y+3 > Console.WindowHeight))
+            {
+                topbar.changeTip(10, "/dWindow size too small!", true);
+            }
             updateBar();
             while (readkeylog.Count > 0)
             {
@@ -801,6 +837,14 @@ Nobody follows, so to keep secrecy while you travel.
         Console.Write("v0.1");
         Console.SetCursorPosition(0, 3);
     }
+    public void startGame()
+    {
+        if (gameThread != null)
+        {
+            gameThread.Start();
+            inputSutff();
+        }
+    }
     public static void Main()
     {
         Game game = new Game();
@@ -826,7 +870,7 @@ Nobody follows, so to keep secrecy while you travel.
         {
             if (!sf)
             {
-                game.factory.savefile = Directory.GetDirectories(FileManagement.worldFolder)[0].Split("\\").Last();
+                game.factory.savefile = JPI.getFilename(Directory.GetDirectories(FileManagement.worldFolder)[0]);
                 sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
                 if (!sf)
                 {
@@ -852,16 +896,17 @@ Nobody follows, so to keep secrecy while you travel.
                     Console.Clear();
                     for (int i=0;i<saves.Length;i++)
                     {
-                        Console.WriteLine(saves[i].Split("\\").Last().Split("/").Last());
+                        Console.WriteLine(JPI.getFilename(saves[i]));
                     }
                     Console.WriteLine("(Press ENTER to exit)");
                     Console.ReadLine();
                     inp = null;
                 }
-                if (inp == "creative" || inp == "demo")
+                if (inp == "creative" || inp == "demo" || inp == "tut")
                 {
                     Console.WriteLine("creative: All crafts in crafting menu are free");
                     Console.WriteLine("demo: No saving, there is a restart button instead of exiting.");
+                    Console.WriteLine("tutorial: Spawns a tutorial map that is one screen large. (min screen size 20x10) Changes dynamically.");
                     Console.WriteLine("Activate selected Special Mode?");
                     if (Console.ReadKey().KeyChar == 'y')
                     {
@@ -911,20 +956,12 @@ Nobody follows, so to keep secrecy while you travel.
                     game.hi();
                     game.introduction();
                     game.initStuff();
-                    if (game.gameThread != null)
-                    {
-                        game.gameThread.Start();
-                        game.inputSutff();
-                    }
+                    game.startGame();
                 }
             } else
             {
                 game.initStuff();
-                if (game.gameThread != null)
-                {
-                    game.gameThread.Start();
-                    game.inputSutff();
-                }
+                game.startGame();
             }
         } else
         {

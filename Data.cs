@@ -278,3 +278,12 @@ class Inventory
         return true;
     }
 }
+
+class FTutorial
+{ // tutorial controller
+    public Point size = new Point(60, 15);
+    public FTutorial()
+    {
+        // add stuff here later
+    }
+}

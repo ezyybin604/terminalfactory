@@ -94,9 +94,10 @@ stone=o
 !! 
 
 !tileRecolors
-i.water1=blue
-i.water2=blue
-i.water3=blue
+# blue isnt blue dont try it
+i.water1=cyan
+i.water2=cyan
+i.water3=cyan
 i.oil=darkgray
 i.coal=darkgray
 i.diamond=cyan
@@ -117,6 +118,31 @@ b.fr3=darkyellow
 b.fr4=magenta
 #jackfruit
 b.fr5=darkgreen
+#other
+~=darkred
+p=white
+@=cyan
++=cyan
+-=cyan
+*=cyan
+]=gray
+!! 
+
+!tileRemaps
+stone=s
+f.bone=3
+i.oil=o
+i.coal=c
+# building stone
+o=b
+# mach block
+m.1=gray
+m.2=darkcyan
+m.3=darkyellow
+# water
+i.water1=░
+i.water2=░
+i.water3=░
 !! 
 
 # @ at the start of a item name means it should have special handling
@@ -233,7 +259,7 @@ engrec=~*
 # just get outputs to turn energy item into actual energy (just blacklist for items that can be taken by player)
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
-chooseADefault=puri,dist,carb,lasr,comp
+chooseADefault=puri,dist,carb,lasr,comp,ogen,cgen
 looseReq=splt
 #pipe tags: towards, backwards, dynamic
 pipeT=+]
@@ -272,13 +298,7 @@ ogen=oil
 
 !generatorOutput
 cgen=128
-ogen=1024
-!! 
-
-!machineColor
-1=gray
-2=darkcyan
-3=darkyellow
+ogen=2048
 !! 
 
 !energyConsume
@@ -296,6 +316,7 @@ comp=8
 stor=0
 sltr=16
 mixr=32
+sscf=64
 !! 
 
 # in ticks (50ms intervals, aka 1 frame)
@@ -304,7 +325,8 @@ puri=3
 dist=5
 carb=10
 lasr=20
-cgen=2
+sscf=4
+cgen=1
 ogen=1
 pump=2
 mine=5
@@ -321,6 +343,13 @@ mixr=5
 !compRecipes
 compo=
 !! 
+
+!cgenRecipes
+energy=
+!! 
+
+!ogenRecipes
+!!!!cgenRecipes
 
 !niemRecipes
 16=Energy Selection
