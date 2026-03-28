@@ -54,8 +54,9 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press Z to select",
     - Press X to go back"
 
+
+### Felt like including how to make machines on the readme so here you go
 ```
-Felt like including how to make machines on the readme so here you go
 
 M = the machine tile (determines type of machine)
 +,-,| = machine blocks (filler, but necssary on corners, also later im gonna add a bonus for higher tiers)
