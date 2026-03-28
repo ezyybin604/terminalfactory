@@ -91,7 +91,7 @@ Nobody follows, so to keep secrecy while you travel.
         while (res == '\0')
         {
             Console.Clear();
-            Console.Write("\nDo you want a tutorial?\n(y/n):");
+            Console.Write("\nDo you want a tutorial? (warning:may be long)\n(y/n):");
             res = Console.ReadKey().KeyChar.ToString().ToLower()[0];
             if (res != 'y' && res != 'n')
             {
@@ -127,10 +127,10 @@ Nobody follows, so to keep secrecy while you travel.
             "Press Z to select"
         ]);
         topbar.tips.Add("inv", [
-            "Use RF to change selection",
-            "Press W to select (use item)",
+            "Use WS to change selection",
+            "Press Z to select (use item)",
             "Press A to enter crafts menu",
-            "Press S to go back",
+            "Press X to go back",
             "Press H to delete item",
             "If your inventory is empty, you will exit.",
             "When an item is deleted, selection will be too."
@@ -356,6 +356,12 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void adjustCamera()
     {
+        if (specialMode == "tutorial" && factory.tutorial != null)
+        {
+            scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(Point.getWindowSize().getTransform(0, -4).getDivide(-2));
+            generateNeeded();
+            return;
+        }
         if (scene != "game")
         {
             int prevScroll = topbar.menuScroll;
@@ -591,15 +597,15 @@ Nobody follows, so to keep secrecy while you travel.
             case "inv":
                 switch (ch)
                 {
-                    case 'r':
+                    case 'w':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
                         break;
-                    case 'f':
+                    case 's':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
                         break;
-                    case 'w':
+                    case 'z':
                         usingItem = topbar.menuSelection;
                         scene = "game";
                         forceDisplay = true;
@@ -611,7 +617,7 @@ Nobody follows, so to keep secrecy while you travel.
                         updateRecipeMenu();
                         forceDisplay = true;
                         break;
-                    case 's':
+                    case 'x':
                         scene = "game";
                         forceDisplay = true;
                         break;

@@ -251,9 +251,9 @@ class Factory // factory data / big verbose stuff related to factory
                     int which = 0;
                     char[] getc = [' ', 't', 'F'];
                     Point gx = new Point(getAxis(x, i), getAxis(y, o)); // got axis
-                    if (!(JPI.inRange(offs.x, gx.x, tutorial.size.x) && JPI.inRange(1+offs.y, gx.y, tutorial.size.y))) which = 2;
-                    if ((gx.y == 1+offs.y || gx.y == tutorial.size.y) && JPI.inRange(offs.x, gx.x, tutorial.size.x)) which = 1;
-                    if ((gx.x == tutorial.size.x || gx.x == offs.x) && JPI.inRange(offs.y, gx.y, tutorial.size.y)) which = 1;
+                    if (!(JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)&&JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y))) which = 2;
+                    if ((gx.y == offs.y || gx.y == tutorial.size.y+offs.y) && JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)) which = 1;
+                    if ((gx.x == offs.x || gx.x == tutorial.size.x+offs.x) && JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y)) which = 1;
                     chunk[i][o].type = getc[which];
                 }
             }
@@ -358,7 +358,7 @@ class Factory // factory data / big verbose stuff related to factory
     public void initFactory()
     {
         strColor.Add("darkred", ConsoleColor.DarkRed);
-        strColor.Add("blue", ConsoleColor.Blue);
+        strColor.Add("blue", ConsoleColor.Blue); // dont
         strColor.Add("darkgray", ConsoleColor.DarkGray);
         strColor.Add("cyan", ConsoleColor.Cyan);
         strColor.Add("darkyellow", ConsoleColor.DarkYellow);
@@ -370,6 +370,8 @@ class Factory // factory data / big verbose stuff related to factory
         strColor.Add("magenta", ConsoleColor.Magenta);
         strColor.Add("darkgreen", ConsoleColor.DarkGreen);
         strColor.Add("darkcyan", ConsoleColor.DarkCyan);
+        strColor.Add("darkmagenta", ConsoleColor.DarkMagenta);
+        strColor.Add("darkblue", ConsoleColor.DarkBlue);
     }
     public void invertColors()
     { // hheheheeheh

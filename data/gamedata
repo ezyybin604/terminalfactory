@@ -127,7 +127,8 @@ p=white
 -=cyan
 *=cyan
 ]=gray
-t=blue
+t=darkblue
+F=darkmagenta
 !! 
 
 !tileRemaps
@@ -146,6 +147,7 @@ i.water1=░
 i.water2=░
 i.water3=░
 t=~
+F=-
 !! 
 
 # @ at the start of a item name means it should have special handling
