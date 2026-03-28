@@ -33,7 +33,7 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press P to pause
     - Press K to break/collect
     - Press O to place
-    - Press I to open inventory
+    - Press I to open inventory/view machine progress
     - Press L to view tile contents/view recipe
     - Press J to exhange contents with tile
     - Press J to change machine recipe
@@ -42,10 +42,10 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Use WS to change selection
     - Press Z to select
 3. Inventory
-    - Use RF to change selection
-    - Press W to select (use item)
+    - Use WS to change selection
+    - Press Z to select (use item)
     - Press A to enter crafts menu
-    - Press S to go back
+    - Press X to go back
     - Press H to delete item
     - If your inventory is empty, you will exit.
     - When an item is deleted, selection will be too.
@@ -53,6 +53,40 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Use WS to change selection",
     - Press Z to select",
     - Press X to go back"
+
+```
+Felt like including how to make machines on the readme so here you go
+
+M = the machine tile (determines type of machine)
++,-,| = machine blocks (filler, but necssary on corners, also later im gonna add a bonus for higher tiers)
+* = energy port
+<>^v = Inputs/Outputs, you can determine by hovering over them or looking weather they face or don't at the machine tile.
+@ = world interactor (useful for machines like miners/pumps)
+
+
+3x3 structure :) (example, basic structure)
++-+
+|M|
++-+
+
+Example machines
+
+# Assembler
++v+
+*A>
++^+
+
+# Coal Generator
++v+
+|C>
++-+
+
+# Miner (c = coal ore)
+ +*+
+c@C>
+ +-+
+
+```
 
 ### Endgame
 ```

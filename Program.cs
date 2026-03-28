@@ -15,7 +15,8 @@ namespace terminalfactory;
     - dragon feeding
     - dragon shedding
     - add speical demo file select screen
-    - fix tutorial stuff like box spawn PLEASE
+    - add machine loose forming
+    - add tier multiplier for machine blocks
 */
 
 class Game

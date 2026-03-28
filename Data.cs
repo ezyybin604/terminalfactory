@@ -332,6 +332,7 @@ class FTutorial
         "Also press J to select machine recipe", // stop when in menu, no popup until exit
         // pause while machine gets replaced with cgen
         "Press I to show machine progress", // when this is here, constantly feed the cgen with items from nowhere
+        "Now go and feed that dragon until it gives you the means to destroy it!",
         "Press P to pause (and exit the tutorial!!)",
         "Anyway, i'm tired and it's 9:18 and i wanna stop" // show this message only after waiting 10 minutes after pause
     ];
