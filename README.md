@@ -12,8 +12,6 @@ things that happen:
 - build a factory
 - maybe have fun
 
-warning: slightly exessive switch statments \*__*potentally*__
-
 ## How to play
 
 ### Game
