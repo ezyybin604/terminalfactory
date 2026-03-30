@@ -1,0 +1,70 @@
+# just decided to do auto continue for descicion -2
+# and no action for -1
+# :)
+# After some move, next
+Use WASD to move=15
+# Spawn sand, once got some sand, next
+Press K to break/collect=50
+# just spawn in random copper / iron
+Press I to open inventory=1
+Try to move around in inventory..=4
+# when inv is empty, add more sand back
+Press H to delete an item=1
+# if player removed the sand add a random amount 32-64
+Press A to open the crafting menu=1
+# only glass,circuit,assembler,cable recipe
+Press Z to select/craft an item=10
+# until world (then spawn stone)
+Press X to go back=2
+# stop deleting of item while after this
+# wait until 16 stone is collected
+Press K to break a tile and get items=16
+# wait until stone is selected
+Select Stone in inventory (Select with Z) to select it=1
+# after continue, stop world modify (stop inventory access too)
+# also add (C) button continue in squiggle bar when an option
+Press O to place a tile (Press C to continue)=1
+# also continue automatically after 10 seconds and only let continue after 10 frames
+This is a Coal Generator.=1
+Currently, it is not formed.=1
+To form it, we will need a input,=1
+A output,=1
+# spiral animation
+And machine blocks to fill the rest.=1
+Do note that machine blocks are REQUIRED on the corners.=1
+Some other blocks that can be put in those edge pieces are:=1
+# (change one to energy port, same for other tiles said here)
+Energy Port=1
+and World Interactors (for Pumps/Miners)=1
+# show animation of cables connecting
+To get power to Energy Ports, you can use cables!=1
+# disconnect cable, reverse animation
+But that's only for energy..=1
+# pipe connect animation this time
+You can transport all sorts of items and fluids with pipes!=1
+# reset centered machine and use only nessary (use COMPOSTER machine)
+Now, here's a machine with a recipe!=1
+# stop big continuing block
+Press L to view view recipe=1
+# just do x999 food or smth
+# USE CONTINUE
+Now i've given you food, select that in the inventory..=1
+# only on exchange
+Press J to exhange contents with a input.=1
+Now you can also press L to view the contents of the input!=1
+# USE CONTINUE
+But that was a machine with only 1 recipe..=1
+# do limited assembler (limit through replacing with different one in Gamedata)
+# USE COTTON U again
+Here's a machine with more recipes!=1
+# (action is selecting recipe)
+Also press J to select machine recipe=1
+# pause while machine gets replaced with cgen
+# when this is here, constantly feed the cgen with items from nowhere
+Press I to show machine progress=1
+# DO CONTINUE STUFF YES
+Now go and feed that dragon until it gives you the means to destroy it!=1
+# 1 action for every frame
+Press P to pause (and exit the tutorial!!)=15000
+# show this message only after waiting 10 minutes after pause (there is no action to satisfy this one)
+Anyway, i'm tired and it's 9:18 and i wanna stop=-1

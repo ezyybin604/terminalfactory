@@ -298,43 +298,7 @@ class FTutorial
     public Point boxpos = new Point(64, 64);
     public Point size = new Point(60, 15);
     string[] messageprog = [ // CHANGE THIS TO TEXT FILE AND ADD ACTION NUMBERS IN SAME FILE BUT UHHH DO THAT LATER
-        "Use WASD to move", // After some move, next
-        "Press K to break/collect", // Spawn sand, once got some sand, next
-        "Press I to open inventory", // just spawn in random copper / iron
-        "Try to move around in inventory..",
-        "Press H to delete an item", // when inv is empty, add more sand back
-        "Press A to open the crafting menu", // if player removed the sand add a random amount 32-64
-        "Press Z to select/craft an item", // only glass,circuit,assembler,cable recipe
-        "Press X to go back", // until world (then spawn stone)
-        // stop deleting of item while after this
-        "Press K to break a tile and get items", // wait until 16 stone is collected
-        "Select Stone in inventory (Select with Z) to select it", // wait until stone is selected
-        "Press O to place a tile (Press Z to continue)", // after continue, stop world modify (stop inventory access too)
-        "This is a Coal Generator.", // also continue automatically after 10 seconds and only let continue after 500ms
-        "Currently, it is not formed.",
-        "To form it, we will need a input,",
-        "A output,",
-        "And machine blocks to fill the rest.", // spiral animation
-        "Do note that machine blocks are REQUIRED on the corners.",
-        "Some other blocks that can be put in those edge pieces are:",
-        "Energy Ports", // (change one to energy port, same for other tiles said here)
-        "and World Interactors (for Pumps/Miners)",
-        "To get power to Energy Ports, you can use cables!", // show animation of cables connecting
-        "But that's only for energy..", // disconnect cable, reverse animation
-        "You can transport all sorts of items and fluids with pipes!", // pipe connect animation this time 
-        "Now, here's a machine with recipes! (You can stop continuing after this one)", // reset centered machine and use only nessary (use COMPOSTER machine)
-        "Press L to view view recipe", // wait a second before continue
-        "Now i've given you food in your inventory, select that..", // just do x999 food or smth
-        "Press J to exhange contents with a input.",
-        "Now you can also press L to view the contents of the input!",
-        "But that was a machine with only 1 recipe..",
-        "Here's a machine with more recipes!", // assembler
-        "Also press J to select machine recipe", // stop when in menu, no popup until exit
-        // pause while machine gets replaced with cgen
-        "Press I to show machine progress", // when this is here, constantly feed the cgen with items from nowhere
-        "Now go and feed that dragon until it gives you the means to destroy it!",
-        "Press P to pause (and exit the tutorial!!)",
-        "Anyway, i'm tired and it's 9:18 and i wanna stop" // show this message only after waiting 10 minutes after pause
+        
     ];
     int mpgs = 0;
     int actionn = 0; // how many times action happened

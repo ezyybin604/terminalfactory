@@ -8,6 +8,7 @@ namespace terminalfactory;
 public class GameData
 {
     public string state = "prep";
+    // add key dictionary here
     private Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
     public string getindex(string[] strings, int idx)
     {

@@ -2,6 +2,8 @@
 # !s signal a section
 # double !!s means stop
 # !!! means add contents from existing section
+# !!!! means 2 and 3 combined (quick copy)
+# !!!!! copy from file
 # *=* are a recipe, can be all kinds of abstract
 # also whats the icon vscode is telling me this file is (its just a text file now :)
 !blockinfo
