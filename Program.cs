@@ -104,7 +104,6 @@ Nobody follows, so to keep secrecy while you travel.
             // do tutorial stuff
             Game tutr = new Game();
             tutr.specialMode = "tutorial";
-            tutr.factory.tutorial = new FTutorial();
             tutr.initStuff();
             tutr.startGame();
         }
@@ -162,6 +161,8 @@ Nobody follows, so to keep secrecy while you travel.
                 "Exit tutorial|quit"
             ];
             cursor = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2));
+            factory.tutorial = new FTutorial();
+            factory.tutorial.fact = factory;
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
         menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
@@ -743,7 +744,12 @@ Nobody follows, so to keep secrecy while you travel.
         if (repeatTime && !topbar.manualTip)
         {
             int itip = (int)Math.Round(factory.generateRange(0, topbar.tips[scene].Length-1));
-            topbar.changeTip(0, topbar.tips[scene][itip], true);
+            string ftip = topbar.tips[scene][itip]; // final tip
+            if (factory.tutorial != null)
+            {
+                ftip = factory.tutorial.updateTip();
+            }
+            topbar.changeTip(0, ftip, true);
             topbar.lastTipChange = time.Ticks;
         }
     }

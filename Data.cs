@@ -297,7 +297,7 @@ class FTutorial
 { // tutorial controller
     public Point boxpos = new Point(64, 64);
     public Point size = new Point(60, 15);
-    string[] messageprog = [
+    string[] messageprog = [ // CHANGE THIS TO TEXT FILE AND ADD ACTION NUMBERS IN SAME FILE BUT UHHH DO THAT LATER
         "Use WASD to move", // After some move, next
         "Press K to break/collect", // Spawn sand, once got some sand, next
         "Press I to open inventory", // just spawn in random copper / iron
@@ -336,8 +336,15 @@ class FTutorial
         "Press P to pause (and exit the tutorial!!)",
         "Anyway, i'm tired and it's 9:18 and i wanna stop" // show this message only after waiting 10 minutes after pause
     ];
+    int mpgs = 0;
+    int actionn = 0; // how many times action happened
+    public Factory fact = new Factory();
     public FTutorial()
     {
         // add stuff here later
+    }
+    public string updateTip()
+    {
+        return messageprog[mpgs];
     }
 }
