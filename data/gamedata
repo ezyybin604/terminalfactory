@@ -298,6 +298,10 @@ f.stone=stone
 f.sand=sand
 !! 
 
+!tutorialMsg
+!!!!!data/tutorial
+!! 
+
 !generatorMaterial
 cgen=coal
 ogen=oil

@@ -9,6 +9,7 @@ public class GameData
 {
     public string state = "prep";
     // add key dictionary here
+    private Dictionary<string, string[]> keylookup = new Dictionary<string, string[]>();
     private Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
     public string getindex(string[] strings, int idx)
     {
@@ -33,11 +34,7 @@ public class GameData
     }
     public string[] getKeys(string catg)
     {
-        // c# overcomplicating things for no reason :skull:
-        Dictionary<string, string>.KeyCollection why = data[catg].Keys;
-        string[] outa = new string[why.Count];
-        why.CopyTo(outa, 0);
-        return outa;
+        return keylookup[catg];
     }
     public string autoTilePick(Tile tile, int idx=0, string infokey="blockinfo")
     {
@@ -59,68 +56,84 @@ public class GameData
     {
         if (File.Exists(filename))
         {
-            using (StreamReader sr = File.OpenText(filename))
+            List<StreamReader> srs = [File.OpenText(filename)];
+            string? s;
+            string? sect = null;
+            List<string> keyl = new List<string>();
+            Dictionary<string,string> stuff = new Dictionary<string, string>();
+            while (srs.Count > 0)
             {
-                string? s;
-                string? sect = null;
-                Dictionary<string,string> stuff = new Dictionary<string, string>();
-                while ((s = sr.ReadLine()) != null)
+                s = srs.Last().ReadLine();
+                if (s == null)
                 {
-                    if (s != "" && s[0] != '#')
+                    srs.RemoveAt(srs.Count-1);
+                } else if (s != "" && s[0] != '#')
+                {
+                    if (s[0] == '!')
                     {
-                        if (s[0] == '!')
+                        int i=0;
+                        while (s[i] == '!' && s.Length-1 > i) { i++; }
+                        string after = s.Substring(i);
+                        if (i == 1)
                         {
-                            int i=0;
-                            while (s[i] == '!' && s.Length-1 > i) { i++; }
-                            string after = s.Substring(i);
-                            if (i == 1)
+                            stuff = new Dictionary<string, string>();
+                            keyl.Clear();
+                            sect = after;
+                        } else if (i == 2 && sect != null)
+                        {
+                            data[sect] = stuff;
+                            keylookup[sect] = keyl.ToArray();
+                            sect = null;
+                        } else if (i == 3 && sect != null)
+                        { // i was doing stuff here before
+                            string[] keys = keylookup[after];
+                            for (int x=0;x<keys.Length;x++)
                             {
-                                stuff = new Dictionary<string, string>();
-                                sect = after;
-                            } else if (i == 2 && sect != null)
-                            {
-                                data[sect] = stuff;
-                                sect = null;
-                            } else if (i == 3 && sect != null)
-                            {
-                                string[] keys = new string[data[after].Count];
-                                data[after].Keys.CopyTo(keys, 0);
-                                for (int x=0;x<keys.Length;x++)
-                                {
-                                    stuff[keys[x]] = data[after][keys[x]];
-                                }
-                            } else if (i == 4 && sect != null)
-                            { // 2&3
-                                // !!! copy
-                                string[] keys = new string[data[after].Count];
-                                data[after].Keys.CopyTo(keys, 0);
-                                for (int x=0;x<keys.Length;x++)
-                                {
-                                    stuff[keys[x]] = data[after][keys[x]];
-                                }
-                                // !! stop
-                                data[sect] = stuff;
-                                sect = null;
-                            } else
-                            {
-                                Console.Error.WriteLine("gamedata ohno");
+                                stuff[keys[x]] = data[after][keys[x]];
+                                keyl.Add(keys[x]);
                             }
-                        } else if (sect != null)
-                        {
-                            string[] ss = s.Split("=");
-                            if (ss.Length == 2)
+                        } else if (i == 4 && sect != null)
+                        { // 2&3
+                            // !!! copy
+                            string[] keys = keylookup[after];
+                            for (int x=0;x<keys.Length;x++)
                             {
-                                stuff[ss[0]] = ss[1];
+                                stuff[keys[x]] = data[after][keys[x]];
+                                keyl.Add(keys[x]);
+                            }
+                            // !! stop
+                            data[sect] = stuff;
+                            sect = null;
+                        } else if (i == 5)
+                        {
+                            if (File.Exists(after))
+                            {
+                                srs.Add(File.OpenText(after));
                             } else
                             {
-                                state = "formatting error";
+                                state = "subfile error " + after;
                                 return;
                             }
+                        } else 
+                        {
+                            Console.Error.WriteLine("gamedata ohno");
+                        }
+                    } else if (sect != null)
+                    {
+                        string[] ss = s.Split("=");
+                        if (ss.Length == 2)
+                        {
+                            stuff[ss[0]] = ss[1];
+                            keyl.Add(ss[0]);
+                        } else
+                        {
+                            state = "formatting error";
+                            return;
                         }
                     }
                 }
-                state = "done";
             }
+            state = "done";
         } else
         {
             state = "nofile";

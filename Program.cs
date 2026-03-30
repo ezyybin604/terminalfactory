@@ -102,8 +102,10 @@ Nobody follows, so to keep secrecy while you travel.
         if (res == 'y')
         {
             // do tutorial stuff
-            Game tutr = new Game();
-            tutr.specialMode = "tutorial";
+            Game tutr = new Game
+            { // Why does c# want me to do this isnt "simplified" what
+                specialMode = "tutorial"
+            };
             tutr.initStuff();
             tutr.startGame();
         }
@@ -154,15 +156,14 @@ Nobody follows, so to keep secrecy while you travel.
                 "Resume Game|resume",
                 "Restart|quit"
             ];
-        } else if (specialMode == "tutorial" && factory.tutorial != null)
+        } else if (specialMode == "tutorial")
         {
             menus["pause"] = [
                 "Resume Game|resume",
                 "Exit tutorial|quit"
             ];
+            factory.tutorial = new FTutorial(factory);
             cursor = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2));
-            factory.tutorial = new FTutorial();
-            factory.tutorial.fact = factory;
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
         menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable

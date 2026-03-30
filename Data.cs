@@ -297,15 +297,14 @@ class FTutorial
 { // tutorial controller
     public Point boxpos = new Point(64, 64);
     public Point size = new Point(60, 15);
-    string[] messageprog = [ // CHANGE THIS TO TEXT FILE AND ADD ACTION NUMBERS IN SAME FILE BUT UHHH DO THAT LATER
-        
-    ];
+    string[] messageprog = [];
     int mpgs = 0;
-    int actionn = 0; // how many times action happened
+    int action = 0; // how many times action happened
     public Factory fact = new Factory();
-    public FTutorial()
+    public FTutorial(Factory factr)
     {
-        // add stuff here later
+        fact = factr;
+        messageprog = fact.gd.getKeys("tutorialMsg");
     }
     public string updateTip()
     {
