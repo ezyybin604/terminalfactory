@@ -1,6 +1,4 @@
 
-using System.ComponentModel;
-
 namespace terminalfactory;
 
 // data structuring classes
@@ -20,9 +18,32 @@ public struct Tile
         prog = prg;
         amount = amt;
     }
+    public Tile(Tile ct)
+    {
+        type = ct.type;
+        subtype = ct.subtype;
+        prog = ct.prog;
+        amount = ct.amount;
+    }
+    public Tile(string full)
+    {
+        string[] ip = full.Split(".");
+        if (ip.Length > 0 && ip[0].Length == 1)
+        {
+            type = ip[0][0];
+        }
+        if (ip.Length > 1)
+        {
+            subtype = ip[1];
+        }
+        if (ip.Length > 2)
+        {
+            prog = JPI.parseInt(ip[2]);
+        }
+    }
 }
 public struct Point
-{
+{ // just wondering, is there anything like this in SYSTEM c#
     public int x;
     public int y;
     public Point(int ix, int iy)
@@ -130,6 +151,7 @@ class Inventory
     public const int Length = 150;
     public const int MaxPerSlot = 999;
     public Slot[] data = new Slot[Length];
+    public string[] invmenud = new string[Length];
     List<string> invlist = new List<string>();
     public int getItemAmount(string item)
     {
@@ -168,7 +190,7 @@ class Inventory
         }
         return x; // returns "length" of inventory
     }
-    public string[] getMenu(Factory fact)
+    public void updateMenu(Factory fact)
     {
         invlist.Clear();
         for (int i=0;i<data.Length;i++)
@@ -184,7 +206,7 @@ class Inventory
         {
             menuout[i] = invlist[i];
         }
-        return menuout;
+        invmenud = menuout;
     }
     public Slot[] getRecipe(string catg, string result)
     {
@@ -297,17 +319,71 @@ class FTutorial
 { // tutorial controller
     public Point boxpos = new Point(64, 64);
     public Point size = new Point(60, 15);
+    public Point center = new Point();
     string[] messageprog = [];
     int mpgs = 0;
-    int action = 0; // how many times action happened
+    private int action = 0; // how many times action happened
     public Factory fact = new Factory();
+    public List<string> acts = new List<string>();
+    public int ticksSinceLast = 0;
+    string curact = "";
+    int numact = 0;
+    public void updateAction()
+    {
+        center = boxpos.getTransform(size.getDivide(2));
+        string[] curd = fact.gd.getSplit("tutorialMsg", messageprog[mpgs]);
+        numact = JPI.parseInt(curd[0]);
+        curact = curd[1];
+        beforeAction();
+    }
     public FTutorial(Factory factr)
     {
         fact = factr;
         messageprog = fact.gd.getKeys("tutorialMsg");
+        updateAction();
+    }
+    public void tickTutorial()
+    {
+        for (string goin;acts.Count>0;acts.RemoveAt(0)) // chat is this a cool way to use a for loop
+        {
+            goin = acts[0];
+            if (curact == "tick") action++;
+            if (goin == curact) action++;
+        }
+        if (action >= numact && ticksSinceLast > 2)
+        {
+            mpgs++;
+            action = 0;
+            ticksSinceLast = 0;
+            updateAction();
+        }
+        ticksSinceLast++;
     }
     public string updateTip()
     {
         return messageprog[mpgs];
+    }
+    public void beforeAction()
+    {
+        switch (GameData.getindex(fact.gd.getSplit("tutorialMsg", messageprog[mpgs]), 2))
+        {
+            case "spawnsand":
+                List<Point> shape = fact.pointShapeGenerator(1, "diamond");
+                fact.placeFeature(shape, new Tile("f.sand.16"), center.getTransform(-1, -1));
+                fact.updateShape(shape);
+                break;
+            case "giveitem":
+                fact.inventory.addItem(new Slot("copper", fact.generateIntRange(30, 120)));
+                fact.inventory.addItem(new Slot("iron", fact.generateIntRange(30, 120)));
+                break;
+            case "sneakysand":
+                if (fact.inventory.getItemAmount("sand") < 16)
+                {
+                    fact.inventory.addItem(new Slot("sand", 32));
+                }
+                break;
+            default:
+                break;
+        }
     }
 }

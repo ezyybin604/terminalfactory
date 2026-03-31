@@ -45,6 +45,7 @@ class Factory // factory data / big verbose stuff related to factory
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
+    public Tile emptyTile = new Tile("`");
     public string savefile = "defualtfsave";
     public const int chunkSize = 16;
     public const int regionArea = 16;
@@ -53,6 +54,7 @@ class Factory // factory data / big verbose stuff related to factory
     public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
     // [x][y]
+    public HashSet<Point> populated = new HashSet<Point>();
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
@@ -143,9 +145,26 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return reg.getMultiply(regionArea);
     }
+    public List<Point> getChunks()
+    {
+        List<Point> chunks = [];
+        int[] yposb = new int[world.Count];
+        int[] xposb;
+        world.Keys.CopyTo(yposb, 0);
+        for (int x=0;x<yposb.Length;x++)
+        {
+            xposb = new int[world[yposb[x]].Keys.Count];
+            world[x].Keys.CopyTo(xposb, 0);
+            for (int y=0;y<xposb.Length;y++)
+            {
+                chunks.Add(new Point(yposb[x], xposb[y]));
+            }
+        }
+        return chunks;
+    }
     public List<Point> getRegions()
     {
-        HashSet<Point> regions = new HashSet<Point>();
+        HashSet<Point> regions = [];
         int[] yposb = new int[world.Count];
         int[] xposb;
         world.Keys.CopyTo(yposb, 0);
@@ -200,10 +219,10 @@ class Factory // factory data / big verbose stuff related to factory
         int rnd = generateIntRange(0, sum-1);
         return results[rnd];
     }
-    private List<Point> pointShapeGenerator(int size, string shape, int amount=0) // look idk what this actually looks like
+    public List<Point> pointShapeGenerator(int size, string shape, int amount=0) // look idk what this actually looks like
     {
         List<Point> result = new List<Point>();
-        switch (shape) {
+        switch (shape) { // maybe add square shape later
             case "diamond":
                 int sizetotal = size+1+size;
                 for (int x=0;x<sizetotal;x++)
@@ -230,7 +249,27 @@ class Factory // factory data / big verbose stuff related to factory
     { // chunk,pos in chunk -> position in world
         return (chunk*chunkSize)+pos;
     }
-    public void generateChunk(int x, int y)
+    public void placeFeature(List<Point> shape, Tile copy, Point pos)
+    {
+        for (int i=0;i<shape.Count;i++)
+        {
+            Point pointGo = new Point(shape[i].x + pos.x, shape[i].y + pos.y);
+            Point chunk = getChunkFromPos(pointGo);
+            if (!chunkExists(chunk))
+            {
+                generateChunkBasic(chunk);
+            }
+            setTile(pointGo, copy);
+        }
+    }
+    public void updateShape(List<Point> shape)
+    {
+        foreach (Point p in shape)
+        {
+            linesToUpdate.Add(p.y);
+        }
+    }
+    public void generateChunkBasic(Point chunkp)
     {
         Tile[][] chunk = new Tile[chunkSize][];
         // Generate chunk data herre
@@ -241,7 +280,7 @@ class Factory // factory data / big verbose stuff related to factory
             {
                 chunk[i][o] = new Tile();
                 chunk[i][o].type = '`';
-                if (x == 0 && i == 0) // x=i, y=o
+                if (chunkp.x == 0 && i == 0) // x=i, y=o
                 {
                     chunk[i][o].type = ']';
                 }
@@ -250,7 +289,7 @@ class Factory // factory data / big verbose stuff related to factory
                     Point offs = tutorial.boxpos;
                     int which = 0;
                     char[] getc = [' ', 't', 'F'];
-                    Point gx = new Point(getAxis(x, i), getAxis(y, o)); // got axis
+                    Point gx = new Point(getAxis(chunkp.x, i), getAxis(chunkp.y, o)); // got axis
                     if (!(JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)&&JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y))) which = 2;
                     if ((gx.y == offs.y || gx.y == tutorial.size.y+offs.y) && JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)) which = 1;
                     if ((gx.x == offs.x || gx.x == tutorial.size.x+offs.x) && JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y)) which = 1;
@@ -258,10 +297,40 @@ class Factory // factory data / big verbose stuff related to factory
                 }
             }
         }
-        for (int cnt=0;cnt<2&&tutorial==null;cnt++)
+        if (!world.Keys.Contains(chunkp.x))
         {
-            int fx = (int)(rng.NextDouble()*10);
-            int fy = (int)(rng.NextDouble()*10);
+            world.Add(chunkp.x, new Dictionary<int, Tile[][]>());
+        }
+        if (!world[chunkp.x].Keys.Contains(chunkp.y))
+        {
+            world[chunkp.x].Add(chunkp.y, chunk);
+        }
+    }
+    public bool chunkExists(Point chunkp)
+    {
+        if (!world.Keys.Contains(chunkp.x))
+        {
+            return false;
+        }
+        if (!world[chunkp.x].Keys.Contains(chunkp.y))
+        {
+            return false;
+        }
+        return true;
+    }
+    public void generateChunk(int x, int y)
+    {
+        Point chpos = new Point(x, y);
+        if (!chunkExists(chpos))
+        {
+            generateChunkBasic(chpos);
+        }
+        if (tutorial != null || populated.Contains(chpos))
+        {
+            return;
+        }
+        for (int cnt=0;cnt<2;cnt++)
+        {
             List<Point> shape;
             Tile copy = new Tile();
             switch (weightedRandom([10, 20, 15, 30]))
@@ -319,27 +388,11 @@ class Factory // factory data / big verbose stuff related to factory
                     shape = [new Point(0, 0)];
                     break;
             }
-            for (int i=0;i<shape.Count;i++)
-            {
-                Point pointGo = new Point(shape[i].x + fx, shape[i].y + fy);
-                if (pointGo.x < chunkSize && pointGo.y < chunkSize)
-                {
-                    if (chunk[pointGo.x][pointGo.y].type != ']')
-                    {
-                        chunk[pointGo.x][pointGo.y] = copy;
-                    }
-                }
-            }
+            // position in chunk
+            Point pchunk = new Point((int)(rng.NextDouble()*10), (int)(rng.NextDouble()*10));
+            placeFeature(shape, copy, chpos.getMultiply(16).getTransform(pchunk));
         }
-
-        if (!world.Keys.Contains(x))
-        {
-            world.Add(x, new Dictionary<int, Tile[][]>());
-        }
-        if (!world[x].Keys.Contains(y))
-        {
-            world[x].Add(y, chunk);
-        }
+        populated.Add(chpos);
     }
     public void placeChunk(Point position, Tile[][] data)
     {
@@ -380,15 +433,20 @@ class Factory // factory data / big verbose stuff related to factory
         Console.BackgroundColor = bg;
         Console.ForegroundColor = fg;
     }
+    Point getChunkFromPos(Point po)
+    {
+        Point ch = new Point((int)Math.Floor((double)(po.x/chunkSize)), (int)Math.Floor((double)(po.y/chunkSize)));
+        if (po.y < 0) ch.y--;
+        return ch;
+    }
     public Tile giveMeTheTile(int x, int y)
     {
-        Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
+        Point chunk = getChunkFromPos(new Point(x, y));
         Point index = new Point(x%chunkSize, y%chunkSize);
         if (y < 0)
-        {
+        { // honestly what is this for
             index.y+=chunkSize;
             index.y%=chunkSize;
-            chunk.y--;
         }
         return world[chunk.x][chunk.y][index.x][index.y];
     }
@@ -403,13 +461,12 @@ class Factory // factory data / big verbose stuff related to factory
     }
     public void setTile(int x, int y, Tile tl)
     {
-        Point chunk = new Point((int)Math.Floor((double)(x/chunkSize)), (int)Math.Floor((double)(y/chunkSize)));
+        Point chunk = getChunkFromPos(new Point(x, y));
         Point index = new Point(x%chunkSize, y%chunkSize);
         if (y < 0)
         {
             index.y+=chunkSize;
             index.y%=chunkSize;
-            chunk.y--;
         }
         world[chunk.x][chunk.y][index.x][index.y] = tl;
     }
@@ -649,8 +706,7 @@ class Factory // factory data / big verbose stuff related to factory
                 curs.prog--;
                 if (curs.prog < 1)
                 {
-                    curs.subtype = "";
-                    curs.type = '`';
+                    curs = new Tile(emptyTile);
                 }
             } else if (curs.type == 'b')
             {
@@ -663,8 +719,7 @@ class Factory // factory data / big verbose stuff related to factory
                 }
             } else
             {
-                curs.subtype = "";
-                curs.type = '`';
+                curs = new Tile(emptyTile);
             }
             if (giveitem)
             {

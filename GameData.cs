@@ -11,7 +11,7 @@ public class GameData
     // add key dictionary here
     private Dictionary<string, string[]> keylookup = new Dictionary<string, string[]>();
     private Dictionary<string, Dictionary<string, string>> data = new Dictionary<string, Dictionary<string, string>>();
-    public string getindex(string[] strings, int idx)
+    public static string getindex(string[] strings, int idx)
     {
         if (idx > strings.Length-1)
         {
@@ -196,7 +196,7 @@ class FileManagement
     {
         if (tile == "g")
         {
-            return new Tile('`', "", 0, 0);
+            return new Tile("`");
         }
         string[] res = tile.Split("=");
         if (res.Length == 1)
@@ -317,6 +317,7 @@ class FileManagement
             camera = JPI.getJs(camera),
             energyInNetwork = fact.energyInNetwork
         };
+        machineCursor.putPopulated(fact.populated.ToArray());
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
         List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
@@ -407,6 +408,13 @@ class FileManagement
         });
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
+        if (deser.populatedChunks.Length < 1)
+        {
+            fact.populated = fact.getChunks().ToHashSet();
+        } else
+        {
+            fact.populated = deser.getPopulated();
+        }
         return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
     }
     public void saveDefualt(Factory fact)
@@ -565,8 +573,9 @@ public class MachineCursor
 {
     required public string cursor { get; set; }
     required public string camera { get; set; }
-    public Dictionary<string, string> macsd { get; set; }
+    public Dictionary<string, string> macsd { get; set; } = new Dictionary<string, string>();
     public int energyInNetwork { get; set; }
+    public string[] populatedChunks { get; set; } = [];
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
         macsd = new Dictionary<string, string>();
@@ -575,9 +584,7 @@ public class MachineCursor
             macsd[JPI.getJs(kv.Key)] = JPI.convertMachine(kv.Value);
         }
     }
-    public MachineCursor() {
-        macsd = new Dictionary<string, string>();
-    }
+    public MachineCursor() {}
     public Dictionary<Point, Machine> returnMachines()
     {
         Dictionary<Point, Machine> res = new Dictionary<Point, Machine>();
@@ -586,5 +593,22 @@ public class MachineCursor
             res[JPI.getPoint(kv.Key)] = JPI.convertMachine(kv.Value);
         }
         return res;
+    }
+    public HashSet<Point> getPopulated()
+    {
+        HashSet<Point> res = new HashSet<Point>();
+        foreach (string itm in populatedChunks)
+        {
+            res.Add(JPI.getPoint(itm));
+        }
+        return res;
+    }
+    public void putPopulated(Point[] points)
+    {
+        populatedChunks = new string[points.Length];
+        for (int i=0;i<points.Length;i++)
+        {
+            populatedChunks[i] = JPI.getJs(points[i]);
+        }
     }
 }

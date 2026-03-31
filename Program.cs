@@ -17,6 +17,7 @@ namespace terminalfactory;
     - add speical demo file select screen
     - add machine loose forming
     - add tier multiplier for machine blocks
+    - make worldgen features more datadriven (at least for main worldgen)
 */
 
 class Game
@@ -48,6 +49,13 @@ class Game
         scroll = curscr[1];
         generateNeeded();
         adjustCamera();
+    }
+    public void sendAction(string act)
+    {
+        if (factory.tutorial != null)
+        {
+            factory.tutorial.acts.Add(act);
+        }
     }
     void generateNeeded()
     {
@@ -162,8 +170,9 @@ Nobody follows, so to keep secrecy while you travel.
                 "Resume Game|resume",
                 "Exit tutorial|quit"
             ];
+            factory.emptyTile = new Tile(" ");
             factory.tutorial = new FTutorial(factory);
-            cursor = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2));
+            cursor = factory.tutorial.center;
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
         menus.Add("inv", new string[Inventory.Length]); // dynamic menu, based off inventory variable
@@ -213,7 +222,7 @@ Nobody follows, so to keep secrecy while you travel.
         if (scene == "inv")
         {
             inventory.fix();
-            menus["inv"] = inventory.getMenu(factory);
+            inventory.updateMenu(factory);
         } // prev for loop menus[scene].Length-topbar.menuScroll
         int menuLength = Math.Min(Console.WindowHeight-2, menus[scene].Length);
         for (int i=0;i<menuLength;i++)
@@ -223,6 +232,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void updateMenu()
     {
+        if (scene == "inv") menus["inv"] = inventory.invmenud;
         for (int i=0;i<menus[scene].Length;i++)
         {
             if (factory.linesToUpdate.Contains(i))
@@ -462,12 +472,14 @@ Nobody follows, so to keep secrecy while you travel.
                 {
                     case 'a':
                         cursor.x--;
+                        sendAction("movepress");
                         if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.x++;
                         factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
                         break;
                     case 's':
                         cursor.y++;
+                        sendAction("movepress");
                         if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.y--;
                         factory.linesToUpdate.Add(cursor.y);
                         factory.linesToUpdate.Add(cursor.y-1);
@@ -475,6 +487,7 @@ Nobody follows, so to keep secrecy while you travel.
                         break;
                     case 'w':
                         cursor.y--;
+                        sendAction("movepress");
                         if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.y++;
                         factory.linesToUpdate.Add(cursor.y);
                         factory.linesToUpdate.Add(cursor.y+1);
@@ -482,6 +495,7 @@ Nobody follows, so to keep secrecy while you travel.
                         break;
                     case 'd':
                         cursor.x++;
+                        sendAction("movepress");
                         if (specialMode == "tutorial" && factory.giveMeTheTile(cursor).type == 't') cursor.x--;
                         factory.linesToUpdate.Add(cursor.y);
                         adjustCamera();
@@ -495,6 +509,7 @@ Nobody follows, so to keep secrecy while you travel.
                         if (tic.type == 'M')
                         {
                             // show machine progress
+                            sendAction("showmacprog");
                             Machine mac = factory.machines[cursor];
                             string ntip = "/dNo recipe running";
                             if (mac.runningRecipe) ntip = mac.startedRecipe.ToString() + " / " + factory.gd.getFromKey("machineTime", tic.subtype);
@@ -503,9 +518,10 @@ Nobody follows, so to keep secrecy while you travel.
                         {
                             topbar.menuSelection = 0;
                             inventory.fix();
-                            menus["inv"] = inventory.getMenu(factory);
+                            inventory.updateMenu(factory);
                             if (inventory.data[0].num > 0)
                             {
+                                sendAction("inventoryopen");
                                 scene = "inv";
                                 forceDisplay = true;
                             } else
@@ -517,6 +533,7 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'k':
                         if (factory.breakTile(cursor, topbar))
                         {
+                            sendAction("breaktile");
                             if (tic.type != 'i')
                             {
                                 factory.linesToUpdate.Add(cursor.y);
@@ -533,10 +550,12 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'l': // view contents
                         if (tic.amount > 0 && factory.gd.getFromKey("tags", "containerTile").Contains(tic.type))
                         {
+                            sendAction("viewContents");
                             string tip = "x" + tic.amount.ToString() + " " + factory.getItemName(tic.subtype);
                             topbar.changeTip(tip, 2, 3000);
                         } else if (tic.type == 'M')
                         {
+                            sendAction("viewRecipe");
                             string tip = "Recipe: " + factory.getItemName(factory.machines[cursor].selectedRecipe);
                             topbar.changeTip(tip, 2, 3000);
                         } else if (factory.gd.getFromKey("tags", "engrec").Contains(tic.type))
@@ -557,6 +576,7 @@ Nobody follows, so to keep secrecy while you travel.
                                 }
                             } else if (tic.type == '+' && usingItem != null)
                             {
+                                sendAction("jdeposit");
                                 // deposit
                                 tic.amount = inventory.data[(int)usingItem].num;
                                 tic.subtype = inventory.data[(int)usingItem].item;
@@ -572,6 +592,12 @@ Nobody follows, so to keep secrecy while you travel.
                             topbar.menuSelection = 0;
                             updateRecipeMenu(tic.subtype + "Recipes");
                             forceDisplay = true;
+                        }
+                        break;
+                    case 'c':
+                        if (factory.tutorial != null && factory.tutorial.ticksSinceLast > 10)
+                        {
+                            sendAction("continue");
                         }
                         break;
                 }
@@ -603,17 +629,21 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'w':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection--;
+                        sendAction("inventorymove");
                         break;
                     case 's':
                         factory.linesToUpdate.Add(topbar.menuSelection);
                         topbar.menuSelection++;
+                        sendAction("inventorymove");
                         break;
                     case 'z':
+                        sendAction("invselect-" + inventory.data[topbar.menuSelection].item);
                         usingItem = topbar.menuSelection;
                         scene = "game";
                         forceDisplay = true;
                         break;
                     case 'a':
+                        sendAction("invcraft");
                         scene = "craft";
                         topbar.returnScene = "inv";
                         topbar.menuSelection = 0;
@@ -623,11 +653,13 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'x':
                         scene = "game";
                         forceDisplay = true;
+                        sendAction("backgen");
                         break;
                     case 'h':
+                        sendAction("invdel");
                         inventory.data[topbar.menuSelection].num = 0;
                         inventory.fix();
-                        menus["inv"] = inventory.getMenu(factory);
+                        inventory.updateMenu(factory);
                         usingItem = null;
                         topbar.menuSelection = Math.Min(topbar.menuSelection, menus["inv"].Length-1);
                         if (inventory.data[0].num < 1)
@@ -652,6 +684,8 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'x':
                         scene = topbar.returnScene;
                         forceDisplay = true;
+                        inventory.updateMenu(factory);
+                        sendAction("backgen");
                         break;
                     case 'z':
                         // craft process goes here (doit)
@@ -661,6 +695,7 @@ Nobody follows, so to keep secrecy while you travel.
                             factory.machines[cursor].selectedRecipe = result;
                             scene = topbar.returnScene;
                             forceDisplay = true;
+                            sendAction("craftdoselect");
                         } else if (topbar.returnScene == "inv")
                         {
                             Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
@@ -668,6 +703,7 @@ Nobody follows, so to keep secrecy while you travel.
                             {
                                 if (inventory.addItem(new Slot(result)))
                                 {
+                                    sendAction("craftdo");
                                     topbar.changeTip(String.Format("/gx{0} {1}", inventory.getItemAmount(result), factory.getItemName(result)), 2, 4500);
                                     if (specialMode != "creative")
                                     {
@@ -829,6 +865,10 @@ Nobody follows, so to keep secrecy while you travel.
             }
             timer++;
             timer = Math.Max(0, timer);
+            if (factory.tutorial != null)
+            {
+                factory.tutorial.tickTutorial();
+            }
             Thread.Sleep(50);
         }
         if (specialMode == "")

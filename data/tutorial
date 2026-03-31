@@ -1,70 +1,66 @@
-# just decided to do auto continue for descicion -2
-# and no action for -1
-# :)
 # After some move, next
-Use WASD to move=15
+Use WASD to move=5,movepress
 # Spawn sand, once got some sand, next
-Press K to break/collect=50
+Press K to break/collect=10,breaktile,spawnsand
 # just spawn in random copper / iron
-Press I to open inventory=1
-Try to move around in inventory..=4
+Press I to open inventory=1,inventoryopen,giveitem
+Try to move around in inventory..=2,inventorymove
 # when inv is empty, add more sand back
-Press H to delete an item=1
+Press H to delete an item=1,invdel
 # if player removed the sand add a random amount 32-64
-Press A to open the crafting menu=1
+Press A to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
-Press Z to select/craft an item=10
+Press Z to select/craft an item=10,craftdo,sneakysand
 # until world (then spawn stone)
-Press X to go back=2
+Press X to go back=2,backgen
 # stop deleting of item while after this
 # wait until 16 stone is collected
-Press K to break a tile and get items=16
+Collect some stone :)=16,breaktile
 # wait until stone is selected
-Select Stone in inventory (Select with Z) to select it=1
+Select Stone in inventory (Select with Z) to select it=1,invselect-stone
 # after continue, stop world modify (stop inventory access too)
 # also add (C) button continue in squiggle bar when an option
-Press O to place a tile (Press C to continue)=1
+Press O to place a tile (Press C to continue)=1,continue
 # also continue automatically after 10 seconds and only let continue after 10 frames
-This is a Coal Generator.=1
-Currently, it is not formed.=1
-To form it, we will need a input,=1
-A output,=1
+This is a Coal Generator.=1,continue
+Currently, it is not formed.=1,continue
+To form it, we will need a input,=1,continue
+A output,=1,continue
 # spiral animation
-And machine blocks to fill the rest.=1
-Do note that machine blocks are REQUIRED on the corners.=1
-Some other blocks that can be put in those edge pieces are:=1
+And machine blocks to fill the rest.=1,continue
+Do note that machine blocks are REQUIRED on the corners.=1,continue
+Some other blocks that can be put in those edge pieces are:=1,continue
 # (change one to energy port, same for other tiles said here)
-Energy Port=1
-and World Interactors (for Pumps/Miners)=1
+Energy Port=1,continue
+and World Interactors (for Pumps/Miners)=1,continue
 # show animation of cables connecting
-To get power to Energy Ports, you can use cables!=1
+To get power to Energy Ports, you can use cables!=1,continue
 # disconnect cable, reverse animation
-But that's only for energy..=1
+But thats only for energy..=1,continue
 # pipe connect animation this time
-You can transport all sorts of items and fluids with pipes!=1
+You can transport all sorts of items and fluids with pipes!=1,continue
 # reset centered machine and use only nessary (use COMPOSTER machine)
-Now, here's a machine with a recipe!=1
+Now, heres a machine with a recipe!=1,continue
 # stop big continuing block
-Press L to view view recipe=1
-# just do x999 food or smth
-# USE CONTINUE
-Now i've given you food, select that in the inventory..=1
+Press L to view view recipe=1,viewRecipe
+# just do x999 food or smth (strawberries)
+Now ive given you food, select that in the inventory..=1,invselect-fr1
 # only on exchange
-Press J to exhange contents with a input.=1
-Now you can also press L to view the contents of the input!=1
+Press J to exhange contents with a input.=1,jdeposit
+Now you can also press L to view the contents of the input!=1,viewContents
 # USE CONTINUE
-But that was a machine with only 1 recipe..=1
+But that was a machine with only 1 recipe..=1,continue
 # do limited assembler (limit through replacing with different one in Gamedata)
 # USE COTTON U again
-Here's a machine with more recipes!=1
+Heres a machine with more recipes!=1,continue
 # (action is selecting recipe)
-Also press J to select machine recipe=1
+Also press J to select machine recipe=1,craftdoselect
 # pause while machine gets replaced with cgen
 # when this is here, constantly feed the cgen with items from nowhere
-Press I to show machine progress=1
+Press I to show machine progress=1,showmacprog
 # DO CONTINUE STUFF YES
-Now go and feed that dragon until it gives you the means to destroy it!=1
+Now go and feed that dragon until it gives you the means to destroy it!=1,continue
 # 1 action for every frame
-Press P to pause (and exit the tutorial!!)=15000
+Press P to pause (and exit the tutorial!!)=15000,tick
 # show this message only after waiting 10 minutes after pause (there is no action to satisfy this one)
-Anyway, i'm tired and it's 9:18 and i wanna stop=-1
+Anyway, i'm tired and it's 9:18 and i wanna stop=1,This is never gonna be a action thats actually gonna happen***************
