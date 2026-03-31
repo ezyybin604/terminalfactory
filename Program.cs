@@ -533,7 +533,7 @@ Nobody follows, so to keep secrecy while you travel.
                     case 'k':
                         if (factory.breakTile(cursor, topbar))
                         {
-                            sendAction("breaktile");
+                            sendAction("breaktile-" + factory.inventory.latestGiven);
                             if (tic.type != 'i')
                             {
                                 factory.linesToUpdate.Add(cursor.y);
@@ -867,7 +867,12 @@ Nobody follows, so to keep secrecy while you travel.
             timer = Math.Max(0, timer);
             if (factory.tutorial != null)
             {
+                string prev = factory.tutorial.updateTip();
                 factory.tutorial.tickTutorial();
+                if (prev != factory.tutorial.updateTip())
+                {
+                    topbar.lastTipChange = DateTime.MinValue.Ticks;
+                }
             }
             Thread.Sleep(50);
         }
@@ -1013,6 +1018,7 @@ Nobody follows, so to keep secrecy while you travel.
                     game.specialMode = "demo";
                     game.splashes = File.ReadAllText("data/splashes").Split("\n");
                     game.hi();
+                    Console.WriteLine("Would you like to create a savefile?"); // finish this also later
                     game.introduction();
                     game.initStuff();
                     game.startGame();

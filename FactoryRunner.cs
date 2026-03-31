@@ -25,19 +25,6 @@ F: filler block
 
 // Chunk: Tile[x][y] data;
 
-public class Machine
-{
-    public bool isFormed = false;
-    public List<Point> inputs = new List<Point>();
-    public Point? output = null;
-    public Point? worldInteractor = null;
-    public Point? energyPort = null;
-    public bool runningRecipe = false;
-    public string selectedRecipe = ""; // no recipe
-    public int startedRecipe = 0;
-    public int number = 0;
-}
-
 class Factory // factory data / big verbose stuff related to factory
 {
     public FTutorial? tutorial = null;
@@ -242,6 +229,9 @@ class Factory // factory data / big verbose stuff related to factory
                     result.Add(new Point(generateIntRange(0, size), generateIntRange(0, size)));
                 }
                 break;
+            case "rectangle":
+                // this not doned finish later
+                break;
         }
         return result;
     }
@@ -262,11 +252,11 @@ class Factory // factory data / big verbose stuff related to factory
             setTile(pointGo, copy);
         }
     }
-    public void updateShape(List<Point> shape)
+    public void updateShape(List<Point> shape, Point orgin)
     {
         foreach (Point p in shape)
         {
-            linesToUpdate.Add(p.y);
+            linesToUpdate.Add(orgin.y+p.y);
         }
     }
     public void generateChunkBasic(Point chunkp)

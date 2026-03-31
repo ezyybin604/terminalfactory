@@ -144,8 +144,22 @@ public class Slot
     public Slot() {}
 }
 
+public class Machine
+{
+    public bool isFormed = false;
+    public List<Point> inputs = new List<Point>();
+    public Point? output = null;
+    public Point? worldInteractor = null;
+    public Point? energyPort = null;
+    public bool runningRecipe = false;
+    public string selectedRecipe = ""; // no recipe
+    public int startedRecipe = 0;
+    public int number = 0;
+}
+
 class Inventory
 {
+    public string latestGiven = "";
     public bool hasData = false;
     public GameData gd = new GameData();
     public const int Length = 150;
@@ -308,9 +322,11 @@ class Inventory
                 return false;
             } else
             {
+                latestGiven = item.item;
                 return true; // sry if this happens your items get voided
             }
         }
+        latestGiven = item.item;
         return true;
     }
 }
@@ -328,6 +344,8 @@ class FTutorial
     public int ticksSinceLast = 0;
     string curact = "";
     int numact = 0;
+    string animcur = "";
+    int animf = 0;
     public void updateAction()
     {
         center = boxpos.getTransform(size.getDivide(2));
@@ -350,12 +368,17 @@ class FTutorial
             if (curact == "tick") action++;
             if (goin == curact) action++;
         }
-        if (action >= numact && ticksSinceLast > 2)
+        if (action >= numact && ticksSinceLast > 2 && animcur == "")
         {
             mpgs++;
             action = 0;
             ticksSinceLast = 0;
             updateAction();
+        }
+        if (animcur != "")
+        {
+            doAnimation();
+            animf++;
         }
         ticksSinceLast++;
     }
@@ -363,14 +386,15 @@ class FTutorial
     {
         return messageprog[mpgs];
     }
-    public void beforeAction()
+    private void beforeAction()
     {
         switch (GameData.getindex(fact.gd.getSplit("tutorialMsg", messageprog[mpgs]), 2))
         {
             case "spawnsand":
                 List<Point> shape = fact.pointShapeGenerator(1, "diamond");
-                fact.placeFeature(shape, new Tile("f.sand.16"), center.getTransform(-1, -1));
-                fact.updateShape(shape);
+                Point orgin = center.getTransform(-1, -1);
+                fact.placeFeature(shape, new Tile("f.sand.16"), orgin);
+                fact.updateShape(shape, orgin);
                 break;
             case "giveitem":
                 fact.inventory.addItem(new Slot("copper", fact.generateIntRange(30, 120)));
@@ -382,7 +406,38 @@ class FTutorial
                     fact.inventory.addItem(new Slot("sand", 32));
                 }
                 break;
+            case "placestone":
+                animcur = "breakplacestone";
+                animf = 0;
+                break;
             default:
+                break;
+        }
+    }
+    private void doAnimation()
+    {
+        switch (animcur)
+        {
+            case "breakplacestone":
+                if (animf == 1)
+                {
+                    List<Point> shape = fact.pointShapeGenerator(1, "diamond");
+                    Point orgin = center.getTransform(-1, -1);
+                    fact.placeFeature(shape, fact.emptyTile, orgin);
+                    fact.updateShape(shape, orgin);
+                } else if (animf == 3)
+                {
+                    List<Point> shape = fact.pointShapeGenerator(6, "scatter", 10);
+                    Point orgin = center.getTransform(-3, -3);
+                    fact.placeFeature(shape, new Tile("f.stone.50"), orgin);
+                    fact.updateShape(shape, orgin);
+                } else if (animf > 4)
+                {
+                    animcur = "";
+                }
+                break;
+            default: // Intentionally crash the game
+                mpgs = int.MaxValue;
                 break;
         }
     }

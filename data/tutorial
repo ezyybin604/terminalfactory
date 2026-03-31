@@ -1,7 +1,7 @@
 # After some move, next
 Use WASD to move=5,movepress
 # Spawn sand, once got some sand, next
-Press K to break/collect=10,breaktile,spawnsand
+Press K to break/collect=10,breaktile-sand,spawnsand
 # just spawn in random copper / iron
 Press I to open inventory=1,inventoryopen,giveitem
 Try to move around in inventory..=2,inventorymove
@@ -10,12 +10,12 @@ Press H to delete an item=1,invdel
 # if player removed the sand add a random amount 32-64
 Press A to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
-Press Z to select/craft an item=10,craftdo,sneakysand
+Press Z to select/craft an item=7,craftdo,sneakysand
 # until world (then spawn stone)
 Press X to go back=2,backgen
 # stop deleting of item while after this
 # wait until 16 stone is collected
-Collect some stone :)=16,breaktile
+Collect some stone :)=16,breaktile-stone,placestone
 # wait until stone is selected
 Select Stone in inventory (Select with Z) to select it=1,invselect-stone
 # after continue, stop world modify (stop inventory access too)
