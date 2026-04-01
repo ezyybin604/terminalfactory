@@ -267,6 +267,7 @@ engrec=~*
 fluids=oil,wat1,wat2,wat3,wat4,wat5,energy
 macWrecipe=puri,dist,carb,lasr,asmb,sltr,niem
 chooseADefault=puri,dist,carb,lasr,comp,ogen,cgen
+casingMult=mine,pump,comp,cgen,mixr,sltr,puri,ogen,dist,sscf,carb,lasr
 looseReq=splt
 #pipe tags: towards, backwards, dynamic
 pipeT=+]
@@ -392,7 +393,7 @@ wat4=x4,wat3,x2,carbon
 !! 
 
 !lasrRecipes
-# consume 1 lens at 5% chance
+# consume 1 lens at 5% chance (add special % to consume modifier)
 wat5=x4,wat4,x1,lens
 !! 
 

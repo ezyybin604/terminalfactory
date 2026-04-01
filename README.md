@@ -57,7 +57,7 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
 ```
 
 M = the machine tile (determines type of machine)
-+,-,| = machine blocks (filler, but necssary on corners, also later im gonna add a bonus for higher tiers)
++,-,| = machine blocks (filler, but necssary on corners, and there is a bonus for higher tiers)
 * = energy port
 <>^v = Inputs/Outputs, you can determine by hovering over them or looking weather they face or don't at the machine tile.
 @ = world interactor (useful for machines like miners/pumps)

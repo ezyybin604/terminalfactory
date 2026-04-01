@@ -20,6 +20,8 @@ namespace terminalfactory;
     - add machine loose forming
     - add tier multiplier for machine blocks
     - make worldgen features more datadriven (at least for main worldgen)
+    - make laser purifer lens consume chance
+    - renember that changeProg exists
 */
 
 class Game
@@ -117,7 +119,7 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
             Console.ReadLine();
         }
-        if (choice("\nDo you want a tutorial? (warning:may be long, double warning: unfinished)\n(y/n):"))
+        if (choice("\nDo you want a tutorial? (warning: may take more than 5 seconds)\n(y/n):"))
         {
             // do tutorial stuff
             Game tutr = new Game
@@ -982,7 +984,7 @@ Nobody follows, so to keep secrecy while you travel.
             if (!sf)
             {
                 game.factory.savefile = JPI.getFilename(Directory.GetDirectories(FileManagement.worldFolder)[0]);
-                sf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
+                sf = game.gdm.savefileExists(game.factory);
                 if (!sf)
                 {
                     Console.WriteLine("Oh no something REALLY went wrong with save " + game.factory.savefile + "\n\nalso Yeah no. I'm not making a edge case for this one. Go away.");
@@ -1061,9 +1063,11 @@ Nobody follows, so to keep secrecy while you travel.
             {
                 while (true)
                 {
-                    game = new Game();
-                    game.specialMode = "demo";
-                    game.splashes = File.ReadAllText("data/splashes").Split("\n");
+                    game = new Game
+                    { // again, why
+                        specialMode = "demo",
+                        splashes = File.ReadAllText("data/splashes").Split("\n")
+                    };
                     game.hi();
                     if (game.choice("Would you like to play on a savefile? (y/n)", "hi"))
                     {
@@ -1079,6 +1083,10 @@ Nobody follows, so to keep secrecy while you travel.
                             }
                         }
                         game.factory.savefile = "demosave-" + savef;
+                        if (!game.gdm.savefileExists(game.factory))
+                        {
+                            game.introduction();
+                        }
                     } else
                     {
                         Console.WriteLine();

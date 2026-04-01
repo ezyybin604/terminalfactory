@@ -95,6 +95,10 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return 0; // That's not food.. probably
     }
+    private int getCasingMultipler(int tier)
+    {
+        return (int)Math.Pow(2, tier-1);
+    }
     public string getItemName(string item)
     {
         if (item.Length > 0 && item[0] == '@')
@@ -857,6 +861,7 @@ class Factory // factory data / big verbose stuff related to factory
         mach.output = null;
         mach.worldInteractor = null;
         mach.energyPort = null;
+        mach.tier = 3;
         for (int i=0;i<machineArea.Length;i++)
         {
             Point pt = new Point(mac);
@@ -869,6 +874,8 @@ class Factory // factory data / big verbose stuff related to factory
                 {
                     mach.isFormed = false;
                 }
+                int tier = JPI.parseInt(tile.subtype);
+                mach.tier = Math.Min(mach.tier, tier);
             } else if (i > 3)
             {
                 switch (tile.type)
@@ -1152,12 +1159,17 @@ class Factory // factory data / big verbose stuff related to factory
                 if (mac.isFormed && mac.output != null)
                 {
                     Tile output = giveMeTheTile(mac.output);
+                    int multiplier = 1;
+                    if (gd.getSplit("tags", "casingMult").Contains(core.subtype))
+                    {
+                        multiplier = getCasingMultipler(mac.tier);
+                    }
                     switch (core.subtype)
                     {
                         case "cgen": case "ogen":
                             mac.runningRecipe = false;
                             output.subtype = "energy";
-                            output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype));
+                            output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype)) * multiplier;
                             setTile(mac.output, output);
                             tickMachIO(macp[i]);
                             break;
@@ -1166,7 +1178,7 @@ class Factory // factory data / big verbose stuff related to factory
                             if (output.subtype == mac.selectedRecipe || output.amount < 1)
                             {
                                 output.subtype = mac.selectedRecipe;
-                                output.amount++;
+                                output.amount+=multiplier;
                                 setTile(mac.output, output);
                             }
                             tickMachIO(macp[i]);

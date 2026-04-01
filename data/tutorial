@@ -29,7 +29,7 @@ To form it, we will need a input,=1,continue,placeinput
 A output,=1,continue,placeoutput
 # spiral animation
 And machine blocks to fill the rest.=1,continue,fillmachine
-Do note that machine blocks are REQUIRED on the corners.=1,continue,highlightcorner
+Do note that machine blocks are REQUIRED on the corners for most machines.=1,continue,highlightcorner
 Some other blocks that can be put in those edge pieces are:=1,continue
 # (change one to energy port, same for other tiles said here)
 Energy Port (For energy going in the machine)=1,continue,placeport

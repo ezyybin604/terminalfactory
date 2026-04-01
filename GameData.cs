@@ -506,6 +506,7 @@ class JPI // JsonPointInterface / other things because i felt like it
         outs.Add(mac.selectedRecipe);
         outs.Add(mac.startedRecipe.ToString());
         outs.Add(mac.number.ToString());
+        outs.Add(mac.tier.ToString());
         return String.Join('=', outs);
     }
     public static Machine convertMachine(string mach)
@@ -538,6 +539,13 @@ class JPI // JsonPointInterface / other things because i felt like it
         macr.selectedRecipe = mac[7];
         macr.startedRecipe = parseInt(mac[8]);
         macr.number = parseInt(mac[9]);
+        if (mac.Length < 11)
+        { // hope this works
+            macr.tier = parseInt(mac[10]);
+        } else
+        {
+            macr.tier = 1;
+        }
         return macr;
     }
     public static string convertSlot(Slot slot)

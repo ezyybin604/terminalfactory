@@ -171,6 +171,7 @@ public class Machine
     public string selectedRecipe = ""; // no recipe
     public int startedRecipe = 0;
     public int number = 0;
+    public int tier = 1;
 }
 
 class Inventory
@@ -474,8 +475,8 @@ class FTutorial
                 getPath([
                     center.getTransform(2, 0),
                     center.getTransform(8, 0),
-                    center.getTransform(8, 6),
-                    center.getTransform(-8, 6),
+                    center.getTransform(8, 4),
+                    center.getTransform(-8, 4),
                     center.getTransform(-8, 0),
                     center.getTransform(-2, 0)
                 ]);
@@ -490,8 +491,8 @@ class FTutorial
                 getPath([
                     center.getTransform(2, 0),
                     center.getTransform(8, 0),
-                    center.getTransform(8, -6),
-                    center.getTransform(0, -6),
+                    center.getTransform(8, -4),
+                    center.getTransform(0, -4),
                     center.getTransform(0, -2),
                 ]);
                 animcur = "placecable";
