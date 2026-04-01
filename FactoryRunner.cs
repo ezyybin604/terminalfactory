@@ -45,7 +45,7 @@ class Factory // factory data / big verbose stuff related to factory
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
-    public HashSet<Point> nextUpdateTick = new HashSet<Point>();
+    public HashSet<Point> nextUpdateTick = new HashSet<Point>(); // concider serializing this one
     public Point[] machineArea = [
         new Point(1, -1),
         new Point(1, 1),
@@ -1305,6 +1305,9 @@ class Factory // factory data / big verbose stuff related to factory
                         setTile(tp, tct);
                         tickLater.Add(desp); // tick destination
                     }
+                } else if (tct.amount > 0 && dest.type == ']')
+                {
+                    // deposit items to dragon (rawr)
                 }
                 break;
             case '~':

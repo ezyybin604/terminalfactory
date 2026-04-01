@@ -136,7 +136,7 @@ class TopBar
 }
 
 // in-ven-tory
-public class Slot
+class Slot
 {
     public int num = 0;
     public string item = "";
@@ -173,6 +173,15 @@ public class Machine
     public int number = 0;
     public int tier = 1;
 }
+
+/*class Dragon
+{ // 1000% not done
+    public long fedFood = 0;
+    public long fedDrink = 0;
+    public long dragonThirst = 1000; // 1000^(1.05^x) val
+    public long dragonHunger = 1000;
+    public int age = 0;
+}*/
 
 class Inventory
 {

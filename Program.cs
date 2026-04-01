@@ -16,12 +16,11 @@ namespace terminalfactory;
     - super scale collection facility
     - dragon feeding
     - dragon shedding
-    - why does action for tutorial take forever
     - add machine loose forming
-    - add tier multiplier for machine blocks
     - make worldgen features more datadriven (at least for main worldgen)
     - make laser purifer lens consume chance
     - renember that changeProg exists
+    - conceider serializing nextUpdateTick
 */
 
 class Game

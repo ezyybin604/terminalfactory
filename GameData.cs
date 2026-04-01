@@ -524,6 +524,7 @@ class JPI // JsonPointInterface / other things because i felt like it
             7 public string selectedrecipe { get; set; } = "";
             8 public int startedrecipe { get; set; } = 0;
             9 public int number { get; set; } = 0;
+            10 public int tier = 1
         */
         macr.isFormed = parseInt(mac[0]) == 1;
         macr.inputs = new List<Point>();
