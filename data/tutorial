@@ -35,17 +35,17 @@ Some other blocks that can be put in those edge pieces are:=1,continue
 Energy Port (For energy going in the machine)=1,continue,placeport
 and World Interactors (for Pumps/Miners)=1,continue,placewi
 # show animation of cables connecting (RESUME HERE FOR PROGRESS STUFF)
-To get power to Energy Ports, you can use cables!=1,continue
+To get power to Energy Ports, you can use cables!=1,continue,placecable
 # disconnect cable, reverse animation
-But thats only for energy..=1,continue
+But thats only for energy..=1,continue,removecable
 # pipe connect animation this time
-You can transport all sorts of items and fluids with pipes!=1,continue
+You can transport all sorts of items and fluids with pipes!=1,continue,placepipes
 # reset centered machine and use only nessary (use COMPOSTER machine)
-Now, heres a machine with a recipe!=1,continue
+Now, heres a machine with a recipe!=1,continue,getcomposter
 # stop big continuing block
 Press L to view view recipe=1,viewRecipe
 # just do x999 food or smth (strawberries)
-Now ive given you food, select that in the inventory..=1,invselect-fr1
+Now ive given you food, select that in the inventory..=1,invselect-fr1,givefood
 # only on exchange
 Press J to exhange contents with a input.=1,jdeposit
 Now you can also press L to view the contents of the input!=1,viewContents
@@ -53,12 +53,12 @@ Now you can also press L to view the contents of the input!=1,viewContents
 But that was a machine with only 1 recipe..=1,continue
 # do limited assembler (limit through replacing with different one in Gamedata)
 # USE COTTON U again
-Heres a machine with more recipes!=1,continue
+Heres a machine with more recipes!=1,continue,changeToAssembler
 # (action is selecting recipe)
 Also press J to select machine recipe=1,craftdoselect
 # pause while machine gets replaced with cgen
 # when this is here, constantly feed the cgen with items from nowhere
-Press I to show machine progress=1,showmacprog
+Press I to show machine progress=15,showmacprog,coalgenreplace
 # DO CONTINUE STUFF YES
 Now go and feed that dragon until it gives you the means to destroy it!=1,continue
 # 1 action for every frame

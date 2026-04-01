@@ -90,6 +90,18 @@ public struct Point
     {
         return new Point(x/m, y/m);
     }
+    private static int neutralize(int n)
+    {
+        if (n == 0)
+        {
+            return 0;
+        }
+        return n/Math.Abs(n);
+    }
+    public Point getNeutralized()
+    {
+        return new Point(neutralize(x), neutralize(y));
+    }
     public static Point getWindowSize()
     {
         return new Point(Console.WindowWidth, Console.WindowHeight);
@@ -341,7 +353,7 @@ class FTutorial
     public Point size = new Point(60, 15);
     public Point center = new Point();
     string[] messageprog = [];
-    int mpgs = 0;
+    int mpgs = 0; // number in tutorial (21 is pipe)
     private int action = 0; // how many times action happened
     public Factory fact = new Factory();
     public List<string> acts = new List<string>();
@@ -352,6 +364,22 @@ class FTutorial
     int animf = 0;
     public bool canDelete = true;
     public bool worldModify = true;
+    List<Point> path = [];
+    public void getPath(List<Point> dots)
+    {
+        path = [];
+        for (int i=0;i<dots.Count-1;i++)
+        { // start dot + line dots
+            Point pt = dots[i];
+            Point df = dots[i+1].getTransform(pt.getMultiply(-1)).getNeutralized();
+            while (!pt.Equals(dots[i+1]))
+            {
+                path.Add(pt);
+                pt.transform(df);
+            }
+        }
+        path.Add(dots.Last()); // last dot
+    }
     public void updateAction()
     {
         center = boxpos.getTransform(size.getDivide(2));
@@ -420,10 +448,10 @@ class FTutorial
                 animf = 0;
                 break;
             case "placeinput":
-                fact.setTileUpdate(center.getTransform(-1, 0), new Tile("+"));
+                fact.setTileUpdate(center.getTransform(-1, 0), new Tile('+'));
                 break;
             case "placeoutput":
-                fact.setTileUpdate(center.getTransform(1, 0), new Tile("-"));
+                fact.setTileUpdate(center.getTransform(1, 0), new Tile('-'));
                 break;
             case "fillmachine":
                 animcur = "fillmachine";
@@ -437,10 +465,57 @@ class FTutorial
                 canDelete = false;
                 break;
             case "placeport":
-                fact.setTileUpdate(center.getTransform(0, -1), new Tile("*"));
+                fact.setTileUpdate(center.getTransform(0, -1), new Tile('*'));
                 break;
             case "placewi":
-                fact.setTileUpdate(center.getTransform(0, 1), new Tile("@"));
+                fact.setTileUpdate(center.getTransform(0, 1), new Tile('@'));
+                break;
+            case "placepipes":
+                getPath([
+                    center.getTransform(2, 0),
+                    center.getTransform(8, 0),
+                    center.getTransform(8, 6),
+                    center.getTransform(-8, 6),
+                    center.getTransform(-8, 0),
+                    center.getTransform(-2, 0)
+                ]);
+                animcur = "dopipepath";
+                animf = 0;
+                break;
+            case "getcomposter":
+                animcur = "pipegone";
+                animf = 0;
+                break;
+            case "placecable":
+                getPath([
+                    center.getTransform(2, 0),
+                    center.getTransform(8, 0),
+                    center.getTransform(8, -6),
+                    center.getTransform(0, -6),
+                    center.getTransform(0, -2),
+                ]);
+                animcur = "placecable";
+                animf = 0;
+                break;
+            case "removecable":
+                animcur = "cablegone";
+                animf = 0;
+                break;
+            case "changeToAssembler":
+                fact.setTileUpdate(center, new Tile("M.asmb"));
+                fact.machines[center].selectedRecipe = "";
+                break;
+            case "coalgenreplace":
+                fact.setTileUpdate(center, new Tile("M.cgen"));
+                Point inp = center.getTransform(-1, 0);
+                Tile inti = fact.giveMeTheTile(inp);
+                inti.subtype = "coal";
+                inti.amount = int.MaxValue;
+                fact.setTile(inp, inti);
+                animcur = "ridenergy";
+                break;
+            case "givefood":
+                fact.inventory.addItem(new Slot("fr1", 999));
                 break;
             default:
                 break;
@@ -493,6 +568,49 @@ class FTutorial
                         fact.setTileUpdate(center.getTransform(fact.machineArea[i]), goc);
                     }
                 } else if (animf > 18)
+                {
+                    animcur = "";
+                }
+                break;
+            case "dopipepath": case "placecable":
+                if (animf < path.Count)
+                {
+                    Tile dothat;
+                    if (animcur == "placecable")
+                    {
+                        dothat = new Tile('*');
+                    } else
+                    {
+                        dothat = new Tile('p', "", fact.getPipeDir(path[animf]));
+                    }
+                    fact.setTileUpdate(path[animf], dothat);
+                } else
+                {
+                    animcur = "";
+                }
+                break;
+            case "pipegone": case "cablegone":
+                if (animf < path.Count)
+                {
+                    fact.setTileUpdate(path[animf], new Tile(' '));
+                } else
+                {
+                    if (animcur == "pipegone")
+                    {
+                        fact.setTileUpdate(center, new Tile("M.comp"));
+                        fact.setTileUpdate(center.getTransform(0, 1), new Tile("m.1"));
+                        fact.machines[center].selectedRecipe = "compo";
+                    }
+                    animcur = "";
+                }
+                break;
+            case "ridenergy":
+                Point inp = center.getTransform(1, 0);
+                Tile inti = fact.giveMeTheTile(inp);
+                inti.amount = 0;
+                fact.setTile(inp, inti);
+                fact.updateMachines();
+                if (action >= numact)
                 {
                     animcur = "";
                 }

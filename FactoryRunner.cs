@@ -239,6 +239,8 @@ class Factory // factory data / big verbose stuff related to factory
                     }
                 }
                 break;
+            case "square":
+                return pointShapeGenerator(size, "rectangle", size);
         }
         return result;
     }
@@ -513,7 +515,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return 0;
     }
-    private int getPipeDir(Point p)
+    public int getPipeDir(Point p)
     {
         // 0,1,2,3,4
         int direction = 0;
