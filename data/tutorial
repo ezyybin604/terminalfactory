@@ -12,28 +12,29 @@ Press A to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
 Press Z to select/craft an item=7,craftdo,sneakysand
 # until world (then spawn stone)
-Press X to go back=2,backgen
+Press X to go back=2,backgen,stopdelete
 # stop deleting of item while after this
 # wait until 16 stone is collected
-Collect some stone :)=16,breaktile-stone,placestone
+Collect some stone using K :)=16,breaktile-stone,placestone
 # wait until stone is selected
 Select Stone in inventory (Select with Z) to select it=1,invselect-stone
 # after continue, stop world modify (stop inventory access too)
 # also add (C) button continue in squiggle bar when an option
-Press O to place a tile (Press C to continue)=1,continue
+Press O to place a tile=10,placetile
 # also continue automatically after 10 seconds and only let continue after 10 frames
-This is a Coal Generator.=1,continue
+Once you feel like youre done, press C to continue.=1,continue
+This is a Coal Generator.=1,continue,clearplacecgen
 Currently, it is not formed.=1,continue
-To form it, we will need a input,=1,continue
-A output,=1,continue
+To form it, we will need a input,=1,continue,placeinput
+A output,=1,continue,placeoutput
 # spiral animation
-And machine blocks to fill the rest.=1,continue
-Do note that machine blocks are REQUIRED on the corners.=1,continue
+And machine blocks to fill the rest.=1,continue,fillmachine
+Do note that machine blocks are REQUIRED on the corners.=1,continue,highlightcorner
 Some other blocks that can be put in those edge pieces are:=1,continue
 # (change one to energy port, same for other tiles said here)
-Energy Port=1,continue
-and World Interactors (for Pumps/Miners)=1,continue
-# show animation of cables connecting
+Energy Port (For energy going in the machine)=1,continue,placeport
+and World Interactors (for Pumps/Miners)=1,continue,placewi
+# show animation of cables connecting (RESUME HERE FOR PROGRESS STUFF)
 To get power to Energy Ports, you can use cables!=1,continue
 # disconnect cable, reverse animation
 But thats only for energy..=1,continue

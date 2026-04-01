@@ -46,7 +46,7 @@ class Factory // factory data / big verbose stuff related to factory
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     public HashSet<Point> nextUpdateTick = new HashSet<Point>();
-    Point[] machineArea = [
+    public Point[] machineArea = [
         new Point(1, -1),
         new Point(1, 1),
         new Point(-1, 1),
@@ -166,11 +166,11 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return regions.ToList();
     }
-    public double generateRange(double min, double max)
+    public static double generateRange(double min, double max)
     {
-        return (rng.NextDouble()*(max-min))+min;
+        return (new Random().NextDouble()*(max-min))+min;
     }
-    private double floorRound(double d, double max)
+    private static double floorRound(double d, double max)
     {
         double dd = Math.Floor(d);
         if (max == dd)
@@ -179,7 +179,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return dd;
     }
-    public int generateIntRange(int min, int max)
+    public static int generateIntRange(int min, int max)
     {
         return (int)floorRound(generateRange(min, max), max);
     }
@@ -206,7 +206,7 @@ class Factory // factory data / big verbose stuff related to factory
         int rnd = generateIntRange(0, sum-1);
         return results[rnd];
     }
-    public List<Point> pointShapeGenerator(int size, string shape, int amount=0) // look idk what this actually looks like
+    public static List<Point> pointShapeGenerator(int size, string shape, int amount=0) // look idk what this actually looks like
     {
         List<Point> result = new List<Point>();
         switch (shape) { // maybe add square shape later
@@ -230,10 +230,21 @@ class Factory // factory data / big verbose stuff related to factory
                 }
                 break;
             case "rectangle":
-                // this not doned finish later
+                // width=size, height=amount
+                for (int x=0;x<size;x++)
+                {
+                    for (int y=0;y<amount;y++)
+                    {
+                        result.Add(new Point(x, y));
+                    }
+                }
                 break;
         }
         return result;
+    }
+    public static List<Point> pointShapeGenerator(Point pt, string shape)
+    {
+        return pointShapeGenerator(pt.x, shape, pt.y);
     }
     int getAxis(int chunk, int pos)
     { // chunk,pos in chunk -> position in world
@@ -251,6 +262,11 @@ class Factory // factory data / big verbose stuff related to factory
             }
             setTile(pointGo, copy);
         }
+    }
+    public void placeFeatureUpdate(List<Point> shape, Tile copy, Point pos)
+    {
+        placeFeature(shape, copy, pos);
+        updateShape(shape, pos);
     }
     public void updateShape(List<Point> shape, Point orgin)
     {
@@ -468,6 +484,11 @@ class Factory // factory data / big verbose stuff related to factory
     {
         if (pt == null) return;
         setTile((Point)pt, tl);
+    }
+    public void setTileUpdate(Point pt, Tile tl)
+    {
+        setTile(pt.x, pt.y, tl);
+        linesToUpdate.Add(pt.y);
     }
     private int getArrow(Point dir) // ^v<>
     {

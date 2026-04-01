@@ -44,6 +44,7 @@ p=Pipe,pipe
 ~=Cable,energycable
 @=World Interactor,worldintr
 F=Filler Block
+t=You must be pulling some wizardry because this is a cursor stopper
 # machine blocks (the machines)
 M=Unlabeled Machine
 M.puri=Purifier (Waterline T1 -> T2),puri
@@ -131,6 +132,9 @@ p=white
 ]=gray
 t=darkblue
 F=darkmagenta
+m.1=gray
+m.2=darkcyan
+m.3=darkyellow
 !! 
 
 !tileRemaps
@@ -140,10 +144,6 @@ i.oil=o
 i.coal=c
 # building stone
 o=b
-# mach block
-m.1=gray
-m.2=darkcyan
-m.3=darkyellow
 # water
 i.water1=░
 i.water2=░

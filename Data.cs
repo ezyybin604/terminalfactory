@@ -74,6 +74,10 @@ public struct Point
     {
         return new Point(x+tx, y+ty);
     }
+    public Point getTransform(int tp)
+    {
+        return new Point(x+tp, y+tp);
+    }
     public Point getReverse()
     {
         return new Point(-x, -y);
@@ -342,10 +346,12 @@ class FTutorial
     public Factory fact = new Factory();
     public List<string> acts = new List<string>();
     public int ticksSinceLast = 0;
-    string curact = "";
+    public string curact = "";
     int numact = 0;
     string animcur = "";
     int animf = 0;
+    public bool canDelete = true;
+    public bool worldModify = true;
     public void updateAction()
     {
         center = boxpos.getTransform(size.getDivide(2));
@@ -360,7 +366,7 @@ class FTutorial
         messageprog = fact.gd.getKeys("tutorialMsg");
         updateAction();
     }
-    public void tickTutorial()
+    public bool tickTutorial()
     {
         for (string goin;acts.Count>0;acts.RemoveAt(0)) // chat is this a cool way to use a for loop
         {
@@ -374,13 +380,14 @@ class FTutorial
             action = 0;
             ticksSinceLast = 0;
             updateAction();
+            return true;
         }
         if (animcur != "")
         {
             doAnimation();
-            animf++;
         }
         ticksSinceLast++;
+        return false;
     }
     public string updateTip()
     {
@@ -391,14 +398,11 @@ class FTutorial
         switch (GameData.getindex(fact.gd.getSplit("tutorialMsg", messageprog[mpgs]), 2))
         {
             case "spawnsand":
-                List<Point> shape = fact.pointShapeGenerator(1, "diamond");
-                Point orgin = center.getTransform(-1, -1);
-                fact.placeFeature(shape, new Tile("f.sand.16"), orgin);
-                fact.updateShape(shape, orgin);
+                fact.placeFeatureUpdate(Factory.pointShapeGenerator(1, "diamond"), new Tile("f.sand.16"), center.getTransform(-1));
                 break;
             case "giveitem":
-                fact.inventory.addItem(new Slot("copper", fact.generateIntRange(30, 120)));
-                fact.inventory.addItem(new Slot("iron", fact.generateIntRange(30, 120)));
+                fact.inventory.addItem(new Slot("copper", Factory.generateIntRange(30, 120)));
+                fact.inventory.addItem(new Slot("iron", Factory.generateIntRange(30, 120)));
                 break;
             case "sneakysand":
                 if (fact.inventory.getItemAmount("sand") < 16)
@@ -409,6 +413,34 @@ class FTutorial
             case "placestone":
                 animcur = "breakplacestone";
                 animf = 0;
+                break;
+            case "clearplacecgen":
+                worldModify = false;
+                animcur = "placecgen";
+                animf = 0;
+                break;
+            case "placeinput":
+                fact.setTileUpdate(center.getTransform(-1, 0), new Tile("+"));
+                break;
+            case "placeoutput":
+                fact.setTileUpdate(center.getTransform(1, 0), new Tile("-"));
+                break;
+            case "fillmachine":
+                animcur = "fillmachine";
+                animf = 0;
+                break;
+            case "highlightcorner": // if you feel midly annoyed by the word swap, thats okay and also thank you
+                animcur = "cornerhighlight";
+                animf = 0;
+                break;
+            case "stopdelete":
+                canDelete = false;
+                break;
+            case "placeport":
+                fact.setTileUpdate(center.getTransform(0, -1), new Tile("*"));
+                break;
+            case "placewi":
+                fact.setTileUpdate(center.getTransform(0, 1), new Tile("@"));
                 break;
             default:
                 break;
@@ -421,24 +453,54 @@ class FTutorial
             case "breakplacestone":
                 if (animf == 1)
                 {
-                    List<Point> shape = fact.pointShapeGenerator(1, "diamond");
-                    Point orgin = center.getTransform(-1, -1);
-                    fact.placeFeature(shape, fact.emptyTile, orgin);
-                    fact.updateShape(shape, orgin);
+                    fact.placeFeatureUpdate(Factory.pointShapeGenerator(1, "diamond"), fact.emptyTile, center.getTransform(-1));
                 } else if (animf == 3)
                 {
-                    List<Point> shape = fact.pointShapeGenerator(6, "scatter", 10);
-                    Point orgin = center.getTransform(-3, -3);
-                    fact.placeFeature(shape, new Tile("f.stone.50"), orgin);
-                    fact.updateShape(shape, orgin);
+                    fact.placeFeatureUpdate(Factory.pointShapeGenerator(6, "scatter", 10), new Tile("f.stone.24"), center.getTransform(-3));
                 } else if (animf > 4)
                 {
                     animcur = "";
                 }
                 break;
-            default: // Intentionally crash the game
+            case "placecgen":
+                if (animf == 0)
+                { // I WANT MY INLINE CURLY BRACKETS I WILL NOT STAND FOR THIS BLOAT ANY LONGER AAAAAAA
+                    fact.placeFeatureUpdate(Factory.pointShapeGenerator(size.getTransform(-1), "rectangle"), fact.emptyTile, boxpos.getTransform(1));
+                } else if (animf == 4)
+                {
+                    fact.setTileUpdate(center, new Tile("M.cgen"));
+                    fact.machines.Add(center, new Machine());
+                    animcur = "";
+                }
+                break;
+            case "fillmachine":
+                if (animf%2 == 0 && animf < 16)
+                {
+                    Point block = center.getTransform(fact.machineArea[animf/2]);
+                    if (fact.giveMeTheTile(block).type == ' ') fact.setTileUpdate(block, new Tile("m.1"));
+                } else if (animf > 20)
+                {
+                    animcur = "";
+                }
+                break;
+            case "cornerhighlight":
+                if (animf%8 == 3)
+                {
+                    Tile goc = new Tile("m.3");
+                    if (animf > 8) goc = new Tile("m.1");
+                    for (int i=0;i<4;i++)
+                    {
+                        fact.setTileUpdate(center.getTransform(fact.machineArea[i]), goc);
+                    }
+                } else if (animf > 18)
+                {
+                    animcur = "";
+                }
+                break;
+            default: // Intentionally crash the game also THIS IS THE ANIMATION CONTROLLER THIS IS A REMINDER
                 mpgs = int.MaxValue;
                 break;
         }
+        animf++;
     }
 }
