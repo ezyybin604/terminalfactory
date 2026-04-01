@@ -542,10 +542,10 @@ class JPI // JsonPointInterface / other things because i felt like it
         macr.number = parseInt(mac[9]);
         if (mac.Length < 11)
         { // hope this works
-            macr.tier = parseInt(mac[10]);
+            macr.tier = 1;
         } else
         {
-            macr.tier = 1;
+            macr.tier = parseInt(mac[10]);
         }
         return macr;
     }

@@ -226,7 +226,7 @@ compo=Compost
 glass=x2,sand
 maciron=x1,glass,x4,iron
 frium=x1,dgscale,x2,maciron
-refdia=x64,diamond
+refdia=x1024,diamond
 # machines
 mab1=x64,iron
 mab2=x48,maciron

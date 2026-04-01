@@ -359,7 +359,7 @@ class Inventory
 
 class FTutorial
 { // tutorial controller
-    public Point boxpos = new Point(64, 64);
+    public Point boxpos = new Point(256, 256); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES
     public Point size = new Point(60, 15);
     public Point center = new Point();
     string[] messageprog = [];
