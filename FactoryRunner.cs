@@ -62,7 +62,8 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(1, 0),
         new Point(-1, 0),
     ];
-    private int getWaterValue(string item)
+    Dragon dragon = new Dragon();
+    public static int getWaterValue(string item)
     {
         if (item.Length == 4)
         {
@@ -73,7 +74,7 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return 0; // no water
     }
-    private int getFoodValue(string item)
+    public static int getFoodValue(string item)
     {
         if (item.Length == 3)
         {
@@ -1204,9 +1205,19 @@ class Factory // factory data / big verbose stuff related to factory
         }
         return hs;
     }
+    private void putScale()
+    {
+        // stuff goes here
+        // FINISH LATERRRRRRRRRRRRRRRRRR
+    }
     public void tickStuff()
     {
         tickMachines();
+        while (dragon.scalesShed > 0)
+        {
+            putScale();
+            dragon.scalesShed--;
+        }
         HashSet<Point> tickNow = copyHashPoint(nextUpdateTick);
         List<Point> tilesTick = tickNow.ToList();
         tickNow.Clear();
@@ -1308,6 +1319,11 @@ class Factory // factory data / big verbose stuff related to factory
                 } else if (tct.amount > 0 && dest.type == ']')
                 {
                     // deposit items to dragon (rawr)
+                    if (dragon.Feed(new Slot(tct.subtype, tct.amount)))
+                    {
+                        tct.subtype = "";
+                        tct.amount = 0;
+                    }
                 }
                 break;
             case '~':

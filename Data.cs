@@ -1,4 +1,6 @@
 
+using System.Numerics;
+
 namespace terminalfactory;
 
 // data structuring classes
@@ -174,14 +176,49 @@ public class Machine
     public int tier = 1;
 }
 
-/*class Dragon
+class Dragon
 { // 1000% not done
-    public long fedFood = 0;
-    public long fedDrink = 0;
-    public long dragonThirst = 1000; // 1000^(1.05^x) val
-    public long dragonHunger = 1000;
-    public int age = 0;
-}*/
+    private long fedFood = 0;
+    private long fedDrink = 0;
+    private long dragonThirst = 1000; // 1000^(1.04^x) val
+    private long dragonHunger = 1000; // 1000^(1.03^x) val
+    private int age = 0; // maxes out at 128
+    public int scalesShed = 0;
+    private void dragonTick()
+    {
+        if (fedFood >= dragonHunger && fedDrink >= dragonThirst)
+        {
+            age++;
+            age = Math.Min(age, 128);
+            scalesShed += (int)Math.Floor(age*1.2);
+            fedDrink -= dragonThirst;
+            fedFood -= dragonHunger;
+            dragonThirst = 1000 * (long)Math.Pow(1.04, age); // 1000^(1.04^x) val
+            dragonHunger = 1000 * (long)Math.Pow(1.03, age);
+        }
+    }
+    public bool Feed(Slot slt)
+    {
+        // stuff
+        int value = Factory.getFoodValue(slt.item);
+        if (value > 0)
+        {
+            fedFood += slt.num * value;
+            if (fedFood < -1000) fedFood = long.MaxValue;
+            dragonTick();
+            return true;
+        }
+        value = Factory.getWaterValue(slt.item);
+        if (value > 0)
+        {
+            fedDrink += slt.num * value;
+            if (fedDrink < -1000) fedDrink = long.MaxValue;
+            dragonTick();
+            return true;
+        }
+        return false;
+    }
+}
 
 class Inventory
 {

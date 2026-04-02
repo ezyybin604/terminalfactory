@@ -11,16 +11,15 @@ namespace terminalfactory;
     - splitter core machine
     - passthrough pipes
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - better tutorial that explains things more
     - hope that all the machines are functional
     - super scale collection facility
-    - dragon feeding
     - dragon shedding
     - add machine loose forming
     - make worldgen features more datadriven (at least for main worldgen)
     - make laser purifer lens consume chance
     - renember that changeProg exists
     - conceider serializing nextUpdateTick
+    - add dragon hunger/thirst to pause menu
 */
 
 class Game

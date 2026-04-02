@@ -183,6 +183,7 @@ comp=Composter
 stor=Storage Unit
 sltr=Salter
 mixr=Mixer
+# SSCF adds to dragon scale receptors (a dragon scale can go to one random location, world, or a SSCF)
 sscf=Super Scale Collection Facility
 split=Splitter Core
 #other
