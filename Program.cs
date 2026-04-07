@@ -15,9 +15,9 @@ namespace terminalfactory;
     - add machine loose forming
     - make worldgen features more datadriven (at least for main worldgen)
     - make laser purifer lens consume chance
-    - renember that changeProg exists
+    - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - conceider serializing nextUpdateTick
-    - add dragon hunger/thirst to pause menu
+    - change populatedChunks to unpopulatedChunks
 */
 
 class Game
@@ -147,10 +147,6 @@ Nobody follows, so to keep secrecy while you travel.
             "Use WS to change selection",
             "Press Z to select"
         ]);
-        topbar.tips.Add("pause_info", [
-            "Dragon Hunger:",
-            "Dragon Thirst:"
-        ]);
         topbar.tips.Add("inv", [
             "Use WS to change selection",
             "Press Z to select (use item)",
@@ -167,6 +163,9 @@ Nobody follows, so to keep secrecy while you travel.
         ]);
         topbar.tips.Add("end", ["now go away"]);
 
+        menus.Add("pause_info", [
+            "Placeholder Information"
+        ]);
         menus.Add("pause", [
             "Resume Game|resume",
             "Save|save",
@@ -225,8 +224,8 @@ Nobody follows, so to keep secrecy while you travel.
         int lowerIndex = 0;
         if (menus.ContainsKey(scene + "_info"))
         {
-            lowerIndex = Console.WindowHeight-i;
-            lowerScreen = Console.WindowHeight-1-menus[scene].Length < i && Console.WindowHeight < menus[scene].Length + 1 + menus[scene + "_info"].Length;
+            lowerIndex = Console.WindowHeight-i-3;
+            lowerScreen = Console.WindowHeight-menus[scene].Length < i+1 && Console.WindowHeight > menus[scene].Length + 1 + menus[scene + "_info"].Length;
         }
         if (i > menus[scene].Length-1 && !lowerScreen)
         {
@@ -264,7 +263,15 @@ Nobody follows, so to keep secrecy while you travel.
             inventory.fix();
             inventory.updateMenu(factory);
         } // prev for loop menus[scene].Length-topbar.menuScroll
+        if (scene == "pause")
+        {
+            menus["pause_info"] = factory.dragon.getInfo();
+        }
         int menuLength = Math.Min(Console.WindowHeight-2, menus[scene].Length);
+        if (menus.ContainsKey(scene + "_info"))
+        {
+            menuLength = Console.WindowHeight-2;
+        }
         for (int i=0;i<menuLength;i++)
         {
             displayMenuLine(i+topbar.menuScroll);

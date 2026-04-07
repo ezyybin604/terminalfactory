@@ -62,7 +62,7 @@ class Factory // factory data / big verbose stuff related to factory
         new Point(1, 0),
         new Point(-1, 0),
     ];
-    Dragon dragon = new Dragon();
+    public Dragon dragon = new Dragon();
     public static int getWaterValue(string item)
     {
         if (item.Length == 4)

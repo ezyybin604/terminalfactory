@@ -584,7 +584,9 @@ public class MachineCursor
     required public string camera { get; set; }
     public Dictionary<string, string> macsd { get; set; } = new Dictionary<string, string>();
     public int energyInNetwork { get; set; }
-    public string[] populatedChunks { get; set; } = [];
+    public string[] populatedChunks { get; set; } = []; // change to unpopulatedchunks because thats probably shorter a list
+    public string[] nextUpdate { get; set; } = [];
+    int version { get; set; }
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
         macsd = new Dictionary<string, string>();

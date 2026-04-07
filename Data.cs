@@ -218,6 +218,36 @@ class Dragon
         }
         return false;
     }
+    public static string ShortenNumber(long num)
+    { // yoinked from https://stackoverflow.com/questions/1555397/formatting-large-numbers-with-net
+        int mag = (int)(Math.Floor(Math.Log10(num))/3);
+        double divisor = Math.Pow(10, mag*3);
+        double shortNumber = num / divisor;
+        string suffix = "";
+        switch(mag)
+        {
+            case 0:
+                suffix = string.Empty;
+                break;
+            case 1:
+                suffix = "k";
+                break;
+            case 2:
+                suffix = "m";
+                break;
+            case 3:
+                suffix = "b";
+                break;
+        }
+        return shortNumber.ToString("N1") + suffix; // 4.3m
+    }
+    public string[] getInfo()
+    {
+        return [
+            "Dragon Hunger: " + ShortenNumber(dragonHunger-fedFood),
+            "Dragon Thirst: " + ShortenNumber(dragonThirst-fedDrink)
+        ];
+    }
 }
 
 class Inventory
@@ -345,7 +375,7 @@ class Inventory
             string item = slot.item;
             if (itm.Keys.Contains(item))
             {
-                if (slot.num >= itm[slot.item])
+                if (slot.num >= Math.Min(itm[slot.item], MaxPerSlot))
                 {
                     int ridNumItem = Math.Min(slot.num, itm[slot.item]);
                     slot.num -= ridNumItem; // doing this w/o the help of i/for is uncomfterbole
