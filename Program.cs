@@ -1,6 +1,4 @@
 
-using System.Globalization;
-
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -96,7 +94,7 @@ class Game
     }
     public void introduction()
     {
-        Console.Write("Skip intro? (Press key: y/n):");
+        Console.Write("Skip intro? (Please read i beg) (Press key: y/n):");
         if (!(Console.ReadKey().KeyChar == 'y'))
         {
             Console.Clear();
@@ -117,7 +115,10 @@ Nobody follows, so to keep secrecy while you travel.
 (Press ENTER to start)");
             Console.ReadLine();
         }
-        if (choice("\nDo you want a tutorial? (warning: may take more than 5 seconds)\n(y/n):"))
+        string extrat = "";
+        if (specialMode == "demo") extrat = "(if noone sees this ever im actually gonna crash out im 5 seconds away from loosing my marbles and throwing a microwave at them)";
+        extrat += " \n(y/n):";
+        if (choice("\nDo you want a tutorial? (warning: important)" + extrat))
         {
             // do tutorial stuff
             Game tutr = new Game
@@ -145,6 +146,10 @@ Nobody follows, so to keep secrecy while you travel.
         topbar.tips.Add("pause", [
             "Use WS to change selection",
             "Press Z to select"
+        ]);
+        topbar.tips.Add("pause_info", [
+            "Dragon Hunger:",
+            "Dragon Thirst:"
         ]);
         topbar.tips.Add("inv", [
             "Use WS to change selection",
@@ -216,11 +221,25 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void displayMenuLine(int i)
     {
-        if (i > menus[scene].Length-1)
+        bool lowerScreen = false;
+        int lowerIndex = 0;
+        if (menus.ContainsKey(scene + "_info"))
+        {
+            lowerIndex = Console.WindowHeight-i;
+            lowerScreen = Console.WindowHeight-1-menus[scene].Length < i && Console.WindowHeight < menus[scene].Length + 1 + menus[scene + "_info"].Length;
+        }
+        if (i > menus[scene].Length-1 && !lowerScreen)
         {
             return;
         }
-        string[] si = menus[scene][i].Split("|");
+        string[] si;
+        if (lowerScreen)
+        {
+            si = menus[scene + "_info"][lowerIndex].Split("|");
+        } else
+        {
+            si = menus[scene][i].Split("|");
+        }
         int gi = i+2-topbar.menuScroll;
         Console.ResetColor();
         if (gi > Console.WindowHeight-1 || gi < 2)
@@ -236,7 +255,7 @@ Nobody follows, so to keep secrecy while you travel.
             si[0] = "- " + si[0];
         }
         Console.SetCursorPosition(0, gi);
-        Console.Write(si[0]);
+        Console.Write(si[0].Substring(0, Math.Min(si[0].Length, Console.WindowWidth)));
     }
     void menuDisplay()
     {
