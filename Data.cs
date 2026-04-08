@@ -1,6 +1,4 @@
 
-using System.Numerics;
-
 namespace terminalfactory;
 
 // data structuring classes
@@ -44,7 +42,7 @@ public struct Tile
         }
     }
 }
-public struct Point
+public struct Point // Wait wdm theres a Point data structure in system.drawing
 { // just wondering, is there anything like this in SYSTEM c#
     public int x;
     public int y;

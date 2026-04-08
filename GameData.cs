@@ -317,7 +317,8 @@ class FileManagement
             camera = JPI.getJs(camera),
             energyInNetwork = fact.energyInNetwork
         };
-        machineCursor.putPopulated(fact.populated.ToArray());
+        machineCursor.version = 1;
+        machineCursor.putPopulated(fact.unpopulated.ToArray());
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
         List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
@@ -410,10 +411,15 @@ class FileManagement
         fact.energyInNetwork = deser.energyInNetwork;
         if (deser.populatedChunks.Length < 1)
         {
-            fact.populated = fact.getChunks().ToHashSet();
+            fact.unpopulated = fact.getChunks().ToHashSet();
         } else
         {
-            fact.populated = deser.getPopulated();
+            fact.unpopulated = deser.getPopulated();
+        }
+        if (deser.version < 1)
+        {
+            List<Point> ne = fact.getChunks(); // get all chunks, remove populated
+            ne.RemoveAll(fact.unpopulated.ToArray());
         }
         return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
     }
@@ -586,7 +592,7 @@ public class MachineCursor
     public int energyInNetwork { get; set; }
     public string[] populatedChunks { get; set; } = []; // change to unpopulatedchunks because thats probably shorter a list
     public string[] nextUpdate { get; set; } = [];
-    int version { get; set; }
+    public int version { get; set; }
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
         macsd = new Dictionary<string, string>();

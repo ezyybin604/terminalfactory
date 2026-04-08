@@ -41,7 +41,7 @@ class Factory // factory data / big verbose stuff related to factory
     public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
     // [x][y]
-    public HashSet<Point> populated = new HashSet<Point>();
+    public HashSet<Point> unpopulated = new HashSet<Point>();
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it

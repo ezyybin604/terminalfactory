@@ -18,6 +18,7 @@ namespace terminalfactory;
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - conceider serializing nextUpdateTick
     - change populatedChunks to unpopulatedChunks
+    - finish dragon.putscale
 */
 
 class Game
