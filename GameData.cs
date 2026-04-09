@@ -419,9 +419,16 @@ class FileManagement
         if (deser.version < 1)
         {
             List<Point> ne = fact.getChunks(); // get all chunks, remove populated
-            ne.RemoveAll(fact.unpopulated.ToArray());
+            exarr = fact.unpopulated.ToArray();
+            Predicate<Point> pred = unpopu;
+            ne.RemoveAll(pred); // fact.unpopulated.ToArray()
         }
         return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
+    }
+    Point[] exarr = Array.Empty<Point>();
+    bool unpopu(Point point)
+    {
+        return exarr.Contains(point);
     }
     public void saveDefualt(Factory fact)
     {

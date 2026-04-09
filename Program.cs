@@ -17,7 +17,7 @@ namespace terminalfactory;
     - make laser purifer lens consume chance
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - conceider serializing nextUpdateTick
-    - change populatedChunks to unpopulatedChunks
+    - change populatedChunks to unpopulatedChunks (and hope it works now that its probably finished)
     - finish dragon.putscale
 */
 

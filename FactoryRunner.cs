@@ -163,7 +163,6 @@ class Factory // factory data / big verbose stuff related to factory
         for (int x=0;x<yposb.Length;x++)
         {
             xposb = new int[world[yposb[x]].Keys.Count];
-            world[x].Keys.CopyTo(xposb, 0);
             for (int y=0;y<xposb.Length;y++)
             {
                 regions.Add(getRegion(new Point(yposb[x], xposb[y])));
@@ -317,6 +316,7 @@ class Factory // factory data / big verbose stuff related to factory
         if (!world[chunkp.x].Keys.Contains(chunkp.y))
         {
             world[chunkp.x].Add(chunkp.y, chunk);
+            unpopulated.Add(chunkp);
         }
     }
     public bool chunkExists(Point chunkp)
@@ -338,7 +338,7 @@ class Factory // factory data / big verbose stuff related to factory
         {
             generateChunkBasic(chpos);
         }
-        if (tutorial != null || populated.Contains(chpos))
+        if (tutorial != null || !unpopulated.Contains(chpos))
         {
             return;
         }
@@ -405,7 +405,7 @@ class Factory // factory data / big verbose stuff related to factory
             Point pchunk = new Point((int)(rng.NextDouble()*10), (int)(rng.NextDouble()*10));
             placeFeature(shape, copy, chpos.getMultiply(16).getTransform(pchunk));
         }
-        populated.Add(chpos);
+        unpopulated.Remove(chpos);
     }
     public void placeChunk(Point position, Tile[][] data)
     {
