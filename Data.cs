@@ -108,7 +108,7 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing
     }
 }
 
-class TopBar
+public class TopBar
 {
     //couldnt bother to go through all tip variable refs so i renamed it
     public string tipt = "Have you tried waiting?";
@@ -136,7 +136,7 @@ class TopBar
 }
 
 // in-ven-tory
-class Slot
+public class Slot
 {
     public int num = 0;
     public string item = "";
@@ -174,7 +174,7 @@ public class Machine
     public int tier = 1;
 }
 
-class Dragon
+public class Dragon
 { // 1000% not done
     private long fedFood = 0;
     private long fedDrink = 0;
@@ -248,7 +248,7 @@ class Dragon
     }
 }
 
-class Inventory
+public class Inventory
 {
     public string latestGiven = "";
     public bool hasData = false;
