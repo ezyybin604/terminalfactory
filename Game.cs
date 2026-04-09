@@ -1,4 +1,6 @@
 
+using gameRunner;
+
 namespace terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
@@ -21,25 +23,26 @@ namespace terminalfactory;
     - finish dragon.putscale
 */
 
-class Game
+public class Game
 {
     // Scenes: game,end,inv,pause,craft
     string scene = "game";
     Thread? gameThread;
     Point scroll = new Point();
     Point cursor = new Point(2,2);
-    Factory factory = new Factory();
+    public Factory factory = new Factory();
     List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
     TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
     Inventory inventory = new Inventory();
-    FileManagement gdm = new FileManagement();
+    public FileManagement gdm = new FileManagement();
     string currentTipText = "";
-    string specialMode = "";
+    public string specialMode = "";
     string[] splashes = Array.Empty<string>(); // yoinking yet another concept from minecraft
     int? usingItem = null;
     int timer = 0;
+    //TileConsole cusc = new TileConsole();
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -74,7 +77,7 @@ class Game
             }
         }
     }
-    public bool choice(string prompt, string extra="")
+    private bool choice(string prompt, string extra="")
     {
         char res = '\0';
         while (res == '\0')
@@ -960,7 +963,7 @@ Nobody follows, so to keep secrecy while you travel.
         Thread.Sleep(1000);
         Environment.Exit(0);
     }
-    static void hi(string[] splashes)
+    void hi(string[] splashes)
     {
         Console.ResetColor();
         Console.Clear();
@@ -971,11 +974,11 @@ Nobody follows, so to keep secrecy while you travel.
         Console.Write("v0.1");
         Console.SetCursorPosition(0, 3);
     }
-    void hi()
+    public void hi()
     {
         hi(splashes);
     }
-    public void startGame()
+    void startGame()
     {
         if (gameThread != null)
         {
@@ -983,97 +986,18 @@ Nobody follows, so to keep secrecy while you travel.
             inputSutff();
         }
     }
-    public static void Main()
+    public void Start()
     {
-        Game game = new Game();
         Directory.CreateDirectory(FileManagement.worldFolder);
         if (File.Exists("data/splashes"))
         {
-            game.splashes = File.ReadAllText("data/splashes").Split("\n");
+            splashes = File.ReadAllText("data/splashes").Split("\n");
         } else
         {
-            Console.WriteLine("splashes is missing oh no");
-            Console.ReadLine();
-            Environment.Exit(0);
+            TileConsole.Error("splashes is missing oh no");
         }
-        game.hi();
-        bool sf = game.gdm.savefileExists(game.factory);
-        if (game.gdm.isDefualt())
-        {
-            game.factory.savefile = game.gdm.getDefualt();
-            sf = game.gdm.savefileExists(game.factory);
-        }
-        bool alsf = true;
-        if (sf || Directory.GetDirectories(FileManagement.worldFolder).Length > 0)
-        {
-            if (!sf)
-            {
-                game.factory.savefile = JPI.getFilename(Directory.GetDirectories(FileManagement.worldFolder)[0]);
-                sf = game.gdm.savefileExists(game.factory);
-                if (!sf)
-                {
-                    Console.WriteLine("Oh no something REALLY went wrong with save " + game.factory.savefile + "\n\nalso Yeah no. I'm not making a edge case for this one. Go away.");
-                    Console.ReadLine();
-                    return;
-                }
-            }
-            string? inp = null;
-            while (inp == null)
-            {
-                Console.Clear();
-                game.hi();
-                Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile));
-                inp = Console.ReadLine();
-                if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
-                {
-                    inp = null;
-                }
-                if (inp == "list")
-                {
-                    string[] saves = Directory.GetDirectories(FileManagement.worldFolder);
-                    Console.Clear();
-                    for (int i=0;i<saves.Length;i++)
-                    {
-                        Console.WriteLine(JPI.getFilename(saves[i]));
-                    }
-                    Console.WriteLine("(Press ENTER to exit)");
-                    Console.ReadLine();
-                    inp = null;
-                }
-                if (inp == "creative" || inp == "demo" || inp == "tutorial")
-                {
-                    Console.WriteLine("creative: All crafts in crafting menu are free");
-                    Console.WriteLine("demo: No saving, there is a restart button instead of exiting.");
-                    Console.WriteLine("tutorial: Spawns a tutorial map that is one screen large. Changes dynamically.");
-                    Console.WriteLine("Activate selected Special Mode?");
-                    if (Console.ReadKey().KeyChar == 'y')
-                    {
-                        game.specialMode = inp;
-                        inp = "";
-                    }
-                }
-            }
-            if (inp != "")
-            {
-                game.factory.savefile = inp;
-                alsf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
-            }
-            if (alsf && game.specialMode != "tutorial")
-            {
-                game.loadData();
-            }
-        }
-        if (!sf || !alsf)
-        {
-            if (sf)
-            {
-                Console.WriteLine("New save detected.");
-            } else
-            {
-                Console.WriteLine("No save found.");
-            }
-            game.introduction();
-        }
+        hi();
+        TileConsole.SaveSelect(this);
         try
         {
             Console.Title = "terminalfactory";
@@ -1082,13 +1006,13 @@ Nobody follows, so to keep secrecy while you travel.
         {
             Console.Write("no");
         }
-        if (game.factory.gd.state == "done")
+        if (factory.gd.state == "done")
         {
-            if (game.specialMode == "demo")
+            if (specialMode == "demo")
             {
                 while (true)
                 {
-                    game = new Game
+                    Game game = new Game
                     { // again, why
                         specialMode = "demo",
                         splashes = File.ReadAllText("data/splashes").Split("\n")
@@ -1123,15 +1047,15 @@ Nobody follows, so to keep secrecy while you travel.
                 }
             } else
             {
-                if (game.specialMode == "tutorial") game.factory = new Factory();
-                game.initStuff();
-                game.startGame();
+                if (specialMode == "tutorial") factory = new Factory();
+                initStuff();
+                startGame();
             }
         } else
         {
-            Console.WriteLine("\nAn error happened with GameData: " + game.factory.gd.state);
+            Console.WriteLine("\nAn error happened with GameData: " + factory.gd.state);
             Console.ReadLine();
         }
-        game.bye();
+        bye();
     }
 }

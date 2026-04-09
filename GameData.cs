@@ -141,7 +141,7 @@ public class GameData
     }
 }
 
-class FileManagement
+public class FileManagement
 {
     // copying from docs
     JsonSerializerOptions jso = new JsonSerializerOptions(); // ignore, maybe use for something later
@@ -315,9 +315,9 @@ class FileManagement
             macsd = new Dictionary<string, string>(),
             cursor = JPI.getJs(cursor),
             camera = JPI.getJs(camera),
-            energyInNetwork = fact.energyInNetwork
+            energyInNetwork = fact.energyInNetwork,
+            version = 1
         };
-        machineCursor.version = 1;
         machineCursor.putPopulated(fact.unpopulated.ToArray());
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
@@ -409,19 +409,14 @@ class FileManagement
         });
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
-        if (deser.populatedChunks.Length < 1)
-        {
-            fact.unpopulated = fact.getChunks().ToHashSet();
-        } else
-        {
-            fact.unpopulated = deser.getPopulated();
-        }
+        fact.unpopulated = deser.getPopulated();
         if (deser.version < 1)
         {
             List<Point> ne = fact.getChunks(); // get all chunks, remove populated
             exarr = fact.unpopulated.ToArray();
             Predicate<Point> pred = unpopu;
             ne.RemoveAll(pred); // fact.unpopulated.ToArray()
+            fact.unpopulated = ne.ToHashSet();
         }
         return [JPI.getPoint(deser.cursor), JPI.getPoint(deser.camera)];
     }

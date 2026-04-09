@@ -25,7 +25,7 @@ F: filler block
 
 // Chunk: Tile[x][y] data;
 
-class Factory // factory data / big verbose stuff related to factory
+public class Factory // factory data / big verbose stuff related to factory
 {
     public FTutorial? tutorial = null;
     public GameData gd = new GameData("data/gamedata");
