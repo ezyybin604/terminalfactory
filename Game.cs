@@ -8,8 +8,8 @@ namespace terminalfactory;
 
 // todo:
 /*
-    - splitter core machine
-    - passthrough pipes
+    - splitter core - machine
+    - passthrough pipes (max 5 inbetween)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - hope that all the machines are functional
     - super scale collection facility
@@ -21,6 +21,11 @@ namespace terminalfactory;
     - conceider serializing nextUpdateTick
     - change populatedChunks to unpopulatedChunks (and hope it works now that its probably finished)
     - finish dragon.putscale
+    - change data managment to MessagePack
+    - change data management folder to a more standardized one (AppData, Library/Application Management, ~/.terminalfactory, etc.)
+    - store options in seperate folders and move option data to seperate folder from worlds
+    - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
+    - change writemodes and use them accordingly
 */
 
 public class Game
