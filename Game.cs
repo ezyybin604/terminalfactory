@@ -41,7 +41,7 @@ public class Game
     TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
     Inventory inventory = new Inventory();
-    public FileManagement gdm = new FileManagement();
+    public FileManagement gdm = new FileManagement("terminalfactory");
     string currentTipText = "";
     public string specialMode = "";
     string[] splashes = Array.Empty<string>(); // yoinking yet another concept from minecraft
@@ -301,7 +301,7 @@ Nobody follows, so to keep secrecy while you travel.
     void selectItemMenu()
     {
         string[] st = menus[scene][topbar.menuSelection].Split("|");
-        string world = Path.Join(FileManagement.worldFolder, factory.savefile);
+        string world = Path.Join(gdm.worldFolder, factory.savefile);
         switch (scene)
         {
             case "pause":
@@ -993,7 +993,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     public void Start()
     {
-        Directory.CreateDirectory(FileManagement.worldFolder);
+        Directory.CreateDirectory(gdm.worldFolder);
         if (File.Exists("data/splashes"))
         {
             splashes = File.ReadAllText("data/splashes").Split("\n");

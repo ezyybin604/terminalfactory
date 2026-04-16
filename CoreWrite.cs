@@ -28,11 +28,11 @@ public class TileConsole
             sf = game.gdm.savefileExists(game.factory);
         }
         bool alsf = true;
-        if (sf || Directory.GetDirectories(FileManagement.worldFolder).Length > 0)
+        if (sf || Directory.GetDirectories(game.gdm.worldFolder).Length > 0)
         {
             if (!sf)
             {
-                game.factory.savefile = JPI.getFilename(Directory.GetDirectories(FileManagement.worldFolder)[0]);
+                game.factory.savefile = JPI.getFilename(Directory.GetDirectories(game.gdm.worldFolder)[0]);
                 sf = game.gdm.savefileExists(game.factory);
                 if (!sf)
                 {
@@ -52,7 +52,7 @@ public class TileConsole
                 }
                 if (inp == "list")
                 {
-                    string[] saves = Directory.GetDirectories(FileManagement.worldFolder);
+                    string[] saves = Directory.GetDirectories(game.gdm.worldFolder);
                     Console.Clear();
                     for (int i=0;i<saves.Length;i++)
                     {
@@ -78,7 +78,7 @@ public class TileConsole
             if (inp != "")
             {
                 game.factory.savefile = inp;
-                alsf = Directory.Exists(Path.Join(FileManagement.worldFolder, game.factory.savefile));
+                alsf = Directory.Exists(Path.Join(game.gdm.worldFolder, game.factory.savefile));
             }
             if (alsf && game.specialMode != "tutorial")
             {

@@ -145,8 +145,12 @@ public class FileManagement
 {
     // copying from docs
     JsonSerializerOptions jso = new JsonSerializerOptions(); // ignore, maybe use for something later
-    public const string worldFolder = "worlds";
+    public string worldFolder = ".";
     public const int regionLength = Factory.regionArea * Factory.regionArea;
+    public FileManagement(string folderName)
+    {
+        worldFolder = Path.Combine(getDataPath(), folderName);
+    }
     private void saveToFile(string fn, string savefile, object toSer)
     {
         string file = Path.Join(worldFolder, savefile, fn + ".json");
@@ -168,7 +172,20 @@ public class FileManagement
         }
         return result;
     }
-
+    public static string getDataPath()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        } else if (OperatingSystem.IsMacOS())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support");
+        } else if (OperatingSystem.IsLinux())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ezyybin604");
+        }
+        return "defaultsavemanager";
+    }
     private Tile[][] getChunk(Factory fact, Point ch)
     {
         if (fact.world.Keys.Contains(ch.x))
