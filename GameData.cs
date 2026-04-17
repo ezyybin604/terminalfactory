@@ -1,5 +1,5 @@
 
-using System.Text.Json;
+using MessagePack;
 
 namespace terminalfactory;
 
@@ -143,31 +143,55 @@ public class GameData
 
 public class FileManagement
 {
-    // copying from docs
-    JsonSerializerOptions jso = new JsonSerializerOptions(); // ignore, maybe use for something later
-    public string worldFolder = ".";
+    //JsonSerializerOptions jso = new JsonSerializerOptions(); // ignore, maybe use for something later
+    public string worldFolder = "./worlds";
+    public string baseFolder = ".";
+    public string optionFolder = "./options";
     public const int regionLength = Factory.regionArea * Factory.regionArea;
     public FileManagement(string folderName)
     {
-        worldFolder = Path.Combine(getDataPath(), folderName);
+        baseFolder = Path.Combine(getDataPath(), folderName);
+        worldFolder = Path.Combine(baseFolder, "worlds");
+        optionFolder = Path.Combine(baseFolder, "options");
+        if (!Directory.Exists(baseFolder))
+        {
+            Directory.CreateDirectory(baseFolder);
+        }
+        if (!Directory.Exists(optionFolder))
+        {
+            Directory.CreateDirectory(optionFolder);
+        }
     }
+    public void saveOption(string key, string value)
+    {
+        File.WriteAllText(Path.Combine(optionFolder, key), value);
+    }
+    public string getOption(string key)
+    {
+        return File.ReadAllText(Path.Combine(optionFolder, key));
+    }
+    public bool optionExists(string key)
+    {
+        return File.Exists(Path.Combine(optionFolder, key));
+    }
+    // copying from docs (jsonserializer code)
     private void saveToFile(string fn, string savefile, object toSer)
     {
-        string file = Path.Join(worldFolder, savefile, fn + ".json");
-        File.WriteAllText(file, JsonSerializer.Serialize(toSer, jso));
+        string file = Path.Join(worldFolder, savefile, fn);
+        File.WriteAllBytes(file, MessagePackSerializer.Serialize(toSer));
     }
     private object loadFromFile(Type type, string fn, string savefile, object nullDefault)
     {
         Console.WriteLine("Loading file " + fn);
-        string file = Path.Join(worldFolder, savefile, fn + ".json");
+        string file = Path.Join(worldFolder, savefile, fn);
         object? result = null;
         if (File.Exists(file))
         {
-            string data = File.ReadAllText(file);
-            result = JsonSerializer.Deserialize(data, type, jso);
+            byte[] data = File.ReadAllBytes(file);
+            result = MessagePackSerializer.Deserialize(type, data);
         }
         if (result == null)
-        {
+        { // i think the reason why this is here is caus c# is insecure about my code
             return nullDefault;
         }
         return result;
@@ -333,7 +357,8 @@ public class FileManagement
             cursor = JPI.getJs(cursor),
             camera = JPI.getJs(camera),
             energyInNetwork = fact.energyInNetwork,
-            version = 1
+            version = 1,
+            dragon = fact.dragon
         };
         machineCursor.putPopulated(fact.unpopulated.ToArray());
         machineCursor.applyDictionary(fact.machines);
@@ -422,7 +447,8 @@ public class FileManagement
         {
             cursor = JPI.getJs(),
             camera = JPI.getJs(),
-            macsd = new Dictionary<string, string>()
+            macsd = new Dictionary<string, string>(),
+            dragon = new Dragon()
         });
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
@@ -441,18 +467,6 @@ public class FileManagement
     bool unpopu(Point point)
     {
         return exarr.Contains(point);
-    }
-    public void saveDefualt(Factory fact)
-    {
-        File.WriteAllText(Path.Join(worldFolder, "selectedSave"), fact.savefile);
-    }
-    public string getDefualt()
-    {
-        return File.ReadAllText(Path.Join(worldFolder, "selectedSave"));
-    }
-    public bool isDefualt()
-    {
-        return File.Exists(Path.Join(worldFolder, "selectedSave"));
     }
     public bool savefileExists(Factory fact)
     {
@@ -593,25 +607,41 @@ class JPI // JsonPointInterface / other things because i felt like it
     }
 }
 
+[MessagePackObject]
 public class InventoryData
 { // for serization or however you spell it
+    [Key(0)]
     required public string[] data { get; set; } = new string[Inventory.Length]; // also use fix to get length later
 }
 
+[MessagePackObject]
 public class Region
-{ // jsonserialize REALLY wants me to use { get; set; } so im going to blindly paste it all over my data classes
+{ // jsonserialize- i mean MessagePack REALLY wants me to use { get; set; } so im going to blindly paste it all over my data classes
+    [Key(0)]
     required public string regionLocation { get; set; }
+    [Key(1)]
     required public string[][][] data { get; set; } // data = new string[FileManagement.regionLength][][]; // (0 length chunk=empty/not generated)
 }
+
+[MessagePackObject]
 public class MachineCursor
 {
+    [Key(0)]
     required public string cursor { get; set; }
+    [Key(1)]
     required public string camera { get; set; }
+    [Key(2)]
     public Dictionary<string, string> macsd { get; set; } = new Dictionary<string, string>();
+    [Key(3)]
     public int energyInNetwork { get; set; }
-    public string[] populatedChunks { get; set; } = []; // change to unpopulatedchunks because thats probably shorter a list
+    [Key(4)]
+    public string[] populatedChunks { get; set; } = [];
+    [Key(5)]
     public string[] nextUpdate { get; set; } = [];
+    [Key(6)]
     public int version { get; set; }
+    [Key(7)]
+    required public Dragon dragon { get; set; }
     public void applyDictionary(Dictionary<Point, Machine> macs)
     {
         macsd = new Dictionary<string, string>();

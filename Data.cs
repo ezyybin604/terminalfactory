@@ -1,4 +1,6 @@
 
+using MessagePack;
+
 namespace terminalfactory;
 
 // data structuring classes
@@ -174,13 +176,20 @@ public class Machine
     public int tier = 1;
 }
 
+[MessagePackObject]
 public class Dragon
 { // 1000% not done
-    private long fedFood = 0;
-    private long fedDrink = 0;
-    private long dragonThirst = 1000; // 1000^(1.04^x) val
-    private long dragonHunger = 1000; // 1000^(1.03^x) val
-    private int age = 0; // maxes out at 128
+    [Key(0)]
+    public long fedFood = 0;
+    [Key(1)]
+    public long fedDrink = 0;
+    [Key(2)]
+    public long dragonThirst = 1000; // 1000^(1.04^x) val
+    [Key(3)]
+    public long dragonHunger = 1000; // 1000^(1.03^x) val
+    [Key(4)]
+    public int age = 0; // maxes out at 128
+    [Key(5)]
     public int scalesShed = 0;
     private void dragonTick()
     {

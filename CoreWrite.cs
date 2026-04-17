@@ -22,9 +22,9 @@ public class TileConsole
     public static void SaveSelect(Game game)
     {
         bool sf = game.gdm.savefileExists(game.factory);
-        if (game.gdm.isDefualt())
+        if (game.gdm.optionExists("defaultsave"))
         {
-            game.factory.savefile = game.gdm.getDefualt();
+            game.factory.savefile = game.gdm.getOption("defaultsave");
             sf = game.gdm.savefileExists(game.factory);
         }
         bool alsf = true;
