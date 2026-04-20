@@ -35,7 +35,7 @@ public class Game
     Point cursor = new Point(2,2);
     public Factory factory = new Factory
     {
-        gd = new GameData("data/gamedata")
+        gd = new GameData("data/gamedata") // add data path to gdm main path too maybe
     };
     List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
