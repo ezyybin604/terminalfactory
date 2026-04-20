@@ -33,7 +33,10 @@ public class Game
     Thread? gameThread;
     Point scroll = new Point();
     Point cursor = new Point(2,2);
-    public Factory factory = new Factory();
+    public Factory factory = new Factory
+    {
+        gd = new GameData("data/gamedata")
+    };
     List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
     TopBar topbar = new TopBar();
@@ -45,7 +48,7 @@ public class Game
     string[] splashes = Array.Empty<string>(); // yoinking yet another concept from minecraft
     int? usingItem = null;
     int timer = 0;
-    //TileConsole cusc = new TileConsole();
+    public required TileConsole cusc;
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -130,7 +133,8 @@ Nobody follows, so to keep secrecy while you travel.
             // do tutorial stuff
             Game tutr = new Game
             { // Why does c# want me to do this isnt "simplified" what
-                specialMode = "tutorial"
+                specialMode = "tutorial",
+                cusc = cusc
             };
             tutr.initStuff();
             tutr.startGame();
@@ -390,7 +394,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
         }
     }
-    void displayStuff()
+    public void displayStuff()
     {
         factory.linesToUpdate.Clear();
         Console.ResetColor();
@@ -405,7 +409,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            factory.displayLine(i+scroll.y, cursor, scroll);
+            factory.displayLine(i+scroll.y, cursor, scroll, cusc);
         }
     }
     void updateScreen()
@@ -415,7 +419,7 @@ Nobody follows, so to keep secrecy while you travel.
             if (factory.linesToUpdate.Contains(i+scroll.y))
             {
                 Console.SetCursorPosition(0, i+2);
-                factory.displayLine(i+scroll.y, cursor, scroll);
+                factory.displayLine(i+scroll.y, cursor, scroll, cusc);
             }
         }
         factory.linesToUpdate.Clear();
@@ -959,27 +963,20 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void bye()
     {
-        Console.ResetColor();
-        Console.Clear();
-        Console.WriteLine("bye");
         gdm.saveOption("defaultsave", factory.savefile);
-        Thread.Sleep(1000);
+        if (TileConsole.consoleMode)
+        {
+            Console.ResetColor();
+            Console.Clear();
+            Console.WriteLine("bye");
+            Thread.Sleep(1000);
+        }
         Environment.Exit(0);
-    }
-    void hi(string[] splashes)
-    {
-        Console.ResetColor();
-        Console.Clear();
-        Console.WriteLine("TERMINALFACTORY");
-        string splash = splashes[Factory.generateIntRange(1, splashes.Length)-1].Replace('\r', '\0');
-        Console.Write("\"" + splash + "\"");
-        Console.SetCursorPosition(0, Console.WindowHeight-1);
-        Console.Write("v0.1");
-        Console.SetCursorPosition(0, 3);
     }
     public void hi()
     {
-        hi(splashes);
+        string splash = splashes[Factory.generateIntRange(1, splashes.Length)-1].Replace('\r', '\0');
+        cusc.setSplash(splash, "0.1");
     }
     void startGame()
     {
@@ -1018,7 +1015,8 @@ Nobody follows, so to keep secrecy while you travel.
                     Game game = new Game
                     { // again, why
                         specialMode = "demo",
-                        splashes = File.ReadAllText("data/splashes").Split("\n")
+                        splashes = File.ReadAllText("data/splashes").Split("\n"),
+                        cusc = cusc
                     };
                     game.hi();
                     if (game.choice("Would you like to play on a savefile? (y/n)", "hi"))
@@ -1050,7 +1048,9 @@ Nobody follows, so to keep secrecy while you travel.
                 }
             } else
             {
-                if (specialMode == "tutorial") factory = new Factory();
+                if (specialMode == "tutorial") factory = new Factory {
+                    gd = factory.gd
+                };
                 initStuff();
                 startGame();
             }

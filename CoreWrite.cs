@@ -7,12 +7,16 @@ namespace gameRunner;
 
 class Program {
     public static void Main() {
-        new Game().Start();
+        new Game
+        {
+            cusc = new TileConsole()
+        }.Start();
     }
 }
 
 public class TileConsole
 {
+    public static bool consoleMode = true;
     public static void Error(string s)
     {
         Console.WriteLine(s); // replace with the err function in unity
@@ -100,4 +104,30 @@ public class TileConsole
     // replace this with interface to unity
     // 3 modes: console, world, menu
     public string mode = "console";
+    public void sendTiles(Point startp, Tile[] tiles)
+    {
+        // empty
+    }
+    public void setSplash(string text, string versionstr)
+    {
+        Console.ResetColor();
+        Console.Clear();
+        Console.WriteLine("TERMINALFACTORY");
+        Console.Write("\"" + text + "\"");
+        Console.SetCursorPosition(0, Console.WindowHeight-1);
+        Console.Write(String.Format("terminalfactory {0}, tileconsole consolever", versionstr));
+        Console.SetCursorPosition(0, 3);
+    }
+    public void resetScreen(Game game)
+    {
+        switch (mode)
+        {
+            case "console":
+                Console.Clear();
+                break;
+            case "menu": case "world":
+                game.displayStuff();
+                break;
+        }
+    }
 }

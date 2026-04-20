@@ -1,4 +1,6 @@
 
+using gameRunner;
+
 namespace terminalfactory;
 
 /*
@@ -28,7 +30,7 @@ F: filler block
 public class Factory // factory data / big verbose stuff related to factory
 {
     public FTutorial? tutorial = null;
-    public GameData gd = new GameData("data/gamedata");
+    required public GameData gd;
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
     char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
@@ -46,6 +48,7 @@ public class Factory // factory data / big verbose stuff related to factory
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
     public HashSet<Point> nextUpdateTick = new HashSet<Point>(); // concider serializing this one
+    public bool exposeDisplay = false;
     public Point[] machineArea = [
         new Point(1, -1),
         new Point(1, 1),
@@ -555,7 +558,7 @@ public class Factory // factory data / big verbose stuff related to factory
         }
         return direction;
     }
-    public void displayLine(int y, Point? cursor, Point scroll)
+    public void displayLine(int y, Point? cursor, Point scroll, TileConsole tileConsole)
     {
         string[] lineResult;
         int idx = 0;
@@ -687,9 +690,25 @@ public class Factory // factory data / big verbose stuff related to factory
         Console.ResetColor();
         //Console.WriteLine(String.Join(",", lineResult)); // displayLine:debug
         Console.ForegroundColor = ConsoleColor.Green;
+        int cx = 0;
         for (int o=0;lineResult[o] != "/end";o++)
         {
             string yes = lineResult[o];
+            if (exposeDisplay)
+            {
+                if (yes[0] != '/')
+                {
+                    List<Tile> ts = new List<Tile>();
+                    Point startp = new Point(cx, y);
+                    for (int i=0;i<yes.Length;i++)
+                    {
+                        ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
+                    }
+                    tileConsole.sendTiles(startp, ts.ToArray());
+                    cx += yes.Length;
+                }
+                continue;
+            }
             if (yes[0] == '/' && yes.Length > 1)
             {
                 yes = yes.Substring(1);
