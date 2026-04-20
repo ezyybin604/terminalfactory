@@ -439,7 +439,7 @@ public class FTutorial
     string[] messageprog = [];
     int mpgs = 0; // number in tutorial (21 is pipe)
     private int action = 0; // how many times action happened
-    public Factory fact = new Factory();
+    required public Factory fact;
     public List<string> acts = new List<string>();
     public int ticksSinceLast = 0;
     public string curact = "";
@@ -472,9 +472,9 @@ public class FTutorial
         curact = curd[1];
         beforeAction();
     }
-    public FTutorial(Factory factr)
+    public FTutorial()
     {
-        fact = factr;
+        //fact = factr;
         messageprog = fact.gd.getKeys("tutorialMsg");
         updateAction();
     }

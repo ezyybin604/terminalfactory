@@ -207,7 +207,7 @@ Nobody follows, so to keep secrecy while you travel.
                 "Exit tutorial|quit"
             ];
             factory.emptyTile = new Tile(" ");
-            factory.tutorial = new FTutorial(factory);
+            factory.tutorial = new FTutorial{fact = factory};
             cursor = factory.tutorial.center;
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
