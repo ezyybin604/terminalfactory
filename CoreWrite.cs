@@ -1,7 +1,7 @@
 
 // entry point
 
-using terminalfactory;
+using E604terminalfactory;
 
 namespace gameRunner;
 
@@ -22,6 +22,18 @@ public class TileConsole
         Console.WriteLine(s); // replace with the err function in unity
         Console.ReadLine();
         Environment.Exit(0);
+    }
+    public Point getWindowSize(string type)
+    { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
+        // window, board, text
+        switch (type)
+        {
+            case "text": case "window":
+                return new Point(Console.WindowWidth, Console.WindowHeight);
+            case "board":
+                return new Point(Console.WindowWidth, Console.WindowHeight-2);
+        }
+        return new Point();
     }
     public static void SaveSelect(Game game)
     {
@@ -115,7 +127,7 @@ public class TileConsole
         Console.WriteLine("TERMINALFACTORY");
         Console.Write("\"" + text + "\"");
         Console.SetCursorPosition(0, Console.WindowHeight-1);
-        Console.Write(String.Format("terminalfactory {0}, tileconsole consolever", versionstr));
+        Console.Write(String.Format("terminalfactory {0}, runner:console", versionstr));
         Console.SetCursorPosition(0, 3);
     }
     public void resetScreen(Game game)

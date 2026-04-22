@@ -1,7 +1,7 @@
 
 using MessagePack;
 
-namespace terminalfactory;
+namespace E604terminalfactory;
 
 // data structuring classes
 
@@ -103,10 +103,6 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing
     public Point getNeutralized()
     {
         return new Point(neutralize(x), neutralize(y));
-    }
-    public static Point getWindowSize()
-    {
-        return new Point(Console.WindowWidth, Console.WindowHeight);
     }
 }
 
@@ -466,18 +462,14 @@ public class FTutorial
     }
     public void updateAction()
     {
+        messageprog = fact.gd.getKeys("tutorialMsg");
         center = boxpos.getTransform(size.getDivide(2));
         string[] curd = fact.gd.getSplit("tutorialMsg", messageprog[mpgs]);
         numact = JPI.parseInt(curd[0]);
         curact = curd[1];
         beforeAction();
     }
-    public FTutorial()
-    {
-        //fact = factr;
-        messageprog = fact.gd.getKeys("tutorialMsg");
-        updateAction();
-    }
+    public FTutorial() {}
     public bool tickTutorial()
     {
         for (string goin;acts.Count>0;acts.RemoveAt(0)) // chat is this a cool way to use a for loop

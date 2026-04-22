@@ -1,7 +1,7 @@
 
 using gameRunner;
 
-namespace terminalfactory;
+namespace E604terminalfactory;
 
 /*
 Tile types:
@@ -568,8 +568,9 @@ public class Factory // factory data / big verbose stuff related to factory
         string currentColor = "";
         string prevColor;
         int invertedColor = 0;
-        lineResult = new string[(Console.WindowWidth*2)+2];
-        for (int x=0;x<Console.WindowWidth;x++)
+        int tileWidth = tileConsole.getWindowSize("board").x;
+        lineResult = new string[(tileWidth*2)+2];
+        for (int x=0;x<tileWidth;x++)
         {
             colorNow = color;
             prevColor = currentColor;

@@ -1,7 +1,7 @@
 
 using MessagePack;
 
-namespace terminalfactory;
+namespace E604terminalfactory;
 
 // this file handles file i/o
 // type = # of !s

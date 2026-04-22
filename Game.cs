@@ -1,7 +1,7 @@
 
 using gameRunner;
 
-namespace terminalfactory;
+namespace E604terminalfactory;
 
 // Inspired a little bit by https://www.youtu.be/cZYNADOHhVY :)
 // https://github.com/ezyybin604/terminalfactory/
@@ -24,6 +24,8 @@ namespace terminalfactory;
     - store options in seperate folders and move option data to seperate folder from worlds
     - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
     - change writemodes and use them accordingly
+    - add more dimensions for text length, tile length (amount for each)
+    - stop TLDW message and instead cutoff tip text
 */
 
 public class Game
@@ -69,8 +71,9 @@ public class Game
     }
     void generateNeeded()
     {
-        int w = (int)Math.Ceiling((double)(Console.WindowWidth/Factory.chunkSize));
-        int h = (int)Math.Ceiling((double)((Console.WindowHeight-2)/Factory.chunkSize));
+        Point boardSize = cusc.getWindowSize("board");
+        int w = (int)Math.Ceiling((double)(boardSize.x/Factory.chunkSize));
+        int h = (int)Math.Ceiling((double)(boardSize.y/Factory.chunkSize));
         w+=3;
         h+=3;
         int sx = (int)Math.Floor((double)(scroll.x/Factory.chunkSize));
@@ -208,6 +211,7 @@ Nobody follows, so to keep secrecy while you travel.
             ];
             factory.emptyTile = new Tile(" ");
             factory.tutorial = new FTutorial{fact = factory};
+            factory.tutorial.updateAction();
             cursor = factory.tutorial.center;
         }
         menus.Add("end", ["Why are you reading this exactly?"]);
@@ -435,7 +439,7 @@ Nobody follows, so to keep secrecy while you travel.
     {
         if (specialMode == "tutorial" && factory.tutorial != null)
         {
-            scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(Point.getWindowSize().getTransform(0, -4).getDivide(-2));
+            scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(cusc.getWindowSize("window").getTransform(0, -4).getDivide(-2));
             generateNeeded();
             return;
         }
