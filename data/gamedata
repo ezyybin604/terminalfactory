@@ -95,6 +95,7 @@ mout=-
 energycable=~
 # build
 stone=o
+f.stone=s
 !! 
 
 !tileRecolors

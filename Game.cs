@@ -24,8 +24,8 @@ namespace E604terminalfactory;
     - store options in seperate folders and move option data to seperate folder from worlds
     - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
     - change writemodes and use them accordingly
-    - add more dimensions for text length, tile length (amount for each)
-    - stop TLDW message and instead cutoff tip text
+    - add more dimensions for text length, tile length (amount for each) and then use them
+    - tick bushes so they can regrow
 */
 
 public class Game
@@ -86,25 +86,6 @@ public class Game
             }
         }
     }
-    private bool choice(string prompt, string extra="")
-    {
-        char res = '\0';
-        while (res == '\0')
-        {
-            Console.Clear();
-            if (extra == "hi")
-            {
-                hi();
-            }
-            Console.Write(prompt);
-            res = Console.ReadKey().KeyChar.ToString().ToLower()[0];
-            if (res != 'y' && res != 'n')
-            {
-                res = '\0';
-            }
-        }
-        return res == 'y';
-    }
     public void introduction()
     {
         Console.Write("Skip intro? (Please read i beg) (Press key: y/n):");
@@ -131,7 +112,7 @@ Nobody follows, so to keep secrecy while you travel.
         string extrat = "";
         if (specialMode == "demo") extrat = "(if noone sees this ever im actually gonna crash out im 5 seconds away from loosing my marbles and throwing a microwave at them)";
         extrat += " \n(y/n):";
-        if (choice("\nDo you want a tutorial? (warning: important)" + extrat))
+        if (cusc.choice("\nDo you want a tutorial? (warning: important)" + extrat, this))
         {
             // do tutorial stuff
             Game tutr = new Game
@@ -373,9 +354,9 @@ Nobody follows, so to keep secrecy while you travel.
                 default:
                     break;
             }
-            if (tipTextCopy.Length > Console.WindowWidth)
+            if (tipTextCopy.Length > cusc.getWindowSize("text").x && TileConsole.runnerType == "console")
             {
-                Console.Write("TLDW");
+                Console.Write(tipTextCopy.Substring(0, cusc.getWindowSize("text").x));
             } else
             {
                 Console.Write(tipTextCopy);
@@ -1008,7 +989,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         catch (PlatformNotSupportedException)
         {
-            Console.Write("no");
+            TileConsole.Log("no");
         }
         if (factory.gd.state == "done")
         {
@@ -1023,12 +1004,12 @@ Nobody follows, so to keep secrecy while you travel.
                         cusc = cusc
                     };
                     game.hi();
-                    if (game.choice("Would you like to play on a savefile? (y/n)", "hi"))
+                    if (cusc.choice("Would you like to play on a savefile? (y/n)", this, "hi"))
                     {
                         string? savef = null;
                         while (savef == null)
                         {
-                            Console.Clear();
+                            Console.Clear(); // change to ask tileconsole for savefile prompt
                             Console.WriteLine("What is the savefile name?");
                             savef = Console.ReadLine();
                             if (savef == "" || (savef != null && (savef.Contains("/") || savef.Contains("\\"))))
@@ -1043,7 +1024,7 @@ Nobody follows, so to keep secrecy while you travel.
                         }
                     } else
                     {
-                        Console.WriteLine();
+                        if (TileConsole.runnerType == "console") Console.WriteLine();
                         game.factory.savefile = "";
                         game.introduction();
                     }
@@ -1060,8 +1041,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
         } else
         {
-            Console.WriteLine("\nAn error happened with GameData: " + factory.gd.state);
-            Console.ReadLine();
+            TileConsole.Error("\nAn error happened with GameData: " + factory.gd.state);
         }
         bye();
     }

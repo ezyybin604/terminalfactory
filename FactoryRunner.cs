@@ -1,4 +1,5 @@
 
+using System.Net.Security;
 using gameRunner;
 
 namespace E604terminalfactory;
@@ -32,7 +33,6 @@ public class Factory // factory data / big verbose stuff related to factory
     public FTutorial? tutorial = null;
     required public GameData gd;
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
-    char[] natrualTiles = ['f', 'i', ']', 'b', 'o'];
     Random rng = new Random();
     public Tile emptyTile = new Tile("`");
     public string savefile = "defualtfsave";
@@ -1378,6 +1378,13 @@ public class Factory // factory data / big verbose stuff related to factory
                 {
                     tct.amount -= given;
                     setTile(tp, tct);
+                }
+                break;
+            case 'b':
+                if (generateIntRange(0, 20) == 0)
+                {
+                    tct.amount++; // check if bushes use prog
+                    tct.amount = Math.Min(tct.amount, 10);
                 }
                 break;
         }

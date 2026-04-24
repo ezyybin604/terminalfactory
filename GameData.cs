@@ -400,7 +400,7 @@ public class FileManagement
         int i=0;
         string save = fact.savefile;
         string fname = "region" + i.ToString();
-        while (File.Exists(Path.Join(worldFolder, save, fname + ".json")))
+        while (File.Exists(Path.Join(worldFolder, save, fname)))
         {
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {

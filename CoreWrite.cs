@@ -23,6 +23,10 @@ public class TileConsole
         Console.ReadLine();
         Environment.Exit(0);
     }
+    public static void Log(string s)
+    {
+        Console.WriteLine(s); // replace with the log function in unity
+    }
     public Point getWindowSize(string type)
     { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
         // window, board, text
@@ -34,6 +38,25 @@ public class TileConsole
                 return new Point(Console.WindowWidth, Console.WindowHeight-2);
         }
         return new Point();
+    }
+    public bool choice(string prompt, Game game, string extra="")
+    {
+        char res = '\0';
+        while (res == '\0')
+        {
+            Console.Clear();
+            if (extra == "hi")
+            {
+                game.hi();
+            }
+            Console.Write(prompt);
+            res = Console.ReadKey().KeyChar.ToString().ToLower()[0];
+            if (res != 'y' && res != 'n')
+            {
+                res = '\0';
+            }
+        }
+        return res == 'y';
     }
     public static void SaveSelect(Game game)
     {
@@ -52,13 +75,13 @@ public class TileConsole
                 sf = game.gdm.savefileExists(game.factory);
                 if (!sf)
                 {
-                    TileConsole.Error("Oh no something REALLY went wrong with save " + game.factory.savefile + "\n\nalso Yeah no. I'm not making a edge case for this one. Go away.");
+                    Error("Oh no something REALLY went wrong with save " + game.factory.savefile + "\n\nalso Yeah no. I'm not making a edge case for this one. Go away.");
                 }
             }
             string? inp = null;
             while (inp == null)
             {
-                Console.Clear();
+                Console.Clear(); // change to ask tileconsole for savefile prompt
                 game.hi();
                 Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile));
                 inp = Console.ReadLine();
@@ -115,6 +138,7 @@ public class TileConsole
     }
     // replace this with interface to unity
     // 3 modes: console, world, menu
+    public const string runnerType = "console";
     public string mode = "console";
     public void sendTiles(Point startp, Tile[] tiles)
     {
@@ -127,7 +151,7 @@ public class TileConsole
         Console.WriteLine("TERMINALFACTORY");
         Console.Write("\"" + text + "\"");
         Console.SetCursorPosition(0, Console.WindowHeight-1);
-        Console.Write(String.Format("terminalfactory {0}, runner:console", versionstr));
+        Console.Write(String.Format("terminalfactory {0}, runner:{1}", versionstr, runnerType));
         Console.SetCursorPosition(0, 3);
     }
     public void resetScreen(Game game)
