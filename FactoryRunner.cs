@@ -1383,8 +1383,8 @@ public class Factory // factory data / big verbose stuff related to factory
             case 'b':
                 if (generateIntRange(0, 20) == 0)
                 {
-                    tct.amount++; // check if bushes use prog
-                    tct.amount = Math.Min(tct.amount, 10);
+                    tct.prog++; // check if bushes use prog
+                    tct.prog = Math.Min(tct.amount, 10);
                 }
                 break;
         }

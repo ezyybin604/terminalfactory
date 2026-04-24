@@ -26,6 +26,8 @@ namespace E604terminalfactory;
     - change writemodes and use them accordingly
     - add more dimensions for text length, tile length (amount for each) and then use them
     - tick bushes so they can regrow
+    - change miner to use breakTile instead
+    - expose input system to corewrite
 */
 
 public class Game
