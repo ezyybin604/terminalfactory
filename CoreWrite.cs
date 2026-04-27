@@ -27,6 +27,10 @@ public class TileConsole
     {
         Console.WriteLine(s); // replace with the log function in unity
     }
+    public static void Log()
+    {
+        Console.WriteLine(""); // replace in unity with AIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
     public Point getWindowSize(string type)
     { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
         // window, board, text
@@ -38,6 +42,29 @@ public class TileConsole
                 return new Point(Console.WindowWidth, Console.WindowHeight-2);
         }
         return new Point();
+    }
+    public void startGame(Game game) // dont try and merge this with the main function (runthegameig) it wont end well
+    {
+        Thread gameThread = new Thread(game.runTheGameIg)
+        {
+            Name = "Game Logic"
+        };
+        gameThread.Start();
+        string[] instantExitModes = ["demo", "tutorial"];
+        ConsoleKeyInfo input;
+        while (game.scene != "end")
+        {
+            input = Console.ReadKey(true);
+            game.readkeylog.Add(input);
+            if (instantExitModes.Contains(game.specialMode) && game.scene == "pause" && input.KeyChar == 'z' && game.menus["pause"][game.topbar.menuSelection].Split("|")[1] == "quit")
+            {
+                while (gameThread != null && gameThread.IsAlive)
+                {
+                    Log("Waiting to restart");
+                    Thread.Sleep(100);
+                }
+            }
+        }
     }
     public bool choice(string prompt, Game game, string extra="")
     {

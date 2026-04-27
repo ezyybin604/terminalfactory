@@ -33,17 +33,16 @@ namespace E604terminalfactory;
 public class Game
 {
     // Scenes: game,end,inv,pause,craft
-    string scene = "game";
-    Thread? gameThread;
+    public string scene = "game";
     Point scroll = new Point();
     Point cursor = new Point(2,2);
     public Factory factory = new Factory
     {
         gd = new GameData("data/gamedata") // add data path to gdm main path too maybe
     };
-    List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
+    public List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
-    TopBar topbar = new TopBar();
+    public TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
     Inventory inventory = new Inventory();
     public FileManagement gdm = new FileManagement("terminalfactory");
@@ -123,7 +122,7 @@ Nobody follows, so to keep secrecy while you travel.
                 cusc = cusc
             };
             tutr.initStuff();
-            tutr.startGame();
+            cusc.startGame(tutr);
         }
     }
     void initStuff()
@@ -203,11 +202,6 @@ Nobody follows, so to keep secrecy while you travel.
         menus.Add("craft_raw", []);
         menus.Add("craft", []);
         menus.Add("craft_desc", []);
-
-        gameThread = new Thread(runTheGameIg)
-        {
-            Name = "Game Logic"
-        };
 
         for (int i=0;i<Inventory.Length && !inventory.hasData;i++)
         {
@@ -413,14 +407,16 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void forceUpdateAll()
     { // only for game
+        int scrollnum = scroll.y;
+        if (scene != "game") scrollnum = topbar.menuScroll;
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
-            factory.linesToUpdate.Add(i+scroll.y);
+            factory.linesToUpdate.Add(i+scrollnum);
         }
     }
     void adjustCamera()
     {
-        if (specialMode == "tutorial" && factory.tutorial != null)
+        if (specialMode == "tutorial" && factory.tutorial != null && scene == "game")
         {
             scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(cusc.getWindowSize("window").getTransform(0, -4).getDivide(-2));
             generateNeeded();
@@ -511,7 +507,7 @@ Nobody follows, so to keep secrecy while you travel.
     {
         bool forceDisplay = false; // (i have no idea what im doing send help)
         char ch = key.KeyChar.ToString().ToLower()[0];
-        if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+        if (TileConsole.runnerType == "console" && key.Modifiers.HasFlag(ConsoleModifiers.Control))
         {
             return;
         }
@@ -854,25 +850,7 @@ Nobody follows, so to keep secrecy while you travel.
             topbar.lastTipChange = time.Ticks;
         }
     }
-    void inputSutff() // dont try and merge this with the main function (runthegameig) it wont end well
-    {
-        string[] instantExitModes = ["demo", "tutorial"];
-        ConsoleKeyInfo input;
-        while (scene != "end")
-        {
-            input = Console.ReadKey(true);
-            readkeylog.Add(input);
-            if (instantExitModes.Contains(specialMode) && scene == "pause" && input.KeyChar == 'z' && menus["pause"][topbar.menuSelection].Split("|")[1] == "quit")
-            {
-                while (gameThread != null && gameThread.IsAlive)
-                {
-                    Console.WriteLine("Waiting to restart");
-                    Thread.Sleep(100);
-                }
-            }
-        }
-    }
-    void runTheGameIg()
+    public void runTheGameIg()
     {
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
         Point windowSize = new Point();
@@ -965,14 +943,6 @@ Nobody follows, so to keep secrecy while you travel.
         string splash = splashes[Factory.generateIntRange(1, splashes.Length)-1].Replace('\r', '\0');
         cusc.setSplash(splash, "0.1");
     }
-    void startGame()
-    {
-        if (gameThread != null)
-        {
-            gameThread.Start();
-            inputSutff();
-        }
-    }
     public void Start()
     {
         Directory.CreateDirectory(gdm.worldFolder);
@@ -1012,7 +982,7 @@ Nobody follows, so to keep secrecy while you travel.
                         while (savef == null)
                         {
                             Console.Clear(); // change to ask tileconsole for savefile prompt
-                            Console.WriteLine("What is the savefile name?");
+                            TileConsole.Log("What is the savefile name?");
                             savef = Console.ReadLine();
                             if (savef == "" || (savef != null && (savef.Contains("/") || savef.Contains("\\"))))
                             {
@@ -1026,12 +996,12 @@ Nobody follows, so to keep secrecy while you travel.
                         }
                     } else
                     {
-                        if (TileConsole.runnerType == "console") Console.WriteLine();
+                        if (TileConsole.runnerType == "console") TileConsole.Log();
                         game.factory.savefile = "";
                         game.introduction();
                     }
                     game.initStuff();
-                    game.startGame();
+                    cusc.startGame(this);
                 }
             } else
             {
@@ -1039,7 +1009,7 @@ Nobody follows, so to keep secrecy while you travel.
                     gd = factory.gd
                 };
                 initStuff();
-                startGame();
+                cusc.startGame(this);
             }
         } else
         {

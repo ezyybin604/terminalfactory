@@ -654,7 +654,7 @@ public class FTutorial
                     Tile dothat;
                     if (animcur == "placecable")
                     {
-                        dothat = new Tile('*');
+                        dothat = new Tile('~');
                     } else
                     {
                         dothat = new Tile('p', "", fact.getPipeDir(path[animf]));
