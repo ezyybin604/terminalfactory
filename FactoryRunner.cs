@@ -729,7 +729,11 @@ public class Factory // factory data / big verbose stuff related to factory
             }
         }
     }
-    public bool breakTile(Point cursor, TopBar topbar)
+    public struct TileBroken
+    {
+        
+    }
+    public TileBroken breakTile(Point cursor, TopBar? topbar=null)
     {
         Tile curs = giveMeTheTile(cursor);
         string info = gd.autoTilePick(curs, 1, "blockinfo");
@@ -764,7 +768,9 @@ public class Factory // factory data / big verbose stuff related to factory
                 if (inventory.addItem(new Slot(info)))
                 {
                     setTile(cursor, curs);
-                    topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + getItemName(info), 2, 4000);
+                    if (topbar != null) {
+                        topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + getItemName(info), 2, 4000);
+                    }
                     return true;
                 }
             }
@@ -1045,12 +1051,18 @@ public class Factory // factory data / big verbose stuff related to factory
                         }
                         if (mach.output != null && mach.worldInteractor != null && !mach.runningRecipe)
                         {
-                            Tile wi = giveMeTheTile(mach.worldInteractor);
-                            string witi = wi.type.ToString() + "." + wi.subtype;
-                            if (gd.getKeys(cat).Contains(witi))
-                            {
-                                mach.selectedRecipe = gd.getFromKey(cat, witi);
-                                startMachine(mach, core.subtype); // no items to remove
+                            if (cat == "tileToItem") {
+                                if (breakTile(mach.worldInteractor)) {
+
+                                }
+                            } else {
+                                Tile wi = giveMeTheTile(mach.worldInteractor);
+                                string witi = wi.type.ToString() + "." + wi.subtype;
+                                if (gd.getKeys(cat).Contains(witi))
+                                {
+                                    mach.selectedRecipe = gd.getFromKey(cat, witi);
+                                    startMachine(mach, core.subtype); // no items to remove
+                                }
                             }
                         }
                         break;
