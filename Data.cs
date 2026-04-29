@@ -698,3 +698,25 @@ public class FTutorial
         animf++;
     }
 }
+
+public struct TileBroken
+{
+    public TileBroken(Slot? slot, Point point, Tile tile)
+    {
+        location = point;
+        newTile = tile;
+        if (slot == null)
+        {
+            hasItem = false;
+            item = new Slot();
+        } else
+        {
+            hasItem = true;
+            item = slot;
+        }
+    }
+    public bool hasItem = false;
+    public Slot item;
+    public Point location;
+    public Tile newTile;
+}

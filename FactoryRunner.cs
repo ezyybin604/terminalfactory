@@ -729,11 +729,7 @@ public class Factory // factory data / big verbose stuff related to factory
             }
         }
     }
-    public struct TileBroken
-    {
-        
-    }
-    public TileBroken breakTile(Point cursor, TopBar? topbar=null)
+    public TileBroken breakTile(Point cursor)
     {
         Tile curs = giveMeTheTile(cursor);
         string info = gd.autoTilePick(curs, 1, "blockinfo");
@@ -765,17 +761,15 @@ public class Factory // factory data / big verbose stuff related to factory
             }
             if (giveitem)
             {
-                if (inventory.addItem(new Slot(info)))
+                TileBroken result = new TileBroken(new Slot(info), cursor, curs);
+                if (result.hasItem)
                 {
                     setTile(cursor, curs);
-                    if (topbar != null) {
-                        topbar.changeTip("/gx" + inventory.getItemAmount(info).ToString() + " " + getItemName(info), 2, 4000);
-                    }
-                    return true;
                 }
+                return result;
             }
         }
-        return false;
+        return new TileBroken(null, cursor, curs);
     }
     public bool placeTile(int? usingItem, Point cursor)
     {
@@ -1052,8 +1046,14 @@ public class Factory // factory data / big verbose stuff related to factory
                         if (mach.output != null && mach.worldInteractor != null && !mach.runningRecipe)
                         {
                             if (cat == "tileToItem") {
-                                if (breakTile(mach.worldInteractor)) {
-
+                                if (mach.worldInteractor != null)
+                                {
+                                    TileBroken br = breakTile((Point)mach.worldInteractor);
+                                    if (br.hasItem) {
+                                        setTile(br.location, br.newTile);
+                                        mach.selectedRecipe = br.item.item;
+                                        startMachine(mach, core.subtype); // no items to remove
+                                    }
                                 }
                             } else {
                                 Tile wi = giveMeTheTile(mach.worldInteractor);

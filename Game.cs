@@ -1,4 +1,5 @@
 
+using System.Runtime.InteropServices;
 using gameRunner;
 
 namespace E604terminalfactory;
@@ -581,12 +582,17 @@ Nobody follows, so to keep secrecy while you travel.
                         {
                             return;
                         }
-                        if (factory.breakTile(cursor, topbar))
+                        TileBroken br = factory.breakTile(cursor);
+                        if (br.hasItem)
                         {
-                            sendAction("breaktile-" + factory.inventory.latestGiven);
-                            if (tic.type != 'i')
+                            if (inventory.addItem(br.item))
                             {
-                                factory.linesToUpdate.Add(cursor.y);
+                                topbar.changeTip("/gx" + inventory.getItemAmount(br.item.item).ToString() + " " + factory.getItemName(br.item.item), 2, 4000);
+                                sendAction("breaktile-" + factory.inventory.latestGiven);
+                                if (tic.type != 'i')
+                                {
+                                    factory.linesToUpdate.Add(cursor.y);
+                                }
                             }
                         }
                         break;
