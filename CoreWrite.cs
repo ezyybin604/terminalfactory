@@ -5,11 +5,22 @@ using E604terminalfactory;
 
 namespace gameRunner;
 
-class Program {
+class Runner {
     public static void Main() {
+        TileConsole tc = new TileConsole();
+        // CHANGE RUNNER TYPE
+        tc.runnerType = "raylib";
+        // COMMENT TO SWITCH BACK TO CONSOLE
+        Thread? graphics = null;
+        if (tc.runnerType == "raylib")
+        {
+            WindowHandler wh = new WindowHandler();
+            graphics = new Thread(wh.Loop);
+            graphics.Start();
+        }
         new Game
         {
-            cusc = new TileConsole()
+            cusc = tc
         }.Start();
     }
 }
@@ -163,9 +174,9 @@ public class TileConsole
             game.introduction();
         }
     }
+    public string runnerType = "console"; // change this to change between graphics/console
     // replace this with interface to unity
     // 3 modes: console, world, menu
-    public const string runnerType = "console";
     public string mode = "console";
     public void sendTiles(Point startp, Tile[] tiles)
     {
@@ -178,7 +189,7 @@ public class TileConsole
         Console.WriteLine("TERMINALFACTORY");
         Console.Write("\"" + text + "\"");
         Console.SetCursorPosition(0, Console.WindowHeight-1);
-        Console.Write(String.Format("terminalfactory {0}, runner:{1}", versionstr, runnerType));
+        Console.Write(String.Format("terminalfactory {0}, by:ezyybin604", versionstr));
         Console.SetCursorPosition(0, 3);
     }
     public void resetScreen(Game game)

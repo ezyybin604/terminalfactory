@@ -1,5 +1,4 @@
 
-using System.Runtime.InteropServices;
 using gameRunner;
 
 namespace E604terminalfactory;
@@ -26,8 +25,6 @@ namespace E604terminalfactory;
     - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
     - change writemodes and use them accordingly
     - add more dimensions for text length, tile length (amount for each) and then use them
-    - tick bushes so they can regrow
-    - change miner to use breakTile instead
 */
 
 public class Game
@@ -350,7 +347,7 @@ Nobody follows, so to keep secrecy while you travel.
                 default:
                     break;
             }
-            if (tipTextCopy.Length > cusc.getWindowSize("text").x && TileConsole.runnerType == "console")
+            if (tipTextCopy.Length > cusc.getWindowSize("text").x && cusc.runnerType == "console")
             {
                 Console.Write(tipTextCopy.Substring(0, cusc.getWindowSize("text").x));
             } else
@@ -507,7 +504,7 @@ Nobody follows, so to keep secrecy while you travel.
     {
         bool forceDisplay = false; // (i have no idea what im doing send help)
         char ch = key.KeyChar.ToString().ToLower()[0];
-        if (TileConsole.runnerType == "console" && key.Modifiers.HasFlag(ConsoleModifiers.Control))
+        if (cusc.runnerType == "console" && key.Modifiers.HasFlag(ConsoleModifiers.Control))
         {
             return;
         }
@@ -1001,7 +998,7 @@ Nobody follows, so to keep secrecy while you travel.
                         }
                     } else
                     {
-                        if (TileConsole.runnerType == "console") TileConsole.Log();
+                        if (cusc.runnerType == "console") TileConsole.Log();
                         game.factory.savefile = "";
                         game.introduction();
                     }

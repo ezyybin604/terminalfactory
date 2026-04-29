@@ -2,9 +2,9 @@
 
 ## this is a factory game where you build a factory
 
-it plays in terminal
+it plays in terminal, or jraphics
 
-100% using c# and no packages
+uses MessagePack for save data and Raylib for graphics/window
 
 things that happen:
 
