@@ -29,8 +29,8 @@ namespace E604terminalfactory;
 
 public class Game
 {
-    // Scenes: game,end,inv,pause,craft
-    public string scene = "game";
+    // Scenes: game,end,inv,pause,craft,start
+    public string scene = "start";
     Point scroll = new Point();
     Point cursor = new Point(2,2);
     public Factory factory = new Factory
@@ -86,7 +86,16 @@ public class Game
     }
     public void introduction()
     {
-        Console.Write("Skip intro? (Please read i beg) (Press key: y/n):");
+        string text = "Skip introduction?";
+        if (cusc.runnerType == "sdl")
+        {
+            cusc.changeMode("prompt");
+            cusc.writeText(text);
+        } else
+        {
+            text += " (Please read i beg) (Press key: y/n):";
+            Console.Write(text);
+        }
         if (!(Console.ReadKey().KeyChar == 'y'))
         {
             Console.Clear();
@@ -854,6 +863,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     public void runTheGameIg()
     {
+        scene = "game";
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
         Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);

@@ -9,12 +9,12 @@ class Runner {
     public static void Main() {
         TileConsole tc = new TileConsole();
         // CHANGE RUNNER TYPE
-        tc.runnerType = "raylib";
+        tc.runnerType = "sdl";
         // COMMENT TO SWITCH BACK TO CONSOLE
         Thread? graphics = null;
-        if (tc.runnerType == "raylib")
+        if (tc.runnerType == "sdl")
         {
-            WindowHandler wh = new WindowHandler();
+            WindowHandler wh = new WindowHandler{tc = tc};
             graphics = new Thread(wh.Loop);
             graphics.Start();
         }
@@ -174,23 +174,49 @@ public class TileConsole
             game.introduction();
         }
     }
-    public string runnerType = "console"; // change this to change between graphics/console
+    public string runnerType = "console"; // change this to change between sdl/console
     // replace this with interface to unity
-    // 3 modes: console, world, menu
+    // 3 modes: console, world, menu, prompt
     public string mode = "console";
+    public List<string> currentText = [];
+    public Dictionary<string,string> misctext = new Dictionary<string, string>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
         // empty
     }
     public void setSplash(string text, string versionstr)
     {
+        misctext.Add("name", "TERMINALFACTORY");;
+        misctext.Add("vers", String.Format("terminalfactory {0}, by:ezyybin604/Ezra", versionstr));
+        misctext.Add("quote", "\"" + text + "\"");
+        if (runnerType == "sdl")
+        {
+            return;
+        }
         Console.ResetColor();
         Console.Clear();
-        Console.WriteLine("TERMINALFACTORY");
-        Console.Write("\"" + text + "\"");
+        Console.WriteLine(misctext["name"]);
+        Console.Write(misctext["quote"]);
         Console.SetCursorPosition(0, Console.WindowHeight-1);
-        Console.Write(String.Format("terminalfactory {0}, by:ezyybin604", versionstr));
+        Console.Write(misctext["vers"]);
         Console.SetCursorPosition(0, 3);
+    }
+    public void changeMode(string mod)
+    {
+        mode = mod;
+        currentText.Clear();
+    }
+    public void writeText(string text)
+    {
+        switch (mode)
+        {
+            case "console": case "menu":
+                currentText.Add(text);
+                break;
+            case "prompt":
+                currentText = [text];
+                break;
+        }
     }
     public void resetScreen(Game game)
     {

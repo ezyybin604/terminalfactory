@@ -44,7 +44,8 @@ public struct Tile
         }
     }
 }
-public struct Point // Wait wdm theres a Point data structure in system.drawing
+
+public struct Point // Wait wdm theres a Point data structure in system.drawing (this comment probably came after the next comment)
 { // just wondering, is there anything like this in SYSTEM c#
     public int x;
     public int y;
