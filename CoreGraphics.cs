@@ -1,5 +1,5 @@
 
-using Raylib_cs;
+using SDL3;
 
 namespace gameRunner;
 
@@ -11,18 +11,33 @@ public class WindowHandler
     [System.STAThread]
     public void Loop()
     {
-        Raylib.InitWindow(800, 480, "terminalfactory");
-
-        while (!Raylib.WindowShouldClose())
+        if (!SDL.Init(SDL.InitFlags.Video))
         {
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Color.Black);
-
-            Raylib.DrawText("Hello, world!", 12, 12, 20, Color.White);
-
-            Raylib.EndDrawing();
+            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
+            return;
         }
+        if (!SDL.CreateWindowAndRenderer("terminalfactory", 800, 600, 0, out var window, out var renderer))
+        {
+            SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
+            return;
+        }
+        SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
+        bool loop = true;
+        while (loop)
+        {
+            while (SDL.PollEvent(out SDL.Event e))
+            {
+                if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+                {
+                    loop = false;
+                }
+            }
 
-        Raylib.CloseWindow();
+            SDL.RenderClear(renderer);
+            SDL.RenderPresent(renderer);
+        }
+        SDL.DestroyRenderer(renderer);
+        SDL.DestroyWindow(window);
+        SDL.Quit();
     }
 }
