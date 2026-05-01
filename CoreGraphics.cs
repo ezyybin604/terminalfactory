@@ -17,9 +17,14 @@ public class WindowHandler
     [STAThread]
     public void Loop()
     {
-        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Events))
+        if (!TTF.Init())
         {
-            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
+            SDL.LogError(SDL.LogCategory.System, String.Format("SDL_TTF could not initialize: {0}", SDL.GetError()));
+            return;
+        }
+        if (!SDL.Init(SDL.InitFlags.Video))
+        {
+            SDL.LogError(SDL.LogCategory.System, String.Format("SDL could not initialize: {0}", SDL.GetError()));
             return;
         }
         if (!SDL.CreateWindowAndRenderer("terminalfactory", 1200, 600, 0, out var window, out var renderer))
@@ -53,6 +58,7 @@ public class WindowHandler
         }
         SDL.DestroyRenderer(renderer);
         SDL.DestroyWindow(window);
+        TTF.Quit();
         SDL.Quit();
     }
 }

@@ -49,6 +49,7 @@ public class Game
     int? usingItem = null;
     int timer = 0;
     public required TileConsole cusc;
+    public required WindowHandler windowHandler;
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -125,7 +126,8 @@ Nobody follows, so to keep secrecy while you travel.
             Game tutr = new Game
             { // Why does c# want me to do this isnt "simplified" what
                 specialMode = "tutorial",
-                cusc = cusc
+                cusc = cusc,
+                windowHandler = windowHandler
             };
             tutr.initStuff();
             cusc.startGame(tutr);
@@ -863,6 +865,11 @@ Nobody follows, so to keep secrecy while you travel.
     }
     public void runTheGameIg()
     {
+        if (cusc.runnerType == "sdl")
+        {
+            hi();
+            TileConsole.SaveSelect(this);
+        }
         scene = "game";
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
         Point windowSize = new Point();
@@ -941,7 +948,7 @@ Nobody follows, so to keep secrecy while you travel.
     void bye()
     {
         gdm.saveOption("defaultsave", factory.savefile);
-        if (TileConsole.consoleMode)
+        if (cusc.runnerType != "sdl")
         {
             Console.ResetColor();
             Console.Clear();
@@ -965,8 +972,11 @@ Nobody follows, so to keep secrecy while you travel.
         {
             TileConsole.Error("splashes is missing oh no");
         }
-        hi();
-        TileConsole.SaveSelect(this);
+        if (cusc.runnerType != "sdl")
+        {
+            hi();
+            TileConsole.SaveSelect(this);
+        }
         try
         {
             Console.Title = "terminalfactory";
@@ -985,7 +995,8 @@ Nobody follows, so to keep secrecy while you travel.
                     { // again, why
                         specialMode = "demo",
                         splashes = File.ReadAllText("data/splashes").Split("\n"),
-                        cusc = cusc
+                        cusc = cusc,
+                        windowHandler = windowHandler
                     };
                     game.hi();
                     if (cusc.choice("Would you like to play on a savefile? (y/n)", this, "hi"))

@@ -4,7 +4,7 @@
 
 it plays in terminal, or jraphics
 
-uses MessagePack for save data and Raylib for graphics/window
+uses MessagePack for save data and SDL3 for graphics/window/GUI (optionally)
 
 things that happen:
 

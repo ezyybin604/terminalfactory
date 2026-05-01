@@ -6,3 +6,4 @@ obj/
 worlds/
 worlds/selectedSave
 SDL3.dll
+libSDL*

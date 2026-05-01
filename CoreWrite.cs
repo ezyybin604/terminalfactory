@@ -11,23 +11,17 @@ class Runner {
         // CHANGE RUNNER TYPE
         tc.runnerType = "sdl";
         // COMMENT TO SWITCH BACK TO CONSOLE
-        Thread? graphics = null;
-        if (tc.runnerType == "sdl")
-        {
-            WindowHandler wh = new WindowHandler{tc = tc};
-            graphics = new Thread(wh.Loop);
-            graphics.Start();
-        }
+        WindowHandler wh = new WindowHandler{tc = tc};
         new Game
         {
-            cusc = tc
+            cusc = tc,
+            windowHandler = wh
         }.Start();
     }
 }
 
 public class TileConsole
 {
-    public static bool consoleMode = true;
     public static void Error(string s)
     {
         Console.WriteLine(s); // replace with the err function in unity
@@ -61,6 +55,11 @@ public class TileConsole
             Name = "Game Logic"
         };
         gameThread.Start();
+        if (runnerType == "sdl")
+        {
+            game.windowHandler.Loop();
+            return;
+        }
         string[] instantExitModes = ["demo", "tutorial"];
         ConsoleKeyInfo input;
         while (game.scene != "end")
