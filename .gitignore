@@ -7,3 +7,4 @@ worlds/
 worlds/selectedSave
 SDL3.dll
 libSDL*
+SDL3_*.dll

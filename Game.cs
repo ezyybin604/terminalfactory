@@ -25,6 +25,7 @@ namespace E604terminalfactory;
     - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
     - change writemodes and use them accordingly
     - add more dimensions for text length, tile length (amount for each) and then use them
+    - readjust save select to work in sdl too
 */
 
 public class Game
