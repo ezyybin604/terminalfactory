@@ -121,8 +121,16 @@ public class TileConsole
             {
                 Console.Clear(); // change to ask tileconsole for savefile prompt
                 game.hi();
-                Console.WriteLine(String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile));
-                inp = Console.ReadLine();
+                string prmp = String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile);
+                if (game.cusc.runnerType == "sdl")
+                {
+                    game.cusc.mode = "prompt";
+                    game.cusc.writeText(prmp);
+                } else
+                {
+                    Console.WriteLine(prmp);
+                    inp = Console.ReadLine();
+                }
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
                 {
                     inp = null;
@@ -186,9 +194,9 @@ public class TileConsole
     }
     public void setSplash(string text, string versionstr)
     {
-        misctext.Add("name", "TERMINALFACTORY");;
-        misctext.Add("vers", String.Format("terminalfactory {0}, by:ezyybin604/Ezra", versionstr));
-        misctext.Add("quote", "\"" + text + "\"");
+        misctext.TryAdd("name", "TERMINALFACTORY");;
+        misctext.TryAdd("vers", String.Format("terminalfactory {0}, by:ezyybin604/Ezra", versionstr));
+        misctext.TryAdd("quote", "\"" + text + "\"");
         if (runnerType == "sdl")
         {
             return;
