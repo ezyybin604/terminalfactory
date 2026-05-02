@@ -84,6 +84,7 @@ public class WindowHandler
         windowSurface = SDL.GetWindowSurface(window);
         initFont("consbold", "consbold.ttf", 30); // consbold_30
         initFont("sans", "opensans.ttf", 20); // opensans_20
+        initFont("sans", "opensans.ttf", 8); // opensans_8
         bool loop = true;
         SDL.Color black = createColor(0, 0, 0);
         SDL.Color titleColor = createColor(255, 128, 0);
@@ -93,8 +94,13 @@ public class WindowHandler
         int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
         int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
         // Text alignments end
+        SDL.GLSetAttribute(SDL.GLAttr.DoubleBuffer, 0);
+        ulong lastTick = SDL.GetTicks();
+        int nsDelay = 1000/30;
+        int nearestSleep = 0;
         while (loop)
         {
+            lastTick = SDL.GetTicks();
             while (SDL.PollEvent(out SDL.Event e))
             {
                 if ((SDL.EventType)e.Type == SDL.EventType.Quit)
@@ -104,6 +110,7 @@ public class WindowHandler
             }
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
+            writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
             switch (tc.mode)
             {
                 case "prompt":
@@ -124,6 +131,8 @@ public class WindowHandler
                     break;
             }
             SDL.RenderPresent(renderer);
+            nearestSleep = (int)(SDL.GetTicks()-lastTick);
+            Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
         }
         SDL.DestroyRenderer(renderer);
         SDL.DestroyWindow(window);
