@@ -1,4 +1,5 @@
 
+using E604terminalfactory;
 using SDL3;
 
 namespace gameRunner;
@@ -29,21 +30,36 @@ public class WindowHandler
         };
         return res;
     }
+    const nint NULL = 0;
     nint renderer;
     nint window;
     nint windowSurface;
     SDL.FRect textRect;
-    //SDL.Color transparent = new() { R = 0, G = 0, B = 0, A = 0 }; // it just REFUSES to be constant (i tried to put it in writetext)
-    void writeText(string c, int x, int y, string font, SDL.Color fg){
-        nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
-        nint texture = SDL.CreateTextureFromSurface(renderer, surface);
-        textRect.X = x;
-        textRect.Y = y; // fix weird text bug later
-        SDL.DestroySurface(surface);
-        if (!SDL.RenderTexture(renderer, texture, textRect, windowSurface))
+    Point windowSize;
+    public static Point getWindowSize(nint window)
+    {
+        int w, h;
+        SDL.GetWindowSize(window, out w, out h);
+        return new Point(w, h);
+    }
+    private int align(int algn, int p, int size)
+    {
+        return p-(size/2*algn);
+    }
+    unsafe void writeText(string c, int x, int y, string font, SDL.Color fg, int[]? alignment=null) {
+        if (alignment == null)
         {
-            SDL.LogError(SDL.LogCategory.System, String.Format("help i dont know how to surface: {0}", SDL.GetError()));
+            alignment = [0, 0];
         }
+        nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
+        SDL.Surface surf = *(SDL.Surface*)surface.ToPointer();
+        nint texture = SDL.CreateTextureFromSurface(renderer, surface);
+        textRect.W = surf.Width;
+        textRect.H = surf.Height;
+        textRect.X = align(alignment[0], x, surf.Width);
+        textRect.Y = align(alignment[1], y, surf.Height);
+        SDL.DestroySurface(surface);
+        SDL.RenderTexture(renderer, texture, NULL, textRect);
         SDL.DestroyTexture(texture);
     }
     [STAThread]
@@ -64,10 +80,19 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
         }
+        windowSize = getWindowSize(window);
         windowSurface = SDL.GetWindowSurface(window);
-        initFont("sans", "opensans.ttf", 40); // opensans_40
+        initFont("consbold", "consbold.ttf", 30); // consbold_30
+        initFont("sans", "opensans.ttf", 20); // opensans_20
         bool loop = true;
         SDL.Color black = createColor(0, 0, 0);
+        SDL.Color titleColor = createColor(255, 128, 0);
+
+        // Text alignments
+        int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
+        int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
+        int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
+        // Text alignments end
         while (loop)
         {
             while (SDL.PollEvent(out SDL.Event e))
@@ -77,14 +102,27 @@ public class WindowHandler
                     loop = false;
                 }
             }
+            SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
+            SDL.RenderClear(renderer);
             switch (tc.mode)
             {
                 case "prompt":
-                    writeText("test text", 10, 10, "sans_40", black);
+                    if (tc.misctext.ContainsKey("vers"))
+                    {
+                        writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, leftlower);
+                    }
+                    if (tc.misctext.ContainsKey("name"))
+                    {
+                        string[] spln = tc.misctext["name"].Split("|");
+                        writeText(spln[0], (windowSize.x/2)-10, 100, "consbold_30", titleColor, rightcenter);
+                        writeText(spln[1], (windowSize.x/2)+10, 100, "consbold_30", SDLTools.Invert(titleColor), leftcenter);
+                    }
+                    if (tc.currentText.Count > 0)
+                    {
+                        // add prompt stuff here
+                    }
                     break;
             }
-            SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
-            SDL.RenderClear(renderer);
             SDL.RenderPresent(renderer);
         }
         SDL.DestroyRenderer(renderer);

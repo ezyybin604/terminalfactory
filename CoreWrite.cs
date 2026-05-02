@@ -193,7 +193,7 @@ public class TileConsole
     }
     public void setSplash(string text, string versionstr)
     {
-        misctext.TryAdd("name", "TERMINALFACTORY");;
+        misctext.TryAdd("name", "TERMINAL|FACTORY");;
         misctext.TryAdd("vers", String.Format("terminalfactory {0}, by:ezyybin604/Ezra", versionstr));
         misctext.TryAdd("quote", "\"" + text + "\"");
         if (runnerType == "sdl")
@@ -202,7 +202,7 @@ public class TileConsole
         }
         Console.ResetColor();
         Console.Clear();
-        Console.WriteLine(misctext["name"]);
+        Console.WriteLine(misctext["name"].Replace("|", ""));
         Console.Write(misctext["quote"]);
         Console.SetCursorPosition(0, Console.WindowHeight-1);
         Console.Write(misctext["vers"]);

@@ -1,5 +1,7 @@
 
+using gameRunner;
 using MessagePack;
+using SDL3;
 
 namespace E604terminalfactory;
 
@@ -720,4 +722,25 @@ public struct TileBroken
     public Slot item;
     public Point location;
     public Tile newTile;
+}
+
+public enum TextA
+{
+    LEFT = 0, // regular
+    CENTER = 1,
+    RIGHT = 2,
+    UPPER = 0, // regular
+    LOWER = 2
+}
+
+public class SDLTools // MY sdl tools :))
+{
+    public static int[] Get(TextA x, TextA y)
+    {
+        return [(int)x, (int)y];
+    }
+    public static SDL.Color Invert(SDL.Color color)
+    {
+        return WindowHandler.createColor((byte)(255-color.R), (byte)(255-color.G), (byte)(255-color.B), color.A);
+    }
 }
