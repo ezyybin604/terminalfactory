@@ -5,6 +5,7 @@ using SDL3;
 namespace gameRunner;
 
 // sdl stuff mainly instead of corewrite handling terminal
+// also rule: ONLY file w/unsafe functions
 
 public class WindowHandler
 {
@@ -20,29 +21,38 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
         }
     }
-    public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
-        SDL.Color res = new SDL.Color
+    public static void initFonts(string font, string file, float[] sizes)
+    {
+        foreach (float size in sizes)
         {
-            R = r,
-            G = g,
-            B = b,
-            A = a
-        };
-        return res;
+            initFont(font, file, size);
+        }
     }
-    const nint NULL = 0;
-    nint renderer;
+    public unsafe void drawRect(SDL.Rect rect, SDL.Color col)
+    {
+        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+        SDL.RenderFillRect(renderer, (nint)(&rect));
+    }
+    public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
+        return new SDL.Color { R = r, G = g, B = b, A = a };
+    }
+    public static SDL.Rect createRect(int x, int y, int w, int h) {
+        return new SDL.Rect { X = x, Y = y, W = w, H = h };
+    }
+    public const nint NULL = 0;
+    public nint renderer;
     nint window;
     nint windowSurface;
     SDL.FRect textRect;
     Point windowSize;
+    List<UIElement> ui = new List<UIElement>();
     public static Point getWindowSize(nint window)
     {
         int w, h;
         SDL.GetWindowSize(window, out w, out h);
         return new Point(w, h);
     }
-    private int align(int algn, int p, int size)
+    public static int align(int algn, int p, int size)
     {
         return p-(size/2*algn);
     }
@@ -83,8 +93,7 @@ public class WindowHandler
         windowSize = getWindowSize(window);
         windowSurface = SDL.GetWindowSurface(window);
         initFont("consbold", "consbold.ttf", 30); // consbold_30
-        initFont("sans", "opensans.ttf", 20); // opensans_20
-        initFont("sans", "opensans.ttf", 8); // opensans_8
+        initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
         bool loop = true;
         SDL.Color black = createColor(0, 0, 0);
         SDL.Color titleColor = createColor(255, 128, 0);
@@ -94,8 +103,17 @@ public class WindowHandler
         int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
         int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
         // Text alignments end
-        SDL.GLSetAttribute(SDL.GLAttr.DoubleBuffer, 0);
-        ulong lastTick = SDL.GetTicks();
+        //SDL.GLSetAttribute(SDL.GLAttr.DoubleBuffer, 0);
+        ui.Add(new UIElement
+        {
+            window = this,
+            type = "button",
+            contents = "Test",
+            rect = createRect((windowSize.x/2)-75, 150, 150, 50),
+            color = black,
+            font = "opensans_15"
+        });
+        ulong lastTick;
         int nsDelay = 1000/30;
         int nearestSleep = 0;
         while (loop)
@@ -111,6 +129,10 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
+            foreach (UIElement element in ui)
+            {
+                element.Draw();
+            }
             switch (tc.mode)
             {
                 case "prompt":

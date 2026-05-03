@@ -8,9 +8,10 @@ namespace gameRunner;
 class Runner {
     public static void Main() {
         TileConsole tc = new TileConsole();
-        // CHANGE RUNNER TYPE
-        tc.runnerType = "sdl";
-        // COMMENT TO SWITCH BACK TO CONSOLE
+        if (File.Exists("modeoverride"))
+        {
+            tc.runnerType = File.ReadAllText("modeoverride").Replace("\n", "");
+        }
         WindowHandler wh = new WindowHandler{tc = tc};
         new Game
         {
@@ -181,7 +182,7 @@ public class TileConsole
             game.introduction();
         }
     }
-    public string runnerType = "console"; // change this to change between sdl/console
+    public string runnerType = "sdl"; // change this to change between sdl/console
     // replace this with interface to unity
     // 3 modes: console, world, menu, prompt
     public string mode = "console";
