@@ -62,10 +62,14 @@ public class WindowHandler
     }
     public void fillCircle(SDL.FPoint[] circle, SDL.Color col)
     {
+        int ymax = int.MinValue;
+        int ymin = int.MaxValue;
         Dictionary<int, Line> lines = new Dictionary<int, Line>();
         for (int i=0;i<circle.Length;i++)
         {
             int y = (int)Math.Round(circle[i].Y);
+            ymax = Math.Max(y, ymax);
+            ymin = Math.Min(y, ymin);
             if (lines.ContainsKey(y))
             {
                 lines[y] = lines[y].expandLine(circle[i].X);
@@ -79,12 +83,20 @@ public class WindowHandler
                 });
             }
         }
+        int ydif = ymax - ymin;
         SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+        int currentline = 0;
         int[] keys = lines.Keys.ToArray();
-        for (int i=0;i<keys.Length;i++)
+        keys.Sort();
+        for (int i=0;i<ydif;i++)
         {
-            Line line = lines[keys[i]];
-            SDL.RenderLine(renderer, line.xmin, line.y, line.xmax, line.y);
+            int truey = ymin+i;
+            Line line = lines[keys[currentline]];
+            SDL.RenderLine(renderer, line.xmin, truey, line.xmax, truey);
+            if (lines.ContainsKey(truey))
+            {
+                currentline++;
+            }
         }
     }
     public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1)
