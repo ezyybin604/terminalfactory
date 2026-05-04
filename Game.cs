@@ -980,7 +980,10 @@ Nobody follows, so to keep secrecy while you travel.
         }
         try
         {
-            Console.Title = "terminalfactory";
+            if (cusc.runnerType != "sdl")
+            {
+                Console.Title = "terminalfactory";
+            }
         }
         catch (PlatformNotSupportedException)
         {

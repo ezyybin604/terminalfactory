@@ -743,4 +743,17 @@ public class SDLTools // MY sdl tools :))
     {
         return WindowHandler.createColor((byte)(255-color.R), (byte)(255-color.G), (byte)(255-color.B), color.A);
     }
+    public static SDL.FRect DivideRect(SDL.FRect rect, float divend)
+    {
+        return new SDL.FRect{X = rect.X/divend, Y=rect.Y/divend, W=rect.W/divend, H=rect.H/divend};
+    }
+    public static SDL.FPoint[] DividePoints(SDL.FPoint[] points, float divend)
+    {
+        SDL.FPoint[] res = new SDL.FPoint[points.Length];
+        for (int i=0;i<points.Length;i++)
+        {
+            res[i] = new SDL.FPoint{X = points[i].X/divend, Y = points[i].Y/divend};
+        }
+        return res;
+    }
 }

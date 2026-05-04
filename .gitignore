@@ -6,5 +6,6 @@ obj/
 worlds/
 worlds/selectedSave
 SDL3.dll
-libSDL*
+libSDL*.dylib
 SDL3_*.dll
+modeoverride

@@ -28,16 +28,57 @@ public class WindowHandler
             initFont(font, file, size);
         }
     }
-    public unsafe void drawRect(SDL.Rect rect, SDL.Color col)
+    // deg range: 0-360
+    public const float toRadians = MathF.PI/180;
+    public const int circleDetail = 25;
+    public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int points=circleDetail)
     {
+        if (degf < degs) return [];
+        int afterd = degf-degs;
+        SDL.FPoint[] res = new SDL.FPoint[points+1];
+        for (int i=0;i<points+1;i++)
+        {
+            double deg = degs+(i*afterd/points);
+            deg *= toRadians;
+            res[i] = new SDL.FPoint
+            {
+                X = (float)(Math.Cos(deg) * radius) + offset.X,
+                Y = (float)(Math.Sin(deg) * radius) + offset.Y
+            };
+        }
+        return res;
+    }
+    public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1)
+    {
+        SDL.SetRenderScale(renderer, lineScale, lineScale);
         SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
-        SDL.RenderFillRect(renderer, (nint)(&rect));
+        SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
+        if (edgecol != null)
+        {
+            SDL.Color ce = (SDL.Color)edgecol;
+            SDL.SetRenderDrawColor(renderer, ce.R, ce.G, ce.B, ce.A);
+            if (linecurve > 0)
+            { // maybe add whatever anti aliasing is to outline
+                SDL.FPoint[] outline = SDLTools.DividePoints([
+                    .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
+                    .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}),
+                    .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
+                    .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}),
+                    new SDL.FPoint{X = rect.X+rect.W, Y=rect.Y+rect.H-linecurve}
+                ], lineScale);
+                SDL.RenderLines(renderer, outline, outline.Length);
+            } else
+            {
+                SDL.RenderRect(renderer, SDLTools.DivideRect(rect, lineScale));
+            }
+        }
+        SDL.SetRenderScale(renderer, 1, 1);
     }
     public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
         return new SDL.Color { R = r, G = g, B = b, A = a };
     }
-    public static SDL.Rect createRect(int x, int y, int w, int h) {
-        return new SDL.Rect { X = x, Y = y, W = w, H = h };
+    public static SDL.FRect createRect(float x, float y, float w, float h) {
+        return new SDL.FRect { X = x, Y = y, W = w, H = h };
     }
     public const nint NULL = 0;
     public nint renderer;
@@ -56,7 +97,7 @@ public class WindowHandler
     {
         return p-(size/2*algn);
     }
-    unsafe void writeText(string c, int x, int y, string font, SDL.Color fg, int[]? alignment=null) {
+    unsafe void writeText(string c, int x, int y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null) {
         if (alignment == null)
         {
             alignment = [0, 0];
@@ -69,7 +110,13 @@ public class WindowHandler
         textRect.X = align(alignment[0], x, surf.Width);
         textRect.Y = align(alignment[1], y, surf.Height);
         SDL.DestroySurface(surface);
-        SDL.RenderTexture(renderer, texture, NULL, textRect);
+        if (src == null)
+        {
+            SDL.RenderTexture(renderer, texture, NULL, textRect);
+        } else
+        {
+            SDL.RenderTexture(renderer, texture, (SDL.FRect)src, textRect);
+        }
         SDL.DestroyTexture(texture);
     }
     [STAThread]
@@ -110,7 +157,7 @@ public class WindowHandler
             type = "button",
             contents = "Test",
             rect = createRect((windowSize.x/2)-75, 150, 150, 50),
-            color = black,
+            color = [createColor(66, 135, 245), black, black],
             font = "opensans_15"
         });
         ulong lastTick;

@@ -4,6 +4,11 @@
 
 it plays in terminal, or jraphics
 
+Create a modeoverride file where the game runs to change mode to:
+- sdl
+- console
+- constyl
+
 uses MessagePack for save data and SDL3 for graphics/window/GUI (optionally)
 
 things that happen:
