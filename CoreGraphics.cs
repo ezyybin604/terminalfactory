@@ -31,12 +31,12 @@ public class WindowHandler
     // deg range: 0-360
     public const float toRadians = MathF.PI/180;
     public const int circleDetail = 25;
-    public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int points=circleDetail)
+    public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int extraPoint=0, int points=circleDetail)
     {
         if (degf < degs) return [];
         int afterd = degf-degs;
-        SDL.FPoint[] res = new SDL.FPoint[points+1];
-        for (int i=0;i<points+1;i++)
+        SDL.FPoint[] res = new SDL.FPoint[points+extraPoint];
+        for (int i=0;i<points+extraPoint;i++)
         {
             double deg = degs+(i*afterd/points);
             deg *= toRadians;
@@ -59,14 +59,14 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, ce.R, ce.G, ce.B, ce.A);
             if (linecurve > 0)
             { // maybe add whatever anti aliasing is to outline
-                SDL.FPoint[] outline = SDLTools.DividePoints([
+                List<SDL.FPoint> outline = SDLTools.DividePoints([
                     .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
                     .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}),
                     .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
                     .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}),
-                    new SDL.FPoint{X = rect.X+rect.W, Y=rect.Y+rect.H-linecurve}
-                ], lineScale);
-                SDL.RenderLines(renderer, outline, outline.Length);
+                ], lineScale).ToList();
+                outline.Add(outline[0]);
+                SDL.RenderLines(renderer, outline.ToArray(), outline.Count);
             } else
             {
                 SDL.RenderRect(renderer, SDLTools.DivideRect(rect, lineScale));
