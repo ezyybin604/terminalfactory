@@ -48,25 +48,73 @@ public class WindowHandler
         }
         return res;
     }
+    public struct Line
+    {
+        public int y;
+        public float xmin;
+        public float xmax;
+        public Line expandLine(float x)
+        {
+            xmax = Math.Max(xmax, x);
+            xmin = Math.Min(xmin, x);
+            return this;
+        }
+    }
+    public void fillCircle(SDL.FPoint[] circle, SDL.Color col)
+    {
+        Dictionary<int, Line> lines = new Dictionary<int, Line>();
+        for (int i=0;i<circle.Length;i++)
+        {
+            int y = (int)Math.Round(circle[i].Y);
+            if (lines.ContainsKey(y))
+            {
+                lines[y] = lines[y].expandLine(circle[i].X);
+            } else
+            {
+                lines.Add(y, new Line
+                {
+                    y = y,
+                    xmin = circle[i].X,
+                    xmax = circle[i].X
+                });
+            }
+        }
+        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+        int[] keys = lines.Keys.ToArray();
+        for (int i=0;i<keys.Length;i++)
+        {
+            Line line = lines[keys[i]];
+            SDL.RenderLine(renderer, line.xmin, line.y, line.xmax, line.y);
+        }
+    }
     public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1)
     {
         SDL.SetRenderScale(renderer, lineScale, lineScale);
-        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
-        SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
+        SDL.FPoint[] outline = [];
+        if (linecurve > 0)
+        {
+            // outline not converted
+            List<SDL.FPoint> outlinenc = SDLTools.DividePoints([
+                .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
+                .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}),
+                .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
+                .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}),
+            ], lineScale).ToList();
+            outlinenc.Add(outlinenc[0]);
+            outline = outlinenc.ToArray();
+            fillCircle(outline, col);
+        } else
+        {
+            SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+            SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
+        }
         if (edgecol != null)
         {
             SDL.Color ce = (SDL.Color)edgecol;
             SDL.SetRenderDrawColor(renderer, ce.R, ce.G, ce.B, ce.A);
             if (linecurve > 0)
             { // maybe add whatever anti aliasing is to outline
-                List<SDL.FPoint> outline = SDLTools.DividePoints([
-                    .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
-                    .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}),
-                    .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
-                    .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}),
-                ], lineScale).ToList();
-                outline.Add(outline[0]);
-                SDL.RenderLines(renderer, outline.ToArray(), outline.Count);
+                SDL.RenderLines(renderer, outline, outline.Length);
             } else
             {
                 SDL.RenderRect(renderer, SDLTools.DivideRect(rect, lineScale));
