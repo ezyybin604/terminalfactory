@@ -48,6 +48,12 @@ public class WindowHandler
         }
         return res;
     }
+    public static SDL.FPoint getCursorPoint()
+    {
+        float x, y;
+        SDL.GetMouseState(out x, out y);
+        return new SDL.FPoint{X = x, Y = y};
+    }
     public struct Line
     {
         public int y;
@@ -147,6 +153,8 @@ public class WindowHandler
     SDL.FRect textRect;
     Point windowSize;
     List<UIElement> ui = new List<UIElement>();
+    public static SDL.FPoint cursor;
+    public double deltaTime = 0;
     public static Point getWindowSize(nint window)
     {
         int w, h;
@@ -179,6 +187,8 @@ public class WindowHandler
         }
         SDL.DestroyTexture(texture);
     }
+    public static SDL.Color black = createColor(0, 0, 0);
+    public static SDL.Color white = createColor(255, 255, 255);
     [STAThread]
     public void Loop()
     {
@@ -201,9 +211,9 @@ public class WindowHandler
         windowSurface = SDL.GetWindowSurface(window);
         initFont("consbold", "consbold.ttf", 30); // consbold_30
         initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
-        bool loop = true;
-        SDL.Color black = createColor(0, 0, 0);
         SDL.Color titleColor = createColor(255, 128, 0);
+        SDL.Color grey = createColor(200, 200, 200);
+        SDL.Color gray = createColor(150, 150, 150);
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
@@ -217,28 +227,63 @@ public class WindowHandler
             type = "button",
             contents = "Test",
             rect = createRect((windowSize.x/2)-75, 150, 150, 50),
-            color = [createColor(66, 135, 245), black, black],
-            font = "opensans_15"
+            color = [createColor(66, 135, 245), black, black, grey, gray],
+            font = "opensans_15",
+            transition_time = 0.15f
         });
         ulong lastTick;
         int nsDelay = 1000/30;
         int nearestSleep = 0;
+        bool loop = true;
+
+        ulong NOW = SDL.GetPerformanceCounter();
+        ulong LAST = 0;
         while (loop)
         {
+            LAST = NOW;
+            NOW = SDL.GetPerformanceCounter();
+            deltaTime = (NOW - LAST) / (double)SDL.GetPerformanceFrequency();
+
             lastTick = SDL.GetTicks();
+            bool clicked = false;
             while (SDL.PollEvent(out SDL.Event e))
             {
-                if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+                switch ((SDL.EventType)e.Type)
                 {
-                    loop = false;
+                    case SDL.EventType.Quit:
+                        loop = false;
+                        break;
+                    case SDL.EventType.MouseButtonDown:
+                        if (e.Button.Button == 1)
+                        {
+                            clicked = true;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
+            cursor = getCursorPoint();
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
+            writeText(((int)(deltaTime*1000)).ToString(), 0, 9, "sans_8", black);
             foreach (UIElement element in ui)
             {
                 element.Draw();
+                if (element.col_idx != 4 || element.time == element.transition_time || clicked)
+                {
+                    int finalc = 0;
+                    if (element.hovering)
+                    {
+                        finalc = 3;
+                        if (clicked)
+                        {
+                            finalc = 4;
+                        }
+                    }
+                    element.changeColor(finalc);
+                }
             }
             switch (tc.mode)
             {
