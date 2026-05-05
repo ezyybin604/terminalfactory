@@ -6,6 +6,7 @@ namespace gameRunner;
 public class UIElement
 {
     // Text input, Button
+    public required int id;
     public string type = "";
     public SDL.FRect rect;
     public string font = "";
@@ -18,6 +19,8 @@ public class UIElement
     public int col_idx = 0;
     public double transition_time = 1; // in seconds
     public double time = 0;
+    private double flash_time = 0;
+    private bool flash = false;
     private SDL.FColor getStatic()
     {
         if (col_idx == 0)
@@ -44,7 +47,15 @@ public class UIElement
     }
     public void Draw()
     {
-        window.drawRect(rect, color[0], color[1], 12, 1);
+        flash_time += window.deltaTime;
+        if (flash_time > 0.5)
+        {
+            flash_time = 0;
+            flash = !flash;
+        }
+        int curve = 12;
+        if (type == "input") curve = 5;
+        window.drawRect(rect, SDLTools.Cast(curcol), color[1], curve, 1);
         if (type == "button")
         {
             window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], SDLTools.Get(TextA.CENTER, TextA.CENTER));
@@ -59,7 +70,6 @@ public class UIElement
             time += window.deltaTime;
             time = Math.Min(time, transition_time);
         }
-        window.drawRect(rect, SDLTools.Cast(curcol), color[1], 20, 2);
     }
     public void changeColor(int idx)
     {

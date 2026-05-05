@@ -153,9 +153,10 @@ public class WindowHandler
     nint windowSurface;
     SDL.FRect textRect;
     Point windowSize;
-    List<UIElement> ui = new List<UIElement>();
+    Dictionary<int, UIElement> ui = new Dictionary<int, UIElement>();
     public static SDL.FPoint cursor;
     public double deltaTime = 0;
+    public static int? selected = null;
     public static Point getWindowSize(nint window)
     {
         int w, h;
@@ -213,26 +214,26 @@ public class WindowHandler
         initFont("consbold", "consbold.ttf", 30); // consbold_30
         initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
         SDL.Color titleColor = createColor(255, 128, 0);
-        SDL.Color grey = createColor(235);
+        SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
-        SDL.Color darkgrey = createColor(200);
+        SDL.Color darkgrey = createColor(180);
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
         int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
         int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
         // Text alignments end
-        //SDL.GLSetAttribute(SDL.GLAttr.DoubleBuffer, 0);
-        ui.Add(new UIElement
+        ui.Add(0, new UIElement
         {
+            id = 0,
             window = this,
-            type = "button",
-            contents = "idk start of something",
-            rect = createRect((windowSize.x/2)-75, 150, 150, 50),
+            type = "input",
+            contents = "",
+            rect = createRect((windowSize.x/2)-100, 150, 200, 50),
             // button color, outline color, text color, highlight tint, selected tint, selecting tint
             color = [createColor(66, 135, 245), black, black, grey, darkergrey],
             font = "sans_15",
-            transition_time = 0.15f
+            transition_time = 0.12f
         });
         ulong lastTick;
         int nsDelay = 1000/30;
@@ -262,6 +263,9 @@ public class WindowHandler
                             clicked = true;
                         }
                         break;
+                    case SDL.EventType.KeyDown:
+                        char keypress = (char)e.Key.Key;
+                        break;
                     default:
                         break;
                 }
@@ -270,9 +274,9 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
-            writeText(((int)(deltaTime*1000)).ToString(), 0, 9, "sans_8", black);
-            foreach (UIElement element in ui)
+            foreach (int eidx in ui.Keys.ToArray())
             {
+                UIElement element = ui[eidx];
                 element.Draw();
                 if (element.col_idx != 4 || element.time == element.transition_time || clicked)
                 {
