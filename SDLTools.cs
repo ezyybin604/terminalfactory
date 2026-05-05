@@ -69,4 +69,9 @@ public class SDLTools // MY sdl tools :))
     {
         return new SDL.FColor{R = value.R, G = value.G, B = value.B, A = value.A};
     }
+    
+    public static unsafe char Get(nint ntn)
+    {
+        return *(char*)ntn.ToPointer();
+    }
 }

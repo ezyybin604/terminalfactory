@@ -157,6 +157,21 @@ public class WindowHandler
     public static SDL.FPoint cursor;
     public double deltaTime = 0;
     public static int? selected = null;
+    private bool acceptingInput = false;
+    private void changeInputAcceptance(bool newstat)
+    {
+        if (newstat != acceptingInput)
+        {
+            acceptingInput = newstat;
+            if (acceptingInput)
+            {
+                SDL.StartTextInput(window);
+            } else
+            {
+                SDL.StopTextInput(window);
+            }
+        }
+    }
     public static Point getWindowSize(nint window)
     {
         int w, h;
@@ -168,11 +183,17 @@ public class WindowHandler
         return p-(size/2*algn);
     }
     public unsafe void writeText(string c, float x, float y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null) {
+        if (c.Length == 0) return;
         if (alignment == null)
         {
             alignment = [0, 0];
         }
         nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
+        if (surface == NULL)
+        {
+            SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
+            return;
+        }
         SDL.Surface surf = *(SDL.Surface*)surface.ToPointer();
         nint texture = SDL.CreateTextureFromSurface(renderer, surface);
         textRect.W = surf.Width;
@@ -250,6 +271,7 @@ public class WindowHandler
 
             lastTick = SDL.GetTicks();
             bool clicked = false;
+            bool inpacc = acceptingInput;
             while (SDL.PollEvent(out SDL.Event e))
             {
                 switch ((SDL.EventType)e.Type)
@@ -261,10 +283,18 @@ public class WindowHandler
                         if (e.Button.Button == 1)
                         {
                             clicked = true;
+                            selected = null;
+                            inpacc = false;
                         }
                         break;
-                    case SDL.EventType.KeyDown:
-                        char keypress = (char)e.Key.Key;
+                    case SDL.EventType.TextEditing:
+                    
+                    case SDL.EventType.TextInput:
+                        if (acceptingInput && selected != null)
+                        {
+                            ui[(int)selected].contents += SDLTools.Get(e.Edit.Text);
+                            ui[(int)selected].cursorpos++;
+                        }
                         break;
                     default:
                         break;
@@ -287,11 +317,18 @@ public class WindowHandler
                         if (clicked)
                         {
                             finalc = 4;
+                            selected = element.id;
+                            if (element.type == "input")
+                            {
+                                if (!acceptingInput) element.cursorpos = element.contents.Length;
+                                inpacc = true;
+                            }
                         }
                     }
                     element.changeColor(finalc);
                 }
             }
+            changeInputAcceptance(inpacc);
             switch (tc.mode)
             {
                 case "prompt":

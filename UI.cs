@@ -1,4 +1,5 @@
 
+using System.Reflection;
 using SDL3;
 
 namespace gameRunner;
@@ -21,6 +22,7 @@ public class UIElement
     public double time = 0;
     private double flash_time = 0;
     private bool flash = false;
+    public int cursorpos = -1;
     private SDL.FColor getStatic()
     {
         if (col_idx == 0)
@@ -61,7 +63,9 @@ public class UIElement
             window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], SDLTools.Get(TextA.CENTER, TextA.CENTER));
         } else if (type == "input")
         {
-            // stuff here later
+            string contentswc = contents;
+            if (flash && WindowHandler.selected == id && cursorpos > -1) contentswc = contentswc.Insert(cursorpos, "⏐");
+            window.writeText(contentswc, 10, rect.Y+(rect.H/2), font, color[2],  SDLTools.Get(TextA.LEFT, TextA.CENTER), null);
         }
         getColor();
         hovering = SDL.PointInRectFloat(WindowHandler.cursor, rect);
