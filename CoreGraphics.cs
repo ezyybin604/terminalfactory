@@ -287,8 +287,6 @@ public class WindowHandler
                             inpacc = false;
                         }
                         break;
-                    case SDL.EventType.TextEditing:
-                    
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
                         {
