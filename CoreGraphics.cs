@@ -15,7 +15,7 @@ public class WindowHandler
     {
         string id = font + "_" + ((int)size).ToString();
         fonts.Add(id, TTF.OpenFont("data/" + file, size));
-        Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
+        //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
         if (fonts[id] == 0)
         {
             SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
@@ -30,7 +30,7 @@ public class WindowHandler
     }
     // deg range: 0-360
     public const float toRadians = MathF.PI/180;
-    public const int circleDetail = 25;
+    public const int circleDetail = 40;
     public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int extraPoint=0, int points=circleDetail)
     {
         if (degf < degs) return [];
@@ -50,7 +50,6 @@ public class WindowHandler
     }
     public struct Line
     {
-        public int y;
         public float xmin;
         public float xmax;
         public Line expandLine(float x)
@@ -77,7 +76,6 @@ public class WindowHandler
             {
                 lines.Add(y, new Line
                 {
-                    y = y,
                     xmin = circle[i].X,
                     xmax = circle[i].X
                 });
@@ -108,9 +106,9 @@ public class WindowHandler
             // outline not converted
             List<SDL.FPoint> outlinenc = SDLTools.DividePoints([
                 .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
-                .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}),
+                .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}, 1),
                 .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
-                .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}),
+                .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}, 1),
             ], lineScale).ToList();
             outlinenc.Add(outlinenc[0]);
             outline = outlinenc.ToArray();
@@ -137,6 +135,9 @@ public class WindowHandler
     public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
         return new SDL.Color { R = r, G = g, B = b, A = a };
     }
+    public static SDL.Color createColor(byte un) { // uno/un value
+        return createColor(un, un, un);
+    }
     public static SDL.FRect createRect(float x, float y, float w, float h) {
         return new SDL.FRect { X = x, Y = y, W = w, H = h };
     }
@@ -153,11 +154,11 @@ public class WindowHandler
         SDL.GetWindowSize(window, out w, out h);
         return new Point(w, h);
     }
-    public static int align(int algn, int p, int size)
+    public static float align(int algn, float p, int size)
     {
         return p-(size/2*algn);
     }
-    unsafe void writeText(string c, int x, int y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null) {
+    public unsafe void writeText(string c, float x, float y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null) {
         if (alignment == null)
         {
             alignment = [0, 0];
@@ -204,6 +205,9 @@ public class WindowHandler
         bool loop = true;
         SDL.Color black = createColor(0, 0, 0);
         SDL.Color titleColor = createColor(255, 128, 0);
+        SDL.Color grey = createColor(235);
+        SDL.Color darkergrey = createColor(150);
+        SDL.Color darkgrey = createColor(200);
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
@@ -215,10 +219,11 @@ public class WindowHandler
         {
             window = this,
             type = "button",
-            contents = "Test",
+            contents = "idk start of something",
             rect = createRect((windowSize.x/2)-75, 150, 150, 50),
+            // button color, outline color, text color, highlight tint, selected tint, selecting tint
             color = [createColor(66, 135, 245), black, black],
-            font = "opensans_15"
+            font = "sans_15"
         });
         ulong lastTick;
         int nsDelay = 1000/30;
