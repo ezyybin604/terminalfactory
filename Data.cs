@@ -1,7 +1,5 @@
 
-using gameRunner;
 using MessagePack;
-using SDL3;
 
 namespace E604terminalfactory;
 
@@ -722,38 +720,4 @@ public struct TileBroken
     public Slot item;
     public Point location;
     public Tile newTile;
-}
-
-public enum TextA
-{
-    LEFT = 0, // regular
-    CENTER = 1,
-    RIGHT = 2,
-    UPPER = 0, // regular
-    LOWER = 2
-}
-
-public class SDLTools // MY sdl tools :))
-{
-    public static int[] Get(TextA x, TextA y)
-    {
-        return [(int)x, (int)y];
-    }
-    public static SDL.Color Invert(SDL.Color color)
-    {
-        return WindowHandler.createColor((byte)(255-color.R), (byte)(255-color.G), (byte)(255-color.B), color.A);
-    }
-    public static SDL.FRect DivideRect(SDL.FRect rect, float divend)
-    {
-        return new SDL.FRect{X = rect.X/divend, Y=rect.Y/divend, W=rect.W/divend, H=rect.H/divend};
-    }
-    public static SDL.FPoint[] DividePoints(SDL.FPoint[] points, float divend)
-    {
-        SDL.FPoint[] res = new SDL.FPoint[points.Length];
-        for (int i=0;i<points.Length;i++)
-        {
-            res[i] = new SDL.FPoint{X = points[i].X/divend, Y = points[i].Y/divend};
-        }
-        return res;
-    }
 }

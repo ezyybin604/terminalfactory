@@ -11,6 +11,11 @@ Create a modeoverride file where the game runs to change mode to:
 
 uses MessagePack for save data and SDL3 for graphics/window/GUI (optionally)
 
+```
+install stuff from NuGet:
+dotnet add package SDL3-CS --version 3.5.0-preview.20260213-150035
+``
+
 things that happen:
 
 - protect yourself from a hungry dragon (it eats people) by feeding it
