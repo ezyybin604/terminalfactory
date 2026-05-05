@@ -74,4 +74,8 @@ public class SDLTools // MY sdl tools :))
     {
         return *(char*)ntn.ToPointer();
     }
+    public static string RemoveChars(string s, int idx, int len=1)
+    {
+        return s.Substring(0,idx) + s.Substring(idx+len);
+    }
 }

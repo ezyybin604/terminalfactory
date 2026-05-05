@@ -141,10 +141,12 @@ public class WindowHandler
     public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
         return new SDL.Color { R = r, G = g, B = b, A = a };
     }
-    public static SDL.Color createColor(byte un) { // uno/un value
+    public static SDL.Color createColor(byte un) // uno/un value
+    {
         return createColor(un, un, un);
     }
-    public static SDL.FRect createRect(float x, float y, float w, float h) {
+    public static SDL.FRect createRect(float x, float y, float w, float h)
+    {
         return new SDL.FRect { X = x, Y = y, W = w, H = h };
     }
     public const nint NULL = 0;
@@ -198,6 +200,10 @@ public class WindowHandler
         nint texture = SDL.CreateTextureFromSurface(renderer, surface);
         textRect.W = surf.Width;
         textRect.H = surf.Height;
+        if (src != null)
+        {
+            textRect.W = MathF.Min(textRect.W, ((SDL.FRect)src).W);
+        }
         textRect.X = align(alignment[0], x, surf.Width);
         textRect.Y = align(alignment[1], y, surf.Height);
         SDL.DestroySurface(surface);
@@ -206,7 +212,12 @@ public class WindowHandler
             SDL.RenderTexture(renderer, texture, NULL, textRect);
         } else
         {
-            SDL.RenderTexture(renderer, texture, (SDL.FRect)src, textRect);
+            SDL.FRect rsrc = (SDL.FRect)src;
+            SDL.RenderTexture(renderer, texture, new SDL.FRect
+            {
+                X = rsrc.X, W = rsrc.W,
+                Y = 0, H = textRect.H
+            }, textRect);
         }
         SDL.DestroyTexture(texture);
     }
@@ -252,7 +263,7 @@ public class WindowHandler
             contents = "",
             rect = createRect((windowSize.x/2)-100, 150, 200, 50),
             // button color, outline color, text color, highlight tint, selected tint, selecting tint
-            color = [createColor(66, 135, 245), black, black, grey, darkergrey],
+            color = [createColor(66, 135, 245), black, black, grey, darkergrey, darkgrey],
             font = "sans_15",
             transition_time = 0.12f
         });
@@ -262,7 +273,8 @@ public class WindowHandler
         bool loop = true;
 
         ulong NOW = SDL.GetPerformanceCounter();
-        ulong LAST = 0;
+        ulong LAST;
+        int lastkeyp = 0;
         while (loop)
         {
             LAST = NOW;
@@ -287,10 +299,27 @@ public class WindowHandler
                             inpacc = false;
                         }
                         break;
+                    case SDL.EventType.KeyDown:
+                        switch (e.Key.Scancode)
+                        {
+                            case SDL.Scancode.Backspace:
+                                if (selected != null && ui[(int)selected].cursorpos > 0)
+                                {
+                                    int seld = (int)selected;
+                                    ui[seld].contents = SDLTools.RemoveChars(ui[seld].contents, ui[seld].cursorpos-1);
+                                    ui[seld].cursorpos--;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
                         {
-                            ui[(int)selected].contents += SDLTools.Get(e.Edit.Text);
+                            char yes = SDLTools.Get(e.Edit.Text);
+                            lastkeyp = yes;
+                            ui[(int)selected].contents += yes;
                             ui[(int)selected].cursorpos++;
                         }
                         break;
@@ -302,6 +331,7 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
+            writeText(lastkeyp.ToString(), 0, 8, "sans_8", black);
             foreach (int eidx in ui.Keys.ToArray())
             {
                 UIElement element = ui[eidx];
@@ -309,6 +339,10 @@ public class WindowHandler
                 if (element.col_idx != 4 || element.time == element.transition_time || clicked)
                 {
                     int finalc = 0;
+                    if (element.id == selected)
+                    {
+                        finalc = 5;
+                    }
                     if (element.hovering)
                     {
                         finalc = 3;

@@ -64,8 +64,12 @@ public class UIElement
         } else if (type == "input")
         {
             string contentswc = contents;
-            if (flash && WindowHandler.selected == id && cursorpos > -1) contentswc = contentswc.Insert(cursorpos, "⏐");
-            window.writeText(contentswc, 10, rect.Y+(rect.H/2), font, color[2],  SDLTools.Get(TextA.LEFT, TextA.CENTER), null);
+            if (flash && WindowHandler.selected == id && cursorpos > -1) contentswc = contentswc.Insert(cursorpos, "|");
+            window.writeText(contentswc, 10+rect.X, rect.Y+(rect.H/2), font, color[2],  SDLTools.Get(TextA.LEFT, TextA.CENTER), new SDL.FRect
+            {
+                X = 0,
+                W = 100
+            });
         }
         getColor();
         hovering = SDL.PointInRectFloat(WindowHandler.cursor, rect);
