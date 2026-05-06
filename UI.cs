@@ -57,7 +57,7 @@ public class UIElement
         {
             float ytex = rect.Y+(rect.H/2);
             SDL.Point size = window.getStringLength(font, contents.Substring(0, Math.Max(0, cursorpos)));
-            if (size.X+5-cursorscrl > rect.W/2)
+            if (size.X+5-cursorscrl > rect.W/2) // fix text streching when deleting from scroll
             {
                 // right half
                 cursorscrl = Math.Max(cursorscrl, Math.Max(rect.W-10, size.X)-(rect.W-10));

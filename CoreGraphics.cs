@@ -270,7 +270,7 @@ public class WindowHandler
         int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
         int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
         // Text alignments end
-        ui.Add(0, new UIElement
+        /*ui.Add(0, new UIElement
         {
             id = 0,
             window = this,
@@ -281,7 +281,7 @@ public class WindowHandler
             color = [createColor(66, 135, 245), black, black, grey, darkergrey, darkgrey],
             font = "sans_15",
             transition_time = 0.12f
-        });
+        });*/
         ulong lastTick;
         int nsDelay = 1000/30;
         int nearestSleep = 0;

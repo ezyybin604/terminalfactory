@@ -26,6 +26,7 @@ namespace E604terminalfactory;
     - change writemodes and use them accordingly
     - add more dimensions for text length, tile length (amount for each) and then use them
     - readjust save select to work in sdl too
+    - fix text streching when deleting from scroll in UI prompt
 */
 
 public class Game
@@ -111,7 +112,7 @@ that could be the perfect spot for a factory to
 pump out continous food and water for the dragon.
 
 (Press ENTER to continue)");
-            Console.ReadLine();
+            Thread.Sleep(2000);
             Console.WriteLine(@"
 Nobody follows, so to keep secrecy while you travel.
 

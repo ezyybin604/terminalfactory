@@ -21,6 +21,28 @@ class Runner {
     }
 }
 
+/*
+Save select
+
+Title screen
+    - New game
+    - Continue
+    - Worlds
+    - Options ? (style, volume)
+
+New game
+    - prompt for world name
+    - (Slow fading introduction/w skip button via esc key, tell how to skip at topright screen, "Hold ESC to skip")
+    - Enter tutorial automatically
+
+Worlds
+    - List worlds, when select one, return to title screen
+
+Options
+    - Back
+    - Options
+*/
+
 public class TileConsole
 {
     public static void Error(string s)
@@ -96,6 +118,9 @@ public class TileConsole
         }
         return res == 'y';
     }
+    public void startTitleScreen(Game game)
+    { // alternate saveselect/other things
+    }
     public static void SaveSelect(Game game)
     {
         bool sf = game.gdm.savefileExists(game.factory);
@@ -103,6 +128,10 @@ public class TileConsole
         {
             game.factory.savefile = game.gdm.getOption("defaultsave");
             sf = game.gdm.savefileExists(game.factory);
+        }
+        if (game.cusc.runnerType == "sdl")
+        {
+            game.cusc.startTitleScreen(game);
         }
         bool alsf = true;
         if (sf || Directory.GetDirectories(game.gdm.worldFolder).Length > 0)
@@ -122,15 +151,8 @@ public class TileConsole
                 Console.Clear(); // change to ask tileconsole for savefile prompt
                 game.hi();
                 string prmp = String.Format("A save was found. Load a different one? ({0} is selected, type list to list saves)\n(Press ENTER for default):", game.factory.savefile);
-                if (game.cusc.runnerType == "sdl")
-                {
-                    game.cusc.mode = "prompt";
-                    game.cusc.writeText(prmp);
-                } else
-                {
-                    Console.WriteLine(prmp);
-                    inp = Console.ReadLine();
-                }
+                Console.WriteLine(prmp);
+                inp = Console.ReadLine();
                 if (inp != null && (inp.Contains("/") || inp.Contains("\\")))
                 {
                     inp = null;
