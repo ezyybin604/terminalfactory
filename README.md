@@ -14,7 +14,7 @@ uses MessagePack for save data and SDL3 for graphics/window/GUI (optionally)
 ```
 install stuff from NuGet:
 dotnet add package SDL3-CS --version 3.5.0-preview.20260213-150035
-``
+```
 
 things that happen:
 
