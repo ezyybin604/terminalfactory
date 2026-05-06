@@ -1,5 +1,4 @@
 
-using System.Reflection;
 using SDL3;
 
 namespace gameRunner;
@@ -20,9 +19,8 @@ public class UIElement
     public int col_idx = 0;
     public double transition_time = 1; // in seconds
     public double time = 0;
-    private double flash_time = 0;
-    private bool flash = false;
     public int cursorpos = -1;
+    private float cursorscrl = 0;
     private SDL.FColor getStatic()
     {
         if (col_idx == 0)
@@ -49,12 +47,6 @@ public class UIElement
     }
     public void Draw()
     {
-        flash_time += window.deltaTime;
-        if (flash_time > 0.5)
-        {
-            flash_time = 0;
-            flash = !flash;
-        }
         int curve = 12;
         if (type == "input") curve = 5;
         window.drawRect(rect, SDLTools.Cast(curcol), color[1], curve, 1);
@@ -63,13 +55,27 @@ public class UIElement
             window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], SDLTools.Get(TextA.CENTER, TextA.CENTER));
         } else if (type == "input")
         {
-            string contentswc = contents;
-            if (flash && WindowHandler.selected == id && cursorpos > -1) contentswc = contentswc.Insert(cursorpos, "|");
-            window.writeText(contentswc, 10+rect.X, rect.Y+(rect.H/2), font, color[2],  SDLTools.Get(TextA.LEFT, TextA.CENTER), new SDL.FRect
+            float ytex = rect.Y+(rect.H/2);
+            SDL.Point size = window.getStringLength(font, contents.Substring(0, Math.Max(0, cursorpos)));
+            if (size.X+5-cursorscrl > rect.W/2)
             {
-                X = 0,
-                W = 100
-            });
+                // right half
+                cursorscrl = Math.Max(cursorscrl, Math.Max(rect.W-10, size.X)-(rect.W-10));
+            } else
+            {
+                // left half
+                cursorscrl = Math.Min(cursorscrl, Math.Max(0, size.X));
+            }
+            window.writeText(
+                contents, 5+rect.X, ytex, font, color[2],
+                SDLTools.Get(TextA.LEFT, TextA.CENTER),
+                new SDL.FRect{ X = cursorscrl, W = rect.W-10 }
+            );
+            if (id == WindowHandler.selected)
+            {
+                window.SetRenderDrawColor(color[2]);
+                SDL.RenderLine(window.renderer, size.X+rect.X+5-cursorscrl, ytex-(size.Y/2), size.X+rect.X+5-cursorscrl, ytex+(size.Y/2));
+            }
         }
         getColor();
         hovering = SDL.PointInRectFloat(WindowHandler.cursor, rect);

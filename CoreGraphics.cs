@@ -103,6 +103,20 @@ public class WindowHandler
             }
         }
     }
+    public void SetRenderDrawColor(SDL.Color col)
+    {
+        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+    }
+    public void SetRenderDrawColor(SDL.FColor col)
+    {
+        SDL.SetRenderDrawColor(renderer, (byte)col.R, (byte)col.G, (byte)col.B, (byte)col.A);
+    }
+    public SDL.Point getStringLength(string font, string text)
+    {
+        int x, y;
+        TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
+        return new SDL.Point{X=x, Y=y};
+    }
     public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1)
     {
         SDL.SetRenderScale(renderer, lineScale, lineScale);
@@ -121,7 +135,7 @@ public class WindowHandler
             fillCircle(outline, col);
         } else
         {
-            SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+            SetRenderDrawColor(col);
             SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
         }
         if (edgecol != null)
@@ -160,6 +174,7 @@ public class WindowHandler
     public double deltaTime = 0;
     public static int? selected = null;
     private bool acceptingInput = false;
+    public int lastkeyp = 0;
     private void changeInputAcceptance(bool newstat)
     {
         if (newstat != acceptingInput)
@@ -215,7 +230,7 @@ public class WindowHandler
             SDL.FRect rsrc = (SDL.FRect)src;
             SDL.RenderTexture(renderer, texture, new SDL.FRect
             {
-                X = rsrc.X, W = rsrc.W,
+                X = rsrc.X, W = MathF.Min(rsrc.W, textRect.W),
                 Y = 0, H = textRect.H
             }, textRect);
         }
@@ -274,7 +289,6 @@ public class WindowHandler
 
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
-        int lastkeyp = 0;
         while (loop)
         {
             LAST = NOW;
@@ -310,6 +324,22 @@ public class WindowHandler
                                     ui[seld].cursorpos--;
                                 }
                                 break;
+                            case SDL.Scancode.Left:
+                                if (selected != null)
+                                {
+                                    int seld = (int)selected;
+                                    ui[seld].cursorpos--;
+                                    ui[seld].cursorpos = Math.Max(0, ui[seld].cursorpos);
+                                }
+                                break;
+                            case SDL.Scancode.Right:
+                                if (selected != null)
+                                {
+                                    int seld = (int)selected;
+                                    ui[seld].cursorpos++;
+                                    ui[seld].cursorpos = Math.Min(ui[seld].contents.Length, ui[seld].cursorpos);
+                                }
+                                break;
                             default:
                                 break;
                         }
@@ -318,8 +348,7 @@ public class WindowHandler
                         if (acceptingInput && selected != null)
                         {
                             char yes = SDLTools.Get(e.Edit.Text);
-                            lastkeyp = yes;
-                            ui[(int)selected].contents += yes;
+                            ui[(int)selected].contents = ui[(int)selected].contents.Insert(ui[(int)selected].cursorpos, yes.ToString());
                             ui[(int)selected].cursorpos++;
                         }
                         break;
