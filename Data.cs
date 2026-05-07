@@ -119,6 +119,7 @@ public class TopBar
     public int tipPriority;
     public string returnScene = "";
     public int areyousure = 0;
+    public string[] header = []; // only in menu
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)

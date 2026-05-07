@@ -230,10 +230,17 @@ Nobody follows, so to keep secrecy while you travel.
     string menuprefix = "- ";
     void displayMenuLine(int i)
     {
+        bool hasHeader = topbar.header.Length > 0;
+        int headeroff = 0;
+        if (hasHeader)
+        {
+            headeroff = topbar.header.Length+1;
+        }
+
         bool lowerScreen = false;
         int lowerIndex = 0;
         if (menus.ContainsKey(scene + "_info"))
-        {
+        { // what does this even do?????????????????????
             lowerIndex = Console.WindowHeight-i-3;
             lowerScreen = Console.WindowHeight-menus[scene].Length < i+1 && Console.WindowHeight > menus[scene].Length + 1 + menus[scene + "_info"].Length;
         }
@@ -244,12 +251,13 @@ Nobody follows, so to keep secrecy while you travel.
         string[] si;
         if (lowerScreen)
         {
-            si = menus[scene + "_info"][lowerIndex].Split("|");
+            si = menus[scene + "_info"][lowerIndex+headeroff].Split("|");
         } else
         {
             si = menus[scene][i].Split("|");
         }
-        int gi = i+2-topbar.menuScroll;
+        // print header content here
+        int gi = i+2-topbar.menuScroll+headeroff;
         Console.ResetColor();
         if (gi > Console.WindowHeight-1 || gi < 2)
         {
@@ -258,14 +266,15 @@ Nobody follows, so to keep secrecy while you travel.
         Console.SetCursorPosition(0, gi);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.ForegroundColor = ConsoleColor.DarkRed;
-        if (scene == "prompt")
+        bool nohighlight = menus["nohighlight"].Contains(scene);
+        if (nohighlight)
         {
             menuprefix = "";
         } else
         {
             menuprefix = "- ";
         }
-        if (i == topbar.menuSelection && !menus["nohighlight"].Contains(scene))
+        if (i == topbar.menuSelection && !nohighlight)
         {
             factory.invertColors();
             si[0] = menuprefix + si[0];
@@ -297,7 +306,7 @@ Nobody follows, so to keep secrecy while you travel.
     void updateMenu()
     {
         if (scene == "inv") menus["inv"] = inventory.invmenud;
-        for (int i=0;i<menus[scene].Length;i++)
+        for (int i=-topbar.header.Length-1;i<menus[scene].Length;i++)
         {
             if (factory.linesToUpdate.Contains(i))
             {
@@ -436,7 +445,7 @@ Nobody follows, so to keep secrecy while you travel.
     {
         factory.linesToUpdate.Clear();
         Console.ResetColor();
-        Console.Clear();
+        cusc.Clear();
         updateBar(true);
         lookThisOneIsJustToDrawTheBigLine();
         if (scene != "game")
@@ -1084,7 +1093,7 @@ Nobody follows, so to keep secrecy while you travel.
         if (cusc.runnerType != "sdl")
         {
             Console.ResetColor();
-            Console.Clear();
+            cusc.Clear();
             Console.WriteLine("bye");
             Thread.Sleep(1000);
         }
@@ -1135,7 +1144,7 @@ Nobody follows, so to keep secrecy while you travel.
                         string? savef = null;
                         while (savef == null)
                         {
-                            Console.Clear(); // change to ask tileconsole for savefile prompt
+                            cusc.Clear(); // change to ask tileconsole for savefile prompt
                             TileConsole.Log("What is the savefile name?");
                             savef = Console.ReadLine();
                             if (savef == "" || (savef != null && (savef.Contains("/") || savef.Contains("\\"))))

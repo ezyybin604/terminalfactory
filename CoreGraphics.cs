@@ -390,7 +390,7 @@ public class WindowHandler
                 }
             }
             changeInputAcceptance(inpacc);
-            switch (tc.mode)
+            /*switch (tc.mode)
             {
                 case "prompt":
                     if (tc.misctext.ContainsKey("vers"))
@@ -403,12 +403,9 @@ public class WindowHandler
                         writeText(spln[0], (windowSize.x/2)-10, 100, "consbold_30", titleColor, rightcenter);
                         writeText(spln[1], (windowSize.x/2)+10, 100, "consbold_30", SDLTools.Invert(titleColor), leftcenter);
                     }
-                    if (tc.currentText.Count > 0)
-                    {
-                        // add prompt stuff here
-                    }
                     break;
-            }
+            } use scene switch instead/if statments*/
+            
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
