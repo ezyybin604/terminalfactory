@@ -468,9 +468,9 @@ public class FileManagement
     {
         return exarr.Contains(point);
     }
-    public bool savefileExists(Factory fact)
+    public bool savefileExists(string savefile)
     {
-        return Directory.Exists(Path.Join(worldFolder, fact.savefile));
+        return Directory.Exists(Path.Join(worldFolder, savefile));
     }
 }
 

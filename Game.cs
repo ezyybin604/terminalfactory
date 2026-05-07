@@ -27,6 +27,8 @@ namespace E604terminalfactory;
     - add more dimensions for text length, tile length (amount for each) and then use them
     - readjust save select to work in sdl too
     - fix text streching when deleting from scroll in UI prompt
+    - add cursor to prompt scene
+    - add world already exists prompt to world prompt selector
 */
 
 public class Game
@@ -39,7 +41,7 @@ public class Game
     {
         gd = new GameData("data/gamedata") // add data path to gdm main path too maybe
     };
-    public List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
+    public static List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
     public TopBar topbar = new TopBar();
     public Dictionary<string, string[]> menus = new Dictionary<string, string[]>();
@@ -99,10 +101,8 @@ public class Game
             text += " (Please read i beg) (Press key: y/n):";
             Console.Write(text);
         }
-        if (!(Console.ReadKey().KeyChar == 'y'))
-        {
-            Console.Clear();
-            Console.WriteLine(@"
+        Console.WriteLine("This introduction is being DELETED. go away and pretend it doesnt exist");
+        /*Console.WriteLine(@"
 Your town was overtaken by a DRAGON.
 A group survived, (that includes you)
 But it is hungry.
@@ -112,13 +112,12 @@ that could be the perfect spot for a factory to
 pump out continous food and water for the dragon.
 
 (Press ENTER to continue)");
-            Thread.Sleep(2000);
-            Console.WriteLine(@"
+        Thread.Sleep(2000);
+        Console.WriteLine(@"
 Nobody follows, so to keep secrecy while you travel.
 
-(Press ENTER to start)");
-            Console.ReadLine();
-        }
+(Press ENTER to start)");*/
+        Console.ReadLine();
         string extrat = "";
         if (specialMode == "demo") extrat = "(if noone sees this ever im actually gonna crash out im 5 seconds away from loosing my marbles and throwing a microwave at them)";
         extrat += " \n(y/n):";
@@ -167,6 +166,8 @@ Nobody follows, so to keep secrecy while you travel.
             "Press Z to select",
             "Press X to go back"
         ]);
+        topbar.tips.Add("custom", topbar.tips["pause"]);
+        topbar.tips.Add("prompt", ["Press ENTER to continue"]);
         topbar.tips.Add("end", ["now go away"]);
 
         menus.Add("pause_info", [
@@ -176,8 +177,14 @@ Nobody follows, so to keep secrecy while you travel.
             "Resume Game|resume",
             "Save|save",
             "Delete Savefile (DANGER)|delete",
-            "Quit (go away)|quit"
+            "Quit)|quit"
         ]);
+        menus.Add("custom", []);
+        menus.Add("customopt", []);
+        menus.Add("nohighlight", ["prompt", "intro"]);
+        
+        menus.Add("intro", []);
+        topbar.tips.Add("intro", [" "]);
         if (specialMode == "demo")
         {
             if (factory.savefile == "")
@@ -220,6 +227,7 @@ Nobody follows, so to keep secrecy while you travel.
         inventory.gd = factory.gd;
         factory.inventory = inventory;
     }
+    string menuprefix = "- ";
     void displayMenuLine(int i)
     {
         bool lowerScreen = false;
@@ -250,10 +258,17 @@ Nobody follows, so to keep secrecy while you travel.
         Console.SetCursorPosition(0, gi);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.ForegroundColor = ConsoleColor.DarkRed;
-        if (i == topbar.menuSelection)
+        if (scene == "prompt")
+        {
+            menuprefix = "";
+        } else
+        {
+            menuprefix = "- ";
+        }
+        if (i == topbar.menuSelection && !menus["nohighlight"].Contains(scene))
         {
             factory.invertColors();
-            si[0] = "- " + si[0];
+            si[0] = menuprefix + si[0];
         }
         Console.SetCursorPosition(0, gi);
         Console.Write(si[0].Substring(0, Math.Min(si[0].Length, Console.WindowWidth)));
@@ -290,6 +305,38 @@ Nobody follows, so to keep secrecy while you travel.
             }
         }
         factory.linesToUpdate.Clear();
+    }
+    void selectItemMenuCustom(string opt)
+    {
+        switch (opt)
+        {
+            case "nameprompt":
+                if (gdm.savefileExists("defualtfsave"))
+                { // new
+                    scene = "prompt";
+                    menus["prompt"] = [""];
+                    topbar.returnScene = "intro";
+                    displayStuff();
+                } else
+                { // default (only if have def)
+                    factory.savefile = "defualtfsave";
+                    scene = "intro";
+                }
+                break;
+            case "listworld":
+                TileConsole.startSceneSelect(this, "worldlist"); // BACKWARDSSS
+                break;
+            case "opt":
+                TileConsole.startSceneSelect(this, "options");
+                break;
+            case "back":
+                TileConsole.startSceneSelect(this, "title");
+                break;
+            case "selectworl":
+                factory.savefile = menus["custom"][topbar.menuSelection];
+                TileConsole.startSceneSelect(this, "title");
+                break;
+        }
     }
     void selectItemMenu()
     {
@@ -673,7 +720,7 @@ Nobody follows, so to keep secrecy while you travel.
                         break;
                 }
                 break;
-            case "pause":
+            case "pause": case "custom":
                 switch (ch)
                 {
                     case 'w':
@@ -687,7 +734,13 @@ Nobody follows, so to keep secrecy while you travel.
                         topbar.areyousure = 0;
                         break;
                     case 'z':
-                        selectItemMenu();
+                        if (scene == "pause")
+                        {
+                            selectItemMenu();
+                        } else
+                        {
+                            selectItemMenuCustom(menus["customopt"][topbar.menuSelection]);
+                        }
                         break;
                     default:
                         break;
@@ -793,10 +846,50 @@ Nobody follows, so to keep secrecy while you travel.
                         break;
                 }
                 break;
+            case "prompt":
+                string s = menus["prompt"][0];
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (s.Length > 0) menus["prompt"][0] = SDLTools.RemoveChars(s, s.Length-1);
+                } else if (key.Key == ConsoleKey.Enter)
+                {
+                    if (gdm.savefileExists(s) || s.Length == 0)
+                    {
+                        topbar.changeTip("/dSavefile already exists", 2, 4000);
+                    } else
+                    {
+                        factory.savefile = menus["prompt"][0];
+                        scene = topbar.returnScene;
+                        if (scene == "intro")
+                        {
+                            TileConsole.startSceneSelect(this, "intro");
+                        }
+                    }
+                } else
+                {
+                    menus["prompt"][0] += ch;
+                }
+                break;
+            case "intro":
+                Game tutr = new Game
+                { // Why does c# want me to do this isnt "simplified" what
+                    specialMode = "tutorial",
+                    cusc = cusc,
+                    windowHandler = windowHandler,
+                    splashes = splashes,
+                    scene = "game"
+                };
+                tutr.initStuff();
+                readkeylog.RemoveAt(0);
+                tutr.runTheGameIg();
+                readkeylog.Add(key);
+                scene = "game";
+                forceUpdateAll();
+                break;
         }
         if (scene != "game")
         {
-            topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
+            topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, Math.Max(0, menus[scene].Length-1));
             factory.linesToUpdate.Add(topbar.menuSelection);
             if (scene == "craft")
             {
@@ -865,16 +958,53 @@ Nobody follows, so to keep secrecy while you travel.
             topbar.lastTipChange = time.Ticks;
         }
     }
+    void printToMenu(string s)
+    {
+        string[] spl = s.Split("\n");
+        List<string> from = menus[scene].ToList();
+        foreach (string tp in spl)
+        {
+            from.Add(tp);
+        }
+        menus[scene] = from.ToArray();
+    }
+    void updateScene()
+    {
+        // gets called when scene switch
+        switch (scene)
+        {
+            case "intro":
+                Thread.Sleep(1000);
+                printToMenu(@"Your town was taken by a DRAGON.
+A group survived, (that includes you)
+But it is hungry.
+None of you know how to feed a creature of such scale,
+But you have the knowledge of a empty field nearby
+that could be the perfect spot for a factory to
+pump out continous food and water for the dragon.
+");
+                displayStuff();
+                Thread.Sleep(5000);
+                printToMenu(@"
+Nobody follows, so to keep secrecy while you travel.
+
+(Press any key to start)");
+                displayStuff();
+                Thread.Sleep(200);
+                break;
+            default:
+                break;
+        }
+    }
     public void runTheGameIg()
     {
-        if (cusc.runnerType == "sdl")
+        if (specialMode != "tutorial")
         {
             hi();
-            TileConsole.SaveSelect(this);
+            TileConsole.startSceneSelect(this, "title");
         }
-        scene = "game";
         Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
-        Point windowSize = new Point();
+        Point windowSize;
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
         adjustCamera();
@@ -887,6 +1017,7 @@ Nobody follows, so to keep secrecy while you travel.
                 previousScene = scene;
                 topbar.lastTipChange = DateTime.MinValue.Ticks;
                 topbar.menuScroll = 0;
+                updateScene();
             }
             if (!previousCamera.Equals(scroll))
             {
@@ -974,11 +1105,6 @@ Nobody follows, so to keep secrecy while you travel.
         {
             TileConsole.Error("splashes is missing oh no");
         }
-        if (cusc.runnerType != "sdl")
-        {
-            hi();
-            TileConsole.SaveSelect(this);
-        }
         try
         {
             if (cusc.runnerType != "sdl")
@@ -992,7 +1118,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         if (factory.gd.state == "done")
         {
-            if (specialMode == "demo")
+            if (specialMode == "demo" && cusc.runnerType != "sdl")
             {
                 while (true)
                 {
@@ -1018,7 +1144,7 @@ Nobody follows, so to keep secrecy while you travel.
                             }
                         }
                         game.factory.savefile = "demosave-" + savef;
-                        if (!game.gdm.savefileExists(game.factory))
+                        if (!game.gdm.savefileExists(game.factory.savefile))
                         {
                             game.introduction();
                         }
@@ -1033,9 +1159,6 @@ Nobody follows, so to keep secrecy while you travel.
                 }
             } else
             {
-                if (specialMode == "tutorial") factory = new Factory {
-                    gd = factory.gd
-                };
                 initStuff();
                 cusc.startGame(this);
             }
