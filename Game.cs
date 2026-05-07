@@ -33,8 +33,8 @@ namespace E604terminalfactory;
 
 public class Game
 {
-    // Scenes: game,end,inv,pause,craft,start
-    public string scene = "start";
+    // Scenes: game,end,inv,pause,craft,custom,intro,prompt
+    public string scene = "custom";
     Point scroll = new Point();
     Point cursor = new Point(2,2);
     public Factory factory = new Factory
@@ -102,37 +102,7 @@ public class Game
             Console.Write(text);
         }
         Console.WriteLine("This introduction is being DELETED. go away and pretend it doesnt exist");
-        /*Console.WriteLine(@"
-Your town was overtaken by a DRAGON.
-A group survived, (that includes you)
-But it is hungry.
-None of you know how to feed a creature of such scale,
-But you have the knowledge of a empty field nearby
-that could be the perfect spot for a factory to
-pump out continous food and water for the dragon.
-
-(Press ENTER to continue)");
-        Thread.Sleep(2000);
-        Console.WriteLine(@"
-Nobody follows, so to keep secrecy while you travel.
-
-(Press ENTER to start)");*/
         Console.ReadLine();
-        string extrat = "";
-        if (specialMode == "demo") extrat = "(if noone sees this ever im actually gonna crash out im 5 seconds away from loosing my marbles and throwing a microwave at them)";
-        extrat += " \n(y/n):";
-        if (cusc.choice("\nDo you want a tutorial? (warning: important)" + extrat, this))
-        {
-            // do tutorial stuff
-            Game tutr = new Game
-            { // Why does c# want me to do this isnt "simplified" what
-                specialMode = "tutorial",
-                cusc = cusc,
-                windowHandler = windowHandler
-            };
-            tutr.initStuff();
-            cusc.startGame(tutr);
-        }
     }
     void initStuff()
     {
@@ -236,7 +206,8 @@ Nobody follows, so to keep secrecy while you travel.
         {
             headeroff = topbar.header.Length+1;
         }
-
+        int headeridx = i+headeroff;
+        // header end
         bool lowerScreen = false;
         int lowerIndex = 0;
         if (menus.ContainsKey(scene + "_info"))
@@ -244,17 +215,20 @@ Nobody follows, so to keep secrecy while you travel.
             lowerIndex = Console.WindowHeight-i-3;
             lowerScreen = Console.WindowHeight-menus[scene].Length < i+1 && Console.WindowHeight > menus[scene].Length + 1 + menus[scene + "_info"].Length;
         }
-        if (i > menus[scene].Length-1 && !lowerScreen)
+        if ((i > menus[scene].Length-1 && !lowerScreen) || (!hasHeader && i < 0))
         {
             return;
         }
-        string[] si;
+        string si = "";
         if (lowerScreen)
         {
-            si = menus[scene + "_info"][lowerIndex+headeroff].Split("|");
-        } else
+            si = menus[scene + "_info"][lowerIndex].Split("|")[0];
+        } else if (headeridx < topbar.header.Length && hasHeader)
         {
-            si = menus[scene][i].Split("|");
+            si = topbar.header[headeridx];
+        } else if (headeridx == topbar.header.Length && hasHeader) {} else
+        {
+            si = menus[scene][i].Split("|")[0];
         }
         // print header content here
         int gi = i+2-topbar.menuScroll+headeroff;
@@ -277,10 +251,10 @@ Nobody follows, so to keep secrecy while you travel.
         if (i == topbar.menuSelection && !nohighlight)
         {
             factory.invertColors();
-            si[0] = menuprefix + si[0];
+            si = menuprefix + si;
         }
         Console.SetCursorPosition(0, gi);
-        Console.Write(si[0].Substring(0, Math.Min(si[0].Length, Console.WindowWidth)));
+        Console.Write(si.Substring(0, Math.Min(si.Length, Console.WindowWidth)));
     }
     void menuDisplay()
     {
@@ -293,12 +267,13 @@ Nobody follows, so to keep secrecy while you travel.
         {
             menus["pause_info"] = factory.dragon.getInfo();
         }
+        if (cusc.runnerType == "sdl") return;
         int menuLength = Math.Min(Console.WindowHeight-2, menus[scene].Length);
         if (menus.ContainsKey(scene + "_info"))
         {
             menuLength = Console.WindowHeight-2;
         }
-        for (int i=0;i<menuLength;i++)
+        for (int i=-topbar.header.Length-1;i<menuLength;i++)
         {
             displayMenuLine(i+topbar.menuScroll);
         }
@@ -306,6 +281,7 @@ Nobody follows, so to keep secrecy while you travel.
     void updateMenu()
     {
         if (scene == "inv") menus["inv"] = inventory.invmenud;
+        if (cusc.runnerType == "sdl") return;
         for (int i=-topbar.header.Length-1;i<menus[scene].Length;i++)
         {
             if (factory.linesToUpdate.Contains(i))
@@ -394,6 +370,7 @@ Nobody follows, so to keep secrecy while you travel.
         tipText = topbar.tipt;
         if (tipText != currentTipText || forceReplace)
         {
+            if (cusc.runnerType == "sdl") return;
             Console.ResetColor();
             Console.SetCursorPosition(0, 0);
             Console.WriteLine(new string(' ', Console.WindowWidth));
@@ -428,6 +405,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void lookThisOneIsJustToDrawTheBigLine()
     {
+        if (cusc.runnerType == "sdl") return;
         Console.ResetColor();
         if (Console.WindowHeight > 1)
         {
@@ -461,6 +439,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void updateScreen()
     {
+        if (cusc.runnerType == "sdl") return;
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             if (factory.linesToUpdate.Contains(i+scroll.y))
@@ -473,6 +452,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void forceUpdateAll()
     { // only for game
+        if (cusc.runnerType == "sdl") return;
         int scrollnum = scroll.y;
         if (scene != "game") scrollnum = topbar.menuScroll;
         for (int i=0;i<Console.WindowHeight-2;i++)
@@ -491,13 +471,16 @@ Nobody follows, so to keep secrecy while you travel.
         if (scene != "game")
         {
             int prevScroll = topbar.menuScroll;
-            while (!(topbar.menuScroll <= topbar.menuSelection))
+            if (cusc.runnerType != "sdl")
             {
-                topbar.menuScroll--;
-            }
-            while (!(topbar.menuSelection <= topbar.menuScroll+Console.WindowHeight-3))
-            {
-                topbar.menuScroll++;
+                while (!(topbar.menuScroll <= topbar.menuSelection))
+                {
+                    topbar.menuScroll--;
+                }
+                while (!(topbar.menuSelection <= topbar.menuScroll+Console.WindowHeight-3))
+                {
+                    topbar.menuScroll++;
+                }
             }
             if (prevScroll != topbar.menuScroll)
             {
@@ -983,7 +966,9 @@ Nobody follows, so to keep secrecy while you travel.
         switch (scene)
         {
             case "intro":
-                Thread.Sleep(1000);
+                topbar.header = [];
+                displayStuff();
+                Thread.Sleep(500);
                 printToMenu(@"Your town was taken by a DRAGON.
 A group survived, (that includes you)
 But it is hungry.
@@ -1000,6 +985,7 @@ Nobody follows, so to keep secrecy while you travel.
 (Press any key to start)");
                 displayStuff();
                 Thread.Sleep(200);
+                readkeylog.Clear();
                 break;
             default:
                 break;
@@ -1012,8 +998,8 @@ Nobody follows, so to keep secrecy while you travel.
             hi();
             TileConsole.startSceneSelect(this, "title");
         }
-        Point windowSizePrevious = new Point(Console.WindowWidth, Console.WindowHeight);
-        Point windowSize;
+        Point windowSizePrevious = cusc.getWindowSize("window");
+        Point windowSize = new Point();
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
         adjustCamera();
@@ -1036,7 +1022,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
             time = DateTime.Now;
             unnessaryFunctionForDecidingTips();
-            windowSize = new Point(Console.WindowWidth, Console.WindowHeight);
+            windowSize = cusc.getWindowSize("window");
             if (!windowSize.Equals(windowSizePrevious))
             {
                 windowSizePrevious = windowSize;

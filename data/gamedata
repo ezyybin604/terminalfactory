@@ -153,6 +153,18 @@ t=~
 F=-
 !! 
 
+!modeMaps
+game=world
+end=menu
+inv=menu
+pause=menu
+craft=menu
+start=menu
+custom=menu
+intro=menu
+prompt=prompt
+!! 
+
 # @ at the start of a item name means it should have special handling
 !itemNames
 glass=Glass

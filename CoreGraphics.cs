@@ -168,13 +168,14 @@ public class WindowHandler
     nint window;
     nint windowSurface;
     SDL.FRect textRect;
-    Point windowSize;
+    public Point windowSize;
     Dictionary<int, UIElement> ui = new Dictionary<int, UIElement>();
     public static SDL.FPoint cursor;
     public double deltaTime = 0;
     public static int? selected = null;
     private bool acceptingInput = false;
     public int lastkeyp = 0;
+    public const int tileSize = 160;
     private void changeInputAcceptance(bool newstat)
     {
         if (newstat != acceptingInput)
@@ -405,7 +406,6 @@ public class WindowHandler
                     }
                     break;
             } use scene switch instead/if statments*/
-            
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));

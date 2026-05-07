@@ -7,17 +7,19 @@ namespace gameRunner;
 
 class Runner {
     public static void Main() {
-        TileConsole tc = new TileConsole();
+        string runnerT = "sdl";
         if (File.Exists("modeoverride"))
         {
-            tc.runnerType = File.ReadAllText("modeoverride").Replace("\n", "");
+            runnerT = File.ReadAllText("modeoverride").Replace("\n", "");
         }
-        WindowHandler wh = new WindowHandler{tc = tc};
-        new Game
+        Game game = new Game
         {
-            cusc = tc,
-            windowHandler = wh
-        }.Start();
+            cusc = new TileConsole(),
+            windowHandler = new WindowHandler{tc = new TileConsole()}
+        };
+        game.cusc = new TileConsole{runnerType = runnerT, theGame = game};
+        game.windowHandler.tc = game.cusc;
+        game.Start();
     }
 }
 
@@ -64,15 +66,33 @@ public class TileConsole
         try { Console.Clear(); }
         catch (IOException) {}
     }
+    public Game? theGame;
     public Point getWindowSize(string type)
     { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
         // window, board, text
-        switch (type)
+        if (runnerType != "sdl")
         {
-            case "text": case "window":
-                return new Point(Console.WindowWidth, Console.WindowHeight);
-            case "board":
-                return new Point(Console.WindowWidth, Console.WindowHeight-2);
+            switch (type)
+            {
+                case "text": case "window":
+                    return new Point(Console.WindowWidth, Console.WindowHeight);
+                case "board":
+                    return new Point(Console.WindowWidth, Console.WindowHeight-2);
+            }
+        } else if (theGame != null)
+        {
+            switch (type)
+            {
+                case "text":
+                    return new Point(); // just ignore this one
+                case "window":
+                    return theGame.windowHandler.windowSize;
+                case "board":
+                    return new Point(
+                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.x/WindowHandler.tileSize))+1,
+                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.y/WindowHandler.tileSize))+1
+                    );
+            }
         }
         return new Point();
     }
