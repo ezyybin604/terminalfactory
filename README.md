@@ -12,8 +12,9 @@ Create a modeoverride file where the game runs to change mode to:
 uses MessagePack for save data and SDL3 for graphics/window/GUI (optionally)
 
 ```
-install stuff from NuGet:
+commands to install stuff from NuGet:
 dotnet add package SDL3-CS --version 3.5.0-preview.20260213-150035
+dotnet add package MessagePack --version 3.1.4
 ```
 
 things that happen:

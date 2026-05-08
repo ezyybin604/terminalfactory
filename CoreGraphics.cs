@@ -5,7 +5,6 @@ using SDL3;
 namespace gameRunner;
 
 // sdl stuff mainly instead of corewrite handling terminal
-// also rule: ONLY file w/unsafe functions
 
 public class WindowHandler
 {
@@ -200,7 +199,7 @@ public class WindowHandler
     {
         return p-(size/2*algn);
     }
-    public unsafe void writeText(string c, float x, float y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null) {
+    public void writeText(string c, float x, float y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null, nint? copytexture=null) {
         if (c.Length == 0) return;
         if (alignment == null)
         {
@@ -212,8 +211,7 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
             return;
         }
-        SDL.Surface surf = *(SDL.Surface*)surface.ToPointer();
-        nint texture = SDL.CreateTextureFromSurface(renderer, surface);
+        SDL.Surface surf = SDLTools.GetSurface(surface);
         textRect.W = surf.Width;
         textRect.H = surf.Height;
         if (src != null)
@@ -222,20 +220,32 @@ public class WindowHandler
         }
         textRect.X = align(alignment[0], x, surf.Width);
         textRect.Y = align(alignment[1], y, surf.Height);
-        SDL.DestroySurface(surface);
+        nint surfblit = windowSurface;
+        if (copytexture != null)
+        {
+            surfblit = (nint)copytexture;
+        }
         if (src == null)
         {
-            SDL.RenderTexture(renderer, texture, NULL, textRect);
+            SDL.BlitSurface(surface, NULL, surfblit, SDLTools.Cast(textRect));
         } else
         {
             SDL.FRect rsrc = (SDL.FRect)src;
-            SDL.RenderTexture(renderer, texture, new SDL.FRect
+            SDL.BlitSurface(surface, new SDL.Rect
             {
-                X = rsrc.X, W = MathF.Min(rsrc.W, textRect.W),
-                Y = 0, H = textRect.H
-            }, textRect);
+                X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
+                Y = 0, H = (int)textRect.H
+            }, surfblit, SDLTools.Cast(textRect));
         }
-        SDL.DestroyTexture(texture);
+        SDL.DestroySurface(surface);
+    }
+    private void updateWindowSurface()
+    {
+        windowSurface = SDL.GetWindowSurface(window);
+        if (windowSurface == NULL)
+        {
+            SDL.LogError(SDL.LogCategory.System, String.Format("Window Surface Error: {0}", SDL.GetError()));
+        }
     }
     public static SDL.Color black = createColor(0, 0, 0);
     public static SDL.Color white = createColor(255, 255, 255);
@@ -258,15 +268,14 @@ public class WindowHandler
             return;
         }
         SDL.SetWindowResizable(window, true);
-        nint icon = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/icon.png"));
-        if (!SDL.SetWindowIcon(window, icon))
+        if (!SDL.SetWindowIcon(window, Image.Load("data/textures/icon.png")))
         {
             SDL.LogError(SDL.LogCategory.Render, $"Error setting icon: {SDL.GetError()}");
         }
         SDL.SetWindowMinimumSize(window, 800, 400);
 
         windowSize = getWindowSize(window);
-        windowSurface = SDL.GetWindowSurface(window);
+        updateWindowSurface();
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
         initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
         SDL.Color titleColor = createColor(255, 128, 0);
@@ -317,6 +326,9 @@ public class WindowHandler
                 {
                     case SDL.EventType.Quit:
                         loop = false;
+                        break;
+                    case SDL.EventType.WindowResized:
+                        updateWindowSurface();
                         break;
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
@@ -432,7 +444,7 @@ public class WindowHandler
                         }
                         drawRect(lowerRect, darkergreytrans, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, winpxformat); // SDL.Surface
-                        // finish this later
+                        writeText("Test Text", 10, 10, "sans_15", black, null, null, menusurf);
                         break;
                     case "world":
                         break;

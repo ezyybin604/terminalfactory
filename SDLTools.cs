@@ -5,6 +5,8 @@ namespace gameRunner;
 
 
 // my solution to gamerunner classes needing sdl tools
+// and the one handling with unsafe stuff
+
 public enum TextA
 {
     LEFT = 0, // regular
@@ -48,6 +50,10 @@ public class SDLTools // MY sdl tools :))
     public static SDL.Color Cast(SDL.FColor color)
     {
         return new SDL.Color{R = (byte)color.R, G = (byte)color.G, B = (byte)color.B, A = (byte)color.A};
+    }
+    public static SDL.Rect Cast(SDL.FRect rect)
+    {
+        return new SDL.Rect{X = (int)rect.X, Y = (int)rect.Y, W = (int)rect.W, H = (int)rect.H};
     }
     public static SDL.FColor Lerp(SDL.FColor cols, SDL.FColor cole, float prog)
     {
