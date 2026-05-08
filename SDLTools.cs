@@ -70,9 +70,13 @@ public class SDLTools // MY sdl tools :))
         return new SDL.FColor{R = value.R, G = value.G, B = value.B, A = value.A};
     }
     
-    public static unsafe char Get(nint ntn)
+    public static unsafe char GetChar(nint ntn)
     {
         return *(char*)ntn.ToPointer();
+    }
+    public static unsafe SDL.Surface GetSurface(nint ntn)
+    {
+        return *(SDL.Surface*)ntn.ToPointer();
     }
     public static string RemoveChars(string s, int idx, int len=1)
     {

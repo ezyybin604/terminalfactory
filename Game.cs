@@ -29,6 +29,7 @@ namespace E604terminalfactory;
     - fix text streching when deleting from scroll in UI prompt
     - add cursor to prompt scene
     - add world already exists prompt to world prompt selector
+    - finish coregraphics menu
 */
 
 public class Game
@@ -147,7 +148,7 @@ public class Game
             "Resume Game|resume",
             "Save|save",
             "Delete Savefile (DANGER)|delete",
-            "Quit)|quit"
+            "Quit|quit"
         ]);
         menus.Add("custom", []);
         menus.Add("customopt", []);
@@ -320,6 +321,11 @@ public class Game
             case "selectworl":
                 factory.savefile = menus["custom"][topbar.menuSelection];
                 TileConsole.startSceneSelect(this, "title");
+                break;
+            case "start":
+                loadData();
+                scene = "game";
+                displayStuff();
                 break;
         }
     }

@@ -155,9 +155,9 @@ public class WindowHandler
     public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
         return new SDL.Color { R = r, G = g, B = b, A = a };
     }
-    public static SDL.Color createColor(byte un) // uno/un value
+    public static SDL.Color createColor(byte un, byte a=(byte)SDL.AlphaOpaque) // uno/un value
     {
-        return createColor(un, un, un);
+        return createColor(un, un, un, a);
     }
     public static SDL.FRect createRect(float x, float y, float w, float h)
     {
@@ -257,19 +257,29 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
         }
+        SDL.SetWindowResizable(window, true);
+        nint icon = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/icon.png"));
+        if (!SDL.SetWindowIcon(window, icon))
+        {
+            SDL.LogError(SDL.LogCategory.Render, $"Error setting icon: {SDL.GetError()}");
+        }
+        SDL.SetWindowMinimumSize(window, 800, 400);
+
         windowSize = getWindowSize(window);
         windowSurface = SDL.GetWindowSurface(window);
-        initFont("consbold", "consbold.ttf", 30); // consbold_30
+        initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
         initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
         SDL.Color titleColor = createColor(255, 128, 0);
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
+        SDL.Color darkergreytrans = createColor(150, 20);
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
         int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
         int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
+        int[] leftupper = SDLTools.Get(TextA.LEFT, TextA.UPPER);
         // Text alignments end
         /*ui.Add(0, new UIElement
         {
@@ -288,6 +298,8 @@ public class WindowHandler
         int nearestSleep = 0;
         bool loop = true;
 
+        SDL.PixelFormat winpxformat = SDLTools.GetSurface(windowSurface).Format;
+        SDL.FRect lowerRect = createRect(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
         while (loop)
@@ -348,7 +360,7 @@ public class WindowHandler
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
                         {
-                            char yes = SDLTools.Get(e.Edit.Text);
+                            char yes = SDLTools.GetChar(e.Edit.Text);
                             ui[(int)selected].contents = ui[(int)selected].contents.Insert(ui[(int)selected].cursorpos, yes.ToString());
                             ui[(int)selected].cursorpos++;
                         }
@@ -391,21 +403,41 @@ public class WindowHandler
                 }
             }
             changeInputAcceptance(inpacc);
-            /*switch (tc.mode)
+            if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
+            /*
+                if (tc.misctext.ContainsKey("name"))
+                {
+                    string[] spln = tc.misctext["name"].Split("|");
+                    writeText(spln[0], (windowSize.x/2)-10, 100, "consbold_30", titleColor, rightcenter);
+                    writeText(spln[1], (windowSize.x/2)+10, 100, "consbold_30", SDLTools.Invert(titleColor), leftcenter);
+                }
+            */
+            if (tc.misctext.ContainsKey("vers"))
             {
-                case "prompt":
-                    if (tc.misctext.ContainsKey("vers"))
-                    {
-                        writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, leftlower);
-                    }
-                    if (tc.misctext.ContainsKey("name"))
-                    {
-                        string[] spln = tc.misctext["name"].Split("|");
-                        writeText(spln[0], (windowSize.x/2)-10, 100, "consbold_30", titleColor, rightcenter);
-                        writeText(spln[1], (windowSize.x/2)+10, 100, "consbold_30", SDLTools.Invert(titleColor), leftcenter);
-                    }
-                    break;
-            } use scene switch instead/if statments*/
+                writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, leftlower);
+            }
+            if (tc.theGame != null)
+            {
+                Game game = tc.theGame;
+                switch (tc.mode)
+                {
+                    case "prompt":
+                        break;
+                    case "menu":
+                        lowerRect = createRect(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
+                        lowerRect.H -= lowerRect.Y;
+                        for (int i=0;i<game.topbar.header.Length;i++)
+                        {
+                            writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, leftupper);
+                        }
+                        drawRect(lowerRect, darkergreytrans, black);
+                        nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, winpxformat); // SDL.Surface
+                        // finish this later
+                        break;
+                    case "world":
+                        break;
+                }
+            }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
