@@ -165,7 +165,6 @@ public class WindowHandler
     public const nint NULL = 0;
     public nint renderer;
     nint window;
-    nint windowSurface;
     SDL.FRect textRect;
     public Point windowSize;
     Dictionary<int, UIElement> ui = new Dictionary<int, UIElement>();
@@ -220,32 +219,40 @@ public class WindowHandler
         }
         textRect.X = align(alignment[0], x, surf.Width);
         textRect.Y = align(alignment[1], y, surf.Height);
-        nint surfblit = windowSurface;
         if (copytexture != null)
         {
-            surfblit = (nint)copytexture;
-        }
-        if (src == null)
-        {
-            SDL.BlitSurface(surface, NULL, surfblit, SDLTools.Cast(textRect));
+            nint surfblit = (nint)copytexture;
+             if (src == null)
+            {
+                SDL.BlitSurface(surface, NULL, surfblit, SDLTools.Cast(textRect));
+            } else
+            {
+                SDL.FRect rsrc = (SDL.FRect)src;
+                SDL.BlitSurface(surface, new SDL.Rect
+                {
+                    X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
+                    Y = 0, H = (int)textRect.H
+                }, surfblit, SDLTools.Cast(textRect));
+            }
         } else
         {
-            SDL.FRect rsrc = (SDL.FRect)src;
-            SDL.BlitSurface(surface, new SDL.Rect
+            nint texture = SDL.CreateTextureFromSurface(renderer, surface);
+            if (src == null)
             {
-                X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
-                Y = 0, H = (int)textRect.H
-            }, surfblit, SDLTools.Cast(textRect));
+                //SDL.RenderTexture(surface, NULL, surfblit, SDLTools.Cast(textRect));
+                SDL.RenderTexture(renderer, texture, NULL, textRect);
+            } else
+            {
+                SDL.FRect rsrc = (SDL.FRect)src;
+                rsrc = new SDL.FRect {
+                   X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
+                   Y = 0, H = (int)textRect.H
+                };
+                SDL.RenderTexture(renderer, texture, rsrc, textRect);
+
+            }
         }
         SDL.DestroySurface(surface);
-    }
-    private void updateWindowSurface()
-    {
-        windowSurface = SDL.GetWindowSurface(window);
-        if (windowSurface == NULL)
-        {
-            SDL.LogError(SDL.LogCategory.System, String.Format("Window Surface Error: {0}", SDL.GetError()));
-        }
     }
     public static SDL.Color black = createColor(0, 0, 0);
     public static SDL.Color white = createColor(255, 255, 255);
@@ -267,6 +274,10 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
         }
+        if (!SDL.SetHint(SDL.Hints.FramebufferAcceleration, "0"))
+        {
+            SDL.LogError(SDL.LogCategory.System, SDL.GetError());
+        }
         SDL.SetWindowResizable(window, true);
         if (!SDL.SetWindowIcon(window, Image.Load("data/textures/icon.png")))
         {
@@ -275,7 +286,6 @@ public class WindowHandler
         SDL.SetWindowMinimumSize(window, 800, 400);
 
         windowSize = getWindowSize(window);
-        updateWindowSurface();
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
         initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
         SDL.Color titleColor = createColor(255, 128, 0);
@@ -307,7 +317,7 @@ public class WindowHandler
         int nearestSleep = 0;
         bool loop = true;
 
-        SDL.PixelFormat winpxformat = SDLTools.GetSurface(windowSurface).Format;
+        SDL.PixelFormat winpxformat = SDL.GetWindowPixelFormat(window);
         SDL.FRect lowerRect = createRect(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
@@ -326,9 +336,6 @@ public class WindowHandler
                 {
                     case SDL.EventType.Quit:
                         loop = false;
-                        break;
-                    case SDL.EventType.WindowResized:
-                        updateWindowSurface();
                         break;
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
