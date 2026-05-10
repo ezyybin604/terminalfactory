@@ -1,4 +1,5 @@
 
+using System.Runtime.CompilerServices;
 using E604terminalfactory;
 using SDL3;
 
@@ -116,8 +117,18 @@ public class WindowHandler
         TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
         return new SDL.Point{X=x, Y=y};
     }
-    public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1)
+    SDL.PixelFormat defaultFormat = SDL.PixelFormat.Unknown;
+    public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1, nint? copytexture=null)
     {
+        if (copytexture != null)
+        {
+            if (edgecol == null)
+            {
+                // no alpha
+                SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapRGB(PointerTools.GetPointer(defaultFormat), NULL, col.R, col.G, col.B));
+            }
+            return;
+        }
         SDL.SetRenderScale(renderer, lineScale, lineScale);
         SDL.FPoint[] outline = [];
         if (linecurve > 0)
@@ -210,7 +221,7 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
             return;
         }
-        SDL.Surface surf = SDLTools.GetSurface(surface);
+        SDL.Surface surf = PointerTools.GetSurface(surface);
         textRect.W = surf.Width;
         textRect.H = surf.Height;
         if (src != null)
@@ -292,7 +303,6 @@ public class WindowHandler
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
-        SDL.Color darkergreytrans = createColor(150, 20);
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
@@ -317,7 +327,7 @@ public class WindowHandler
         int nearestSleep = 0;
         bool loop = true;
 
-        SDL.PixelFormat winpxformat = SDL.GetWindowPixelFormat(window);
+        defaultFormat = SDL.GetWindowPixelFormat(window);
         SDL.FRect lowerRect = createRect(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
@@ -379,7 +389,7 @@ public class WindowHandler
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
                         {
-                            char yes = SDLTools.GetChar(e.Edit.Text);
+                            char yes = PointerTools.GetChar(e.Edit.Text);
                             ui[(int)selected].contents = ui[(int)selected].contents.Insert(ui[(int)selected].cursorpos, yes.ToString());
                             ui[(int)selected].cursorpos++;
                         }
@@ -447,11 +457,27 @@ public class WindowHandler
                         lowerRect.H -= lowerRect.Y;
                         for (int i=0;i<game.topbar.header.Length;i++)
                         {
-                            writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, leftupper);
+                            if (game.topbar.header[i] == "TERMINALFACTORY")
+                            {
+                                writeText("TERMINAL", 15, 15+(30*i), "consbold_20", titleColor, leftupper);
+                                writeText("FACTORY", 25+getStringLength("consbold_20", "TERMINAL").X, 15+(30*i), "consbold_20", SDLTools.Invert(titleColor), leftupper);
+                            } else
+                            {
+                                writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, leftupper);
+                            }
                         }
-                        drawRect(lowerRect, darkergreytrans, black);
-                        nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, winpxformat); // SDL.Surface
-                        writeText("Test Text", 10, 10, "sans_15", black, null, null, menusurf);
+                        drawRect(lowerRect, grey, black);
+                        nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
+                        //writeText("Test Text", 10, 10, "sans_15", black, null, null, menusurf);
+                        // write the rest here
+                        for (int i=0;i<game.menus[game.scene].Length;i++)
+                        {
+                            string itm = game.menus[game.scene][i];
+                            SDL.FRect colliderect = createRect(6, 6+(i*25), getStringLength("sans_15", itm).X+12, 23);
+                            drawRect(colliderect, darkergrey, null, 0, 1, menusurf);
+                            writeText(itm, 10, 10+(i*25), "sans_15", black, null, null, menusurf);
+                        }
+                        SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         break;
                     case "world":
                         break;

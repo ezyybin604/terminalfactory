@@ -75,17 +75,25 @@ public class SDLTools // MY sdl tools :))
     {
         return new SDL.FColor{R = value.R, G = value.G, B = value.B, A = value.A};
     }
-    
-    public static unsafe char GetChar(nint ntn)
-    {
-        return *(char*)ntn.ToPointer();
-    }
-    public static unsafe SDL.Surface GetSurface(nint ntn)
-    {
-        return *(SDL.Surface*)ntn.ToPointer();
-    }
     public static string RemoveChars(string s, int idx, int len=1)
     {
         return s.Substring(0,idx) + s.Substring(idx+len);
+    }
+}
+
+public unsafe class PointerTools
+{ // if this ever crashes (poking into unsafe memory) BLAME THIS CLASS
+    public static char GetChar(nint ntn)
+    {
+        return *(char*)ntn.ToPointer();
+    }
+    public static SDL.Surface GetSurface(nint ntn)
+    {
+        return *(SDL.Surface*)ntn.ToPointer();
+    }
+    public static nint GetPointer(SDL.PixelFormat obj)
+    {
+        SDL.PixelFormat* ptr = &obj;
+        return (nint)ptr;
     }
 }
