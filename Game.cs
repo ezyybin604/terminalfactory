@@ -22,14 +22,11 @@ namespace E604terminalfactory;
     - change populatedChunks to unpopulatedChunks (and hope it works now that its probably finished)
     - finish dragon.putscale
     - store options in seperate folders and move option data to seperate folder from worlds
-    - move stuff that is specific to this version to CoreWrite.cs (graphics, PlayerPrefs, input, etc), include tile data in write calls as well as write mode
-    - change writemodes and use them accordingly
-    - add more dimensions for text length, tile length (amount for each) and then use them
     - readjust save select to work in sdl too
     - fix text streching when deleting from scroll in UI prompt
     - add cursor to prompt scene
-    - add world already exists prompt to world prompt selector
     - finish coregraphics menu
+    - add sfx to certain actions in graphics
 */
 
 public class Game
@@ -969,6 +966,10 @@ public class Game
     void updateScene()
     {
         // gets called when scene switch
+        if (cusc.runnerType == "sdl")
+        {
+            WindowHandler.sceneUpdated = true;
+        }
         switch (scene)
         {
             case "intro":

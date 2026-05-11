@@ -1,5 +1,5 @@
 
-using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using E604terminalfactory;
 using SDL3;
 
@@ -125,7 +125,7 @@ public class WindowHandler
             if (edgecol == null)
             {
                 // no alpha
-                SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapRGB(PointerTools.GetPointer(defaultFormat), NULL, col.R, col.G, col.B));
+                SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapSurfaceRGBA((nint)copytexture, col.R, col.G, col.B, col.A));
             }
             return;
         }
@@ -172,6 +172,10 @@ public class WindowHandler
     public static SDL.FRect createRect(float x, float y, float w, float h)
     {
         return new SDL.FRect { X = x, Y = y, W = w, H = h };
+    }
+    public static SDL.FPoint createPoint(float x, float y)
+    {
+        return new SDL.FPoint { X = x, Y = y };
     }
     public const nint NULL = 0;
     public nint renderer;
@@ -267,6 +271,7 @@ public class WindowHandler
     }
     public static SDL.Color black = createColor(0, 0, 0);
     public static SDL.Color white = createColor(255, 255, 255);
+    public static bool sceneUpdated = false;
     [STAThread]
     public void Loop()
     {
@@ -303,6 +308,12 @@ public class WindowHandler
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
+
+        // highlight=high
+        SDL.FRect prevhigh = createRect(0, 0, 0, 0);
+        SDL.FRect newhigh = createRect(0, 0, 0, 0);
+        const float timehigh = 0.3f;
+        float proghigh = timehigh;
 
         // Text alignments
         int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
@@ -402,7 +413,7 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
-            writeText(lastkeyp.ToString(), 0, 8, "sans_8", black);
+            writeText(((int)(deltaTime*1000)).ToString(), 0, 8, "sans_8", black);
             foreach (int eidx in ui.Keys.ToArray())
             {
                 UIElement element = ui[eidx];
@@ -468,15 +479,41 @@ public class WindowHandler
                         }
                         drawRect(lowerRect, grey, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
-                        //writeText("Test Text", 10, 10, "sans_15", black, null, null, menusurf);
-                        // write the rest here
+                        // menusurf start
+                        if (timehigh == proghigh)
+                        {
+                            drawRect(newhigh, darkergrey, null, 0, 1, menusurf);
+                        } else
+                        {
+                            drawRect(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), darkergrey, null, 0, 1, menusurf);
+                            proghigh += (float)deltaTime;
+                            if (proghigh > timehigh)
+                            {
+                                proghigh = timehigh;
+                            }
+                        }
+                        SDL.FRect colliderect;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i];
-                            SDL.FRect colliderect = createRect(6, 6+(i*25), getStringLength("sans_15", itm).X+12, 23);
-                            drawRect(colliderect, darkergrey, null, 0, 1, menusurf);
+                            colliderect = createRect(6, 11+(i*25), getStringLength("sans_15", itm).X+12, 20);
+                            if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
+                            {
+                                // set topbar.menuselection here
+                                if (game.topbar.menuSelection != i) proghigh = 0;
+                                game.topbar.menuSelection = i;
+                            }
+                            if (game.topbar.menuSelection == i)
+                            {
+                                if (!prevhigh.Equals(colliderect))
+                                {
+                                    prevhigh = SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh);
+                                    newhigh = SDLTools.Copy(colliderect);
+                                }
+                            }
                             writeText(itm, 10, 10+(i*25), "sans_15", black, null, null, menusurf);
                         }
+                        // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         break;
                     case "world":
@@ -485,6 +522,10 @@ public class WindowHandler
             }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
+            if (sceneUpdated)
+            {
+                
+            }
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
         }
         SDL.DestroyRenderer(renderer);

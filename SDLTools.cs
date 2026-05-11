@@ -39,7 +39,7 @@ public class SDLTools // MY sdl tools :))
         }
         return res;
     }
-    private static float getRangeBetween(float n1, float n2, float prog)
+    private static float between(float n1, float n2, float prog)
     {
         return n1+((n2-n1)*prog);
     }
@@ -57,13 +57,24 @@ public class SDLTools // MY sdl tools :))
     }
     public static SDL.FColor Lerp(SDL.FColor cols, SDL.FColor cole, float prog)
     {
+        float rprog = Math.Clamp(0, prog, 1);
         return new SDL.FColor
         {
-            R = getRangeBetween(cols.R, cole.R, prog),
-            G = getRangeBetween(cols.G, cole.G, prog),
-            B = getRangeBetween(cols.B, cole.B, prog),
-            A = getRangeBetween(cols.A, cole.A, prog),
+            R = between(cols.R, cole.R, rprog),
+            G = between(cols.G, cole.G, rprog),
+            B = between(cols.B, cole.B, rprog),
+            A = between(cols.A, cole.A, rprog),
         };
+    }
+    public static SDL.FRect Lerp(SDL.FRect rect1, SDL.FRect rect2, float prog)
+    {
+        float rprog = Math.Clamp(0, prog, 1);
+        return WindowHandler.createRect(
+            between(rect1.X, rect2.X, rprog),
+            between(rect1.Y, rect2.Y, rprog),
+            between(rect1.W, rect2.W, rprog),
+            between(rect1.H, rect2.H, rprog)
+        );
     }
 
     public static SDL.FColor Multiply(SDL.FColor col, SDL.FColor colm)
@@ -75,9 +86,17 @@ public class SDLTools // MY sdl tools :))
     {
         return new SDL.FColor{R = value.R, G = value.G, B = value.B, A = value.A};
     }
+    public static SDL.FRect Copy(SDL.FRect value)
+    {
+        return new SDL.FRect{X = value.X, Y = value.Y, W = value.W, H = value.H};
+    }
     public static string RemoveChars(string s, int idx, int len=1)
     {
         return s.Substring(0,idx) + s.Substring(idx+len);
+    }
+    public static SDL.FRect Transform(SDL.FRect rect, SDL.FPoint pt)
+    {
+        return WindowHandler.createRect(rect.X+pt.X, rect.Y+pt.Y, rect.W, rect.H);
     }
 }
 
