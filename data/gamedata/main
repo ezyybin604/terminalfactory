@@ -153,17 +153,7 @@ t=~
 F=-
 !! 
 
-!modeMaps
-game=world
-end=menu
-inv=menu
-pause=menu
-craft=menu
-start=menu
-custom=menu
-intro=menu
-prompt=prompt
-!! 
+!!!!!sdldata
 
 # @ at the start of a item name means it should have special handling
 !itemNames
@@ -314,7 +304,7 @@ f.sand=sand
 !! 
 
 !tutorialMsg
-!!!!!data/tutorial
+!!!!!tutorial
 !! 
 
 !generatorMaterial

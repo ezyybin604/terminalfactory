@@ -986,10 +986,15 @@ pump out continous food and water for the dragon.
 ");
                 displayStuff();
                 Thread.Sleep(5000);
-                printToMenu(@"
+                string press = "Press any key";
+                if (cusc.runnerType == "sdl")
+                {
+                    press = "Click";
+                }
+                printToMenu(String.Format(@"
 Nobody follows, so to keep secrecy while you travel.
 
-(Press any key to start)");
+({0} to start)", press));
                 displayStuff();
                 Thread.Sleep(200);
                 readkeylog.Clear();

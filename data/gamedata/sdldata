@@ -1,0 +1,27 @@
+
+!modeMaps
+game=world
+end=menu
+inv=menu
+pause=menu
+craft=menu
+custom=menu
+intro=menu
+prompt=prompt
+!! 
+
+# avaliable hyphens: rclick (obvious), global (does not matter where)
+!onClickAction
+game-global=k
+game-rclick-global=o
+inv=z
+inv-rclick-global=x
+pause=z
+custom=z
+craft=z
+craft-rclick-global=x
+intro-global=any key
+
+# why
+end=que?
+!! 

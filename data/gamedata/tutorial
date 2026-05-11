@@ -64,4 +64,6 @@ Now go and feed that dragon until it gives you the means to destroy it!=1,contin
 # 1 action for every frame
 Press P to pause (and exit the tutorial!!)=15000,tick
 # show this message only after waiting 10 minutes after pause (there is no action to satisfy this one)
-Anyway, i'm tired and it's 9:18 and i wanna stop=1,This is never gonna be a action thats actually gonna happen***************
+Anyway, i'm tired and it's 9:18 and i wanna stop=1,This is never gonna be a action thats actually gonna happen
+# This comment fixes the file.
+# It just does.

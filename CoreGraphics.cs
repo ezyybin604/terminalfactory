@@ -14,7 +14,7 @@ public class WindowHandler
     public static void initFont(string font, string file, float size)
     {
         string id = font + "_" + ((int)size).ToString();
-        fonts.Add(id, TTF.OpenFont("data/" + file, size));
+        fonts.Add(id, TTF.OpenFont(Path.Join("data/fonts", file), size));
         //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
         if (fonts[id] == 0)
         {
@@ -338,7 +338,8 @@ public class WindowHandler
         int nearestSleep = 0;
         bool loop = true;
 
-        defaultFormat = SDL.GetWindowPixelFormat(window);
+        //defaultFormat = SDL.GetWindowPixelFormat(window);
+        defaultFormat = SDL.PixelFormat.RGBA8888;
         SDL.FRect lowerRect = createRect(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
@@ -413,7 +414,6 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
-            writeText(((int)(deltaTime*1000)).ToString(), 0, 8, "sans_8", black);
             foreach (int eidx in ui.Keys.ToArray())
             {
                 UIElement element = ui[eidx];
@@ -444,20 +444,13 @@ public class WindowHandler
             }
             changeInputAcceptance(inpacc);
             if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
-            /*
-                if (tc.misctext.ContainsKey("name"))
-                {
-                    string[] spln = tc.misctext["name"].Split("|");
-                    writeText(spln[0], (windowSize.x/2)-10, 100, "consbold_30", titleColor, rightcenter);
-                    writeText(spln[1], (windowSize.x/2)+10, 100, "consbold_30", SDLTools.Invert(titleColor), leftcenter);
-                }
-            */
             if (tc.misctext.ContainsKey("vers"))
             {
                 writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, leftlower);
             }
             if (tc.theGame != null)
             {
+                List<string> clickkeys = new List<string>(); // should ai be renanamed to ahc (artifical halluciantor creator)
                 Game game = tc.theGame;
                 switch (tc.mode)
                 {

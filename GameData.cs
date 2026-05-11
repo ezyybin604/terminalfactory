@@ -52,11 +52,12 @@ public class GameData
     {
         state = "done";
     }
-    public GameData(string filename)
+    public GameData(string foldername)
     {
-        if (File.Exists(filename))
+        string mainf = Path.Join(foldername, "main");
+        if (File.Exists(mainf))
         {
-            List<StreamReader> srs = [File.OpenText(filename)];
+            List<StreamReader> srs = [File.OpenText(mainf)];
             string? s;
             string? sect = null;
             List<string> keyl = new List<string>();
@@ -106,12 +107,13 @@ public class GameData
                             sect = null;
                         } else if (i == 5)
                         {
-                            if (File.Exists(after))
+                            string subfn = Path.Join(foldername, after);
+                            if (File.Exists(subfn))
                             {
-                                srs.Add(File.OpenText(after));
+                                srs.Add(File.OpenText(subfn));
                             } else
                             {
-                                state = "subfile error " + after;
+                                state = "subfile error (does not exist) " + after;
                                 return;
                             }
                         } else 
