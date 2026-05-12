@@ -639,7 +639,7 @@ public class MachineCursor
     [Key(4)]
     public string[] populatedChunks { get; set; } = [];
     [Key(5)]
-    public string[] nextUpdate { get; set; } = [];
+    public string[] nextUpdate { get; set; } = []; // this is probably where nextupdatetick is gonna be stored
     [Key(6)]
     public int version { get; set; }
     [Key(7)]

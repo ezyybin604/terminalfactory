@@ -19,14 +19,11 @@ namespace E604terminalfactory;
     - make laser purifer lens consume chance
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - conceider serializing nextUpdateTick
-    - change populatedChunks to unpopulatedChunks (and hope it works now that its probably finished)
     - finish dragon.putscale
-    - store options in seperate folders and move option data to seperate folder from worlds
-    - readjust save select to work in sdl too
-    - fix text streching when deleting from scroll in UI prompt
     - add cursor to prompt scene
-    - finish coregraphics menu
     - add sfx to certain actions in graphics
+    - add back button to prompt screen
+    - render world in game
 */
 
 public class Game
@@ -104,7 +101,6 @@ public class Game
     }
     void initStuff()
     {
-        factory.initFactory();
         topbar.tips.Add("game", [
             "Use WASD to move",
             "Press P to pause",
@@ -457,7 +453,11 @@ public class Game
     { // only for game
         if (cusc.runnerType == "sdl") return;
         int scrollnum = scroll.y;
-        if (scene != "game") scrollnum = topbar.menuScroll;
+        if (scene != "game")
+        {
+            scrollnum = topbar.menuScroll;
+            if (topbar.header.Length > 0) scrollnum-=topbar.header.Length+1;
+        }
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
             factory.linesToUpdate.Add(i+scrollnum);
@@ -999,6 +999,14 @@ Nobody follows, so to keep secrecy while you travel.
                 Thread.Sleep(200);
                 readkeylog.Clear();
                 break;
+            case "prompt":
+                menus["prompt"] = [""];
+                if (topbar.returnScene == "intro")
+                {
+                    topbar.header = ["Name the world"];
+                }
+                forceUpdateAll();
+                break;
             default:
                 break;
         }
@@ -1053,6 +1061,9 @@ Nobody follows, so to keep secrecy while you travel.
             if (scene == "game")
             {
                 updateScreen();
+            } else
+            {
+                updateMenu();
             }
             if (specialMode == "tutorial" && factory.tutorial != null && (factory.tutorial.size.x >= Console.WindowWidth || factory.tutorial.size.y+3 > Console.WindowHeight))
             {

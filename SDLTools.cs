@@ -7,6 +7,15 @@ namespace gameRunner;
 // my solution to gamerunner classes needing sdl tools
 // and the one handling with unsafe stuff
 
+public enum Algn
+{
+    leftlower = 0,
+    leftcenter = 1,
+    rightcenter = 2,
+    leftupper = 3, // default
+    centercenter = 4
+}
+
 public enum TextA
 {
     LEFT = 0, // regular
@@ -21,6 +30,23 @@ public class SDLTools // MY sdl tools :))
     public static int[] Get(TextA x, TextA y)
     {
         return [(int)x, (int)y];
+    }
+    public static int[] Get(Algn algn)
+    {
+        switch (algn)
+        {
+            case Algn.leftlower:
+                return Get(TextA.LEFT, TextA.LOWER);
+            case Algn.leftcenter:
+                return Get(TextA.LEFT, TextA.CENTER);
+            case Algn.rightcenter:
+                return Get(TextA.RIGHT, TextA.CENTER);
+            case Algn.leftupper:
+                return Get(TextA.LEFT, TextA.UPPER);
+            case Algn.centercenter:
+                return Get(TextA.CENTER, TextA.CENTER);
+        }
+        return Get(Algn.leftupper);
     }
     public static SDL.Color Invert(SDL.Color color)
     {
@@ -69,7 +95,7 @@ public class SDLTools // MY sdl tools :))
     public static SDL.FRect Lerp(SDL.FRect rect1, SDL.FRect rect2, float prog)
     {
         float rprog = Math.Clamp(0, prog, 1);
-        return WindowHandler.createRect(
+        return WindowHandler.createRectF(
             between(rect1.X, rect2.X, rprog),
             between(rect1.Y, rect2.Y, rprog),
             between(rect1.W, rect2.W, rprog),
@@ -96,7 +122,7 @@ public class SDLTools // MY sdl tools :))
     }
     public static SDL.FRect Transform(SDL.FRect rect, SDL.FPoint pt)
     {
-        return WindowHandler.createRect(rect.X+pt.X, rect.Y+pt.Y, rect.W, rect.H);
+        return WindowHandler.createRectF(rect.X+pt.X, rect.Y+pt.Y, rect.W, rect.H);
     }
 }
 
@@ -113,6 +139,11 @@ public unsafe class PointerTools
     public static nint GetPointer(SDL.PixelFormat obj)
     {
         SDL.PixelFormat* ptr = &obj;
+        return (nint)ptr;
+    }
+    public static nint GetPointer(SDL.Rect obj)
+    {
+        SDL.Rect* ptr = &obj;
         return (nint)ptr;
     }
 }

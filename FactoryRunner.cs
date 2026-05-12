@@ -423,7 +423,7 @@ public class Factory // factory data / big verbose stuff related to factory
             world[position.x].Add(position.y, data);
         }
     }
-    public void initFactory()
+    public Factory()
     {
         strColor.Add("darkred", ConsoleColor.DarkRed);
         strColor.Add("blue", ConsoleColor.Blue); // dont

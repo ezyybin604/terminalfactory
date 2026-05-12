@@ -17,10 +17,11 @@ public class UIElement
     private SDL.FColor prevc;
     private SDL.FColor curcol;
     public int col_idx = 0;
-    public double transition_time = 1; // in seconds
+    public double transition_time = 0.12f; // in seconds
     public double time = 0;
     public int cursorpos = -1;
     private float cursorscrl = 0;
+    public string lastInput = "";
     private SDL.FColor getStatic()
     {
         if (col_idx == 0)
@@ -52,7 +53,7 @@ public class UIElement
         window.drawRect(rect, SDLTools.Cast(curcol), color[1], curve, 1);
         if (type == "button")
         {
-            window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], SDLTools.Get(TextA.CENTER, TextA.CENTER));
+            window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], Algn.centercenter);
         } else if (type == "input")
         {
             float ytex = rect.Y+(rect.H/2);
@@ -64,11 +65,13 @@ public class UIElement
             } else
             {
                 // left half
-                cursorscrl = Math.Min(cursorscrl, Math.Max(0, size.X));
+                int offset = 0;
+                if (lastInput == "backspace") offset = 15;
+                cursorscrl = Math.Min(cursorscrl, Math.Max(0, size.X-offset));
             }
             window.writeText(
                 contents, 5+rect.X, ytex, font, color[2],
-                SDLTools.Get(TextA.LEFT, TextA.CENTER),
+                Algn.leftcenter,
                 new SDL.FRect{ X = cursorscrl, W = rect.W-10 }
             );
             if (id == WindowHandler.selected)

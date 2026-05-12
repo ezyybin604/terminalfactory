@@ -10,18 +10,21 @@ intro=menu
 prompt=prompt
 !! 
 
-# avaliable hyphens: rclick (obvious), global (does not matter where)
-!onClickAction
-game-global=k
-game-rclick-global=o
-inv=z
-inv-rclick-global=x
-pause=z
-custom=z
-craft=z
-craft-rclick-global=x
-intro-global=any key
+# avaliable hyphens: rc,lc,ac (right/left/any click), valid (needs to be valid)
+!keyEvents
+
+# game valid = on tile
+game-lc-valid=k
+game-rc-valid=o
+inv-lc-valid=z
+inv-rc=x
+pause-lc-valid=z
+custom-lc-valid=z
+craft-lc-valid=z
+craft-rc=x
+intro-ac=a
+prompt-return-valid=enter
 
 # why
-end=que?
+end-lc=que?
 !! 

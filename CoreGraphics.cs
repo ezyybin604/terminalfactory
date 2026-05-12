@@ -169,9 +169,13 @@ public class WindowHandler
     {
         return createColor(un, un, un, a);
     }
-    public static SDL.FRect createRect(float x, float y, float w, float h)
+    public static SDL.FRect createRectF(float x, float y, float w, float h)
     {
         return new SDL.FRect { X = x, Y = y, W = w, H = h };
+    }
+    public static SDL.Rect createRect(int x, int y, int w, int h)
+    {
+        return new SDL.Rect { X = x, Y = y, W = w, H = h };
     }
     public static SDL.FPoint createPoint(float x, float y)
     {
@@ -213,12 +217,8 @@ public class WindowHandler
     {
         return p-(size/2*algn);
     }
-    public void writeText(string c, float x, float y, string font, SDL.Color fg, int[]? alignment=null, SDL.FRect? src=null, nint? copytexture=null) {
+    public void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
         if (c.Length == 0) return;
-        if (alignment == null)
-        {
-            alignment = [0, 0];
-        }
         nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
         if (surface == NULL)
         {
@@ -230,10 +230,12 @@ public class WindowHandler
         textRect.H = surf.Height;
         if (src != null)
         {
-            textRect.W = MathF.Min(textRect.W, ((SDL.FRect)src).W);
+            SDL.FRect rsrc = (SDL.FRect)src;
+            textRect.W = MathF.Min(textRect.W, MathF.Max(0, MathF.Min(rsrc.W, textRect.W-rsrc.X)));
         }
-        textRect.X = align(alignment[0], x, surf.Width);
-        textRect.Y = align(alignment[1], y, surf.Height);
+        int[] arl = SDLTools.Get(alignment);
+        textRect.X = align(arl[0], x, surf.Width);
+        textRect.Y = align(arl[1], y, surf.Height);
         if (copytexture != null)
         {
             nint surfblit = (nint)copytexture;
@@ -254,24 +256,131 @@ public class WindowHandler
             nint texture = SDL.CreateTextureFromSurface(renderer, surface);
             if (src == null)
             {
-                //SDL.RenderTexture(surface, NULL, surfblit, SDLTools.Cast(textRect));
                 SDL.RenderTexture(renderer, texture, NULL, textRect);
             } else
             {
                 SDL.FRect rsrc = (SDL.FRect)src;
                 rsrc = new SDL.FRect {
-                   X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
+                   X = (int)rsrc.X, W = Math.Min(rsrc.W, textRect.W),
                    Y = 0, H = (int)textRect.H
                 };
                 SDL.RenderTexture(renderer, texture, rsrc, textRect);
-
             }
         }
         SDL.DestroySurface(surface);
     }
-    public static SDL.Color black = createColor(0, 0, 0);
-    public static SDL.Color white = createColor(255, 255, 255);
+    public static ConsoleKey GetConsoleKey(char c)
+    {
+        ConsoleKey ck;
+        Enum.TryParse<ConsoleKey>(c.ToString(), out ck);
+        return ck;
+    }
+    private void sendKeyEvent(string[] s)
+    {
+        if (tc.theGame == null) return;
+        string evt = tc.theGame.scene + "-" + string.Join('-', s);
+        string sc = tc.theGame.factory.gd.getFromKey("keyEvents", evt);
+        if (sc != "")
+        {
+            char c = sc[0];
+            ConsoleKeyInfo key = new ConsoleKeyInfo(c, GetConsoleKey(c), false, false, false);
+            if (sc.Length > 1)
+            {
+                switch (sc)
+                {
+                    case "enter":
+                        key = new ConsoleKeyInfo('\n', ConsoleKey.Enter, false, false, false);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            Game.readkeylog.Add(key);
+        }
+    }
+    private void sendKeyEvent(string s)
+    {
+        sendKeyEvent([s]);
+    }
+    /*private void sendKeyEvent(List<string>[] s)
+    {
+        // try every combo
+    }*/
+    public static SDL.Color black = createColor(0);
+    public static SDL.Color white = createColor(255);
     public static bool sceneUpdated = false;
+    Dictionary<int, string> clickmaps = new Dictionary<int, string>();
+    Dictionary<string, SDL.Color> colors = new Dictionary<string, SDL.Color>();
+    public WindowHandler()
+    {
+        clickmaps.Add(1, "lc");
+        clickmaps.Add(2, "rc");
+        clickmaps.Add(3, "mc");
+        colors.Add("titleColor", createColor(255, 128, 0));
+        colors.Add("blackTransparent", createColor(0, SDL.AlphaTransparent));
+        colors.Add("red", createColor(255, 0, 0));
+        colors.Add("green", createColor(0, 255, 0));
+    }
+    private void drawHeader()
+    {
+        if (tc.theGame == null) return;
+        Game game = tc.theGame;
+        for (int i=0;i<game.topbar.header.Length;i++)
+        {
+            if (game.topbar.header[i] == "TERMINALFACTORY")
+            {
+                writeText("TERMINAL", 15, 15+(30*i), "consbold_20", colors["titleColor"], Algn.leftupper);
+                writeText("FACTORY", 25+getStringLength("consbold_20", "TERMINAL").X, 15+(30*i), "consbold_20", SDLTools.Invert(colors["titleColor"]), Algn.leftupper);
+            } else
+            {
+                writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, Algn.leftupper);
+            }
+        }
+    }
+    // Yoink start from https://discourse.libsdl.org/t/sdl2-color-gradient/25408/4 (modified)
+    void drawHorizontalGradientBox(int x, int y, int w, int h, float steps, SDL.Color c1, SDL.Color c2)
+    {
+        float yt = y;
+        float rt = c1.R;
+        float gt = c1.G;
+        float bt = c1.B;
+        float at = c1.A;
+        
+        // Changes in each attribute
+        float ys = h/steps;
+        float rs = (c2.R - c1.R)/steps;
+        float gs = (c2.G - c1.G)/steps;
+        float bs = (c2.B - c1.B)/steps;
+        float asv = (c2.A - c1.A)/steps;
+
+        for (int i=0;i<steps;i++)
+        {
+            // Create an horizontal rectangle sliced by the number of steps
+            SDL.FRect rect = createRectF(x, (int)yt, w, Math.Max(ys, 1));
+
+            // Sets the rectangle color based on iteration
+            SDL.SetRenderDrawColor(renderer, (byte)rt, (byte)gt, (byte)bt, (byte)at);
+            SDL.RenderFillRect(renderer, rect);
+
+            // Update colors and positions
+            yt += ys;
+            rt += rs;
+            gt += gs;
+            bt += bs;
+            at += asv;
+        }
+    }
+    string curlayout = "none";
+    private void changeUILayout(string name, UIElement[] elements)
+    {
+        if (name == curlayout) return;
+        curlayout = name;
+        ui.Clear();
+        for (int i=0;i<elements.Length;i++)
+        {
+            ui[elements[i].id] = elements[i];
+        }
+    } // yoink end
     [STAThread]
     public void Loop()
     {
@@ -303,24 +412,16 @@ public class WindowHandler
 
         windowSize = getWindowSize(window);
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
-        initFonts("sans", "opensans.ttf", [20, 8, 15]); // opensans_ 20,8,15
-        SDL.Color titleColor = createColor(255, 128, 0);
+        initFonts("sans", "opensans.ttf", [20, 8, 15, 25]); // sans_ 20,8,15
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
 
         // highlight=high
-        SDL.FRect prevhigh = createRect(0, 0, 0, 0);
-        SDL.FRect newhigh = createRect(0, 0, 0, 0);
+        SDL.FRect prevhigh = createRectF(0, 0, 0, 0);
+        SDL.FRect newhigh = createRectF(0, 0, 0, 0);
         const float timehigh = 0.3f;
         float proghigh = timehigh;
-
-        // Text alignments
-        int[] leftlower = SDLTools.Get(TextA.LEFT, TextA.LOWER);
-        int[] leftcenter = SDLTools.Get(TextA.LEFT, TextA.CENTER);
-        int[] rightcenter = SDLTools.Get(TextA.RIGHT, TextA.CENTER);
-        int[] leftupper = SDLTools.Get(TextA.LEFT, TextA.UPPER);
-        // Text alignments end
         /*ui.Add(0, new UIElement
         {
             id = 0,
@@ -333,14 +434,16 @@ public class WindowHandler
             font = "sans_15",
             transition_time = 0.12f
         });*/
+        SDL.SetRenderDrawBlendMode(renderer, SDL.BlendMode.Blend);
         ulong lastTick;
         int nsDelay = 1000/30;
         int nearestSleep = 0;
         bool loop = true;
+        bool validclick = false;
 
         //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
-        SDL.FRect lowerRect = createRect(0, 0, 0, 0);
+        SDL.FRect lowerRect = createRectF(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
         while (loop)
@@ -366,6 +469,14 @@ public class WindowHandler
                             selected = null;
                             inpacc = false;
                         }
+                        string clickb = clickmaps[e.Button.Button];
+                        if (validclick)
+                        {
+                            sendKeyEvent([clickb, "valid"]);
+                            sendKeyEvent(["ac", "valid"]);
+                        }
+                        sendKeyEvent(clickb);
+                        sendKeyEvent("ac");
                         break;
                     case SDL.EventType.KeyDown:
                         switch (e.Key.Scancode)
@@ -376,6 +487,7 @@ public class WindowHandler
                                     int seld = (int)selected;
                                     ui[seld].contents = SDLTools.RemoveChars(ui[seld].contents, ui[seld].cursorpos-1);
                                     ui[seld].cursorpos--;
+                                    ui[seld].lastInput = "backspace";
                                 }
                                 break;
                             case SDL.Scancode.Left:
@@ -384,6 +496,7 @@ public class WindowHandler
                                     int seld = (int)selected;
                                     ui[seld].cursorpos--;
                                     ui[seld].cursorpos = Math.Max(0, ui[seld].cursorpos);
+                                    ui[seld].lastInput = "left";
                                 }
                                 break;
                             case SDL.Scancode.Right:
@@ -392,6 +505,15 @@ public class WindowHandler
                                     int seld = (int)selected;
                                     ui[seld].cursorpos++;
                                     ui[seld].cursorpos = Math.Min(ui[seld].contents.Length, ui[seld].cursorpos);
+                                    ui[seld].lastInput = "right";
+                                }
+                                break;
+                            case SDL.Scancode.Return: case SDL.Scancode.KpEnter:
+                                if (tc.theGame != null)
+                                {
+                                    Game game = tc.theGame;
+                                    sendKeyEvent("return");
+                                    if (selected != null) sendKeyEvent(["return", "valid"]);
                                 }
                                 break;
                             default:
@@ -401,9 +523,11 @@ public class WindowHandler
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
                         {
+                            int seld = (int)selected;
                             char yes = PointerTools.GetChar(e.Edit.Text);
-                            ui[(int)selected].contents = ui[(int)selected].contents.Insert(ui[(int)selected].cursorpos, yes.ToString());
-                            ui[(int)selected].cursorpos++;
+                            ui[seld].contents = ui[seld].contents.Insert(ui[seld].cursorpos, yes.ToString());
+                            ui[seld].cursorpos++;
+                            ui[seld].lastInput = yes.ToString();
                         }
                         break;
                     default:
@@ -413,7 +537,7 @@ public class WindowHandler
             cursor = getCursorPoint();
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
-            writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
+            if (tc.theGame != null) writeText(tc.theGame.topbar.tipPriority.ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
             foreach (int eidx in ui.Keys.ToArray())
             {
                 UIElement element = ui[eidx];
@@ -446,55 +570,65 @@ public class WindowHandler
             if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
             if (tc.misctext.ContainsKey("vers"))
             {
-                writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, leftlower);
+                writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, Algn.leftlower);
             }
             if (tc.theGame != null)
             {
-                List<string> clickkeys = new List<string>(); // should ai be renanamed to ahc (artifical halluciantor creator)
+                // also what does clickkeys do or mean i forgor
+                //List<string> clickkeys = new List<string>(); // should ai be renanamed to ahc (artifical halluciantor creator)
                 Game game = tc.theGame;
+                validclick = true;
                 switch (tc.mode)
                 {
                     case "prompt":
+                        changeUILayout("prompt", [
+                            new UIElement{
+                                id = 0,
+                                window = this,
+                                type = "input",
+                                contents = "",
+                                rect = createRectF(20, 45+(30*game.topbar.header.Length), 200, 50),
+                                // button color, outline color, text color, highlight tint, selected tint, selecting tint
+                                color = [createColor(255, 249, 135), black, black, grey, darkergrey, darkgrey],
+                                font = "sans_15"
+                            }
+                        ]);
+                        drawHeader();
+                        game.menus["prompt"] = [ui[0].contents];
                         break;
                     case "menu":
-                        lowerRect = createRect(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
+                        lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
-                        for (int i=0;i<game.topbar.header.Length;i++)
-                        {
-                            if (game.topbar.header[i] == "TERMINALFACTORY")
-                            {
-                                writeText("TERMINAL", 15, 15+(30*i), "consbold_20", titleColor, leftupper);
-                                writeText("FACTORY", 25+getStringLength("consbold_20", "TERMINAL").X, 15+(30*i), "consbold_20", SDLTools.Invert(titleColor), leftupper);
-                            } else
-                            {
-                                writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, leftupper);
-                            }
-                        }
+                        drawHeader();
                         drawRect(lowerRect, grey, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
                         // menusurf start
-                        if (timehigh == proghigh)
+                        if (!game.menus["nohighlight"].Contains(game.scene))
                         {
-                            drawRect(newhigh, darkergrey, null, 0, 1, menusurf);
-                        } else
-                        {
-                            drawRect(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), darkergrey, null, 0, 1, menusurf);
-                            proghigh += (float)deltaTime;
-                            if (proghigh > timehigh)
+                            if (timehigh == proghigh)
                             {
-                                proghigh = timehigh;
+                                drawRect(newhigh, darkergrey, null, 0, 1, menusurf);
+                            } else
+                            {
+                                drawRect(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), darkergrey, null, 0, 1, menusurf);
+                                proghigh += (float)deltaTime;
+                                if (proghigh > timehigh)
+                                {
+                                    proghigh = timehigh;
+                                }
                             }
                         }
                         SDL.FRect colliderect;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i];
-                            colliderect = createRect(6, 11+(i*25), getStringLength("sans_15", itm).X+12, 20);
+                            colliderect = createRectF(6, 11+(i*25), getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {
                                 // set topbar.menuselection here
                                 if (game.topbar.menuSelection != i) proghigh = 0;
                                 game.topbar.menuSelection = i;
+                                validclick = true;
                             }
                             if (game.topbar.menuSelection == i)
                             {
@@ -504,7 +638,7 @@ public class WindowHandler
                                     newhigh = SDLTools.Copy(colliderect);
                                 }
                             }
-                            writeText(itm, 10, 10+(i*25), "sans_15", black, null, null, menusurf);
+                            writeText(itm, 10, 10+(i*25), "sans_15", black, copytexture:menusurf);
                         }
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
@@ -512,13 +646,33 @@ public class WindowHandler
                     case "world":
                         break;
                 }
+                if (tc.theGame.topbar.tipPriority > 1)
+                {
+                    string flavortext = tc.theGame.topbar.tipt;
+                    char modifer = '\0';
+                    if (flavortext[0] == '/')
+                    {
+                        modifer = flavortext[1];
+                        flavortext = flavortext.Substring(2);
+                    }
+                    SDL.Color color = white;
+                    switch (modifer)
+                    {
+                        case 'd':
+                            color = colors["red"];
+                            break;
+                        case 'g':
+                            color = colors["green"];
+                            break;
+                        default:
+                            break;
+                    }
+                    drawHorizontalGradientBox(0, 0, windowSize.x, 50, 25, black, colors["blackTransparent"]);
+                    writeText(flavortext, 5, 5, "sans_25", color);
+                }
             }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
-            if (sceneUpdated)
-            {
-                
-            }
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
         }
         SDL.DestroyRenderer(renderer);
