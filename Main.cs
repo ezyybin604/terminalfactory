@@ -45,6 +45,13 @@ Options
     - Options
 */
 
+public enum WindowSizes : ushort
+{
+    TEXT = 't',
+    WINDOW = 'w',
+    BOARD = 'b',
+}
+
 public class TileConsole
 {
     public static void Error(string s)
@@ -61,36 +68,38 @@ public class TileConsole
     {
         Console.WriteLine(""); // replace in unity with AIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
+    bool doConsole = true;
     public void Clear()
     {
+        if (!doConsole) return;
         try { Console.Clear(); }
-        catch (IOException) {}
+        catch (IOException) {doConsole = false;}
     }
     public Game? theGame;
-    public Point getWindowSize(string type)
+    public Point getWindowSize(WindowSizes type)
     { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
         // window, board, text
         if (runnerType != "sdl")
         {
             switch (type)
             {
-                case "text": case "window":
+                case WindowSizes.TEXT: case WindowSizes.WINDOW:
                     return new Point(Console.WindowWidth, Console.WindowHeight);
-                case "board":
+                case WindowSizes.BOARD:
                     return new Point(Console.WindowWidth, Console.WindowHeight-2);
             }
         } else if (theGame != null)
         {
             switch (type)
             {
-                case "text":
+                case WindowSizes.TEXT:
                     return new Point(); // just ignore this one
-                case "window":
+                case WindowSizes.WINDOW:
                     return theGame.windowHandler.windowSize;
-                case "board":
+                case WindowSizes.BOARD:
                     return new Point(
-                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.x/WindowHandler.tileSize))+1,
-                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.y/WindowHandler.tileSize))+1
+                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.x/WindowHandler.tileSize))+2,
+                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.y/WindowHandler.tileSize))+2
                     );
             }
         }

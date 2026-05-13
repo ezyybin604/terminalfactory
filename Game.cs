@@ -24,6 +24,9 @@ namespace E604terminalfactory;
     - add sfx to certain actions in graphics
     - add back button to prompt screen
     - render world in game
+    - also add smooth scrolling with world rendering
+    - once smooth scrolling is done, add connected grass
+    - Move machine logic into its own file
 */
 
 public class Game
@@ -69,7 +72,7 @@ public class Game
     }
     void generateNeeded()
     {
-        Point boardSize = cusc.getWindowSize("board");
+        Point boardSize = cusc.getWindowSize(WindowSizes.BOARD);
         int w = (int)Math.Ceiling((double)(boardSize.x/Factory.chunkSize));
         int h = (int)Math.Ceiling((double)(boardSize.y/Factory.chunkSize));
         w+=3;
@@ -392,9 +395,9 @@ public class Game
                 default:
                     break;
             }
-            if (tipTextCopy.Length > cusc.getWindowSize("text").x && cusc.runnerType == "console")
+            if (tipTextCopy.Length > cusc.getWindowSize(WindowSizes.TEXT).x && cusc.runnerType == "console")
             {
-                Console.Write(tipTextCopy.Substring(0, cusc.getWindowSize("text").x));
+                Console.Write(tipTextCopy.Substring(0, cusc.getWindowSize(WindowSizes.TEXT).x));
             } else
             {
                 Console.Write(tipTextCopy);
@@ -431,7 +434,7 @@ public class Game
             lookThisOneIsJustToDrawTheBigLine();
             return;
         }
-        for (int i=0;i<Console.WindowHeight-2;i++)
+        for (int i=0;i<cusc.getWindowSize(WindowSizes.BOARD).y;i++)
         {
             factory.displayLine(i+scroll.y, cursor, scroll, cusc);
         }
@@ -467,7 +470,7 @@ public class Game
     {
         if (specialMode == "tutorial" && factory.tutorial != null && scene == "game")
         {
-            scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(cusc.getWindowSize("window").getTransform(0, -4).getDivide(-2));
+            scroll = factory.tutorial.boxpos.getTransform(factory.tutorial.size.getDivide(2)).getTransform(cusc.getWindowSize(WindowSizes.BOARD).getTransform(0, -4).getDivide(-2));
             generateNeeded();
             return;
         }
@@ -876,7 +879,9 @@ public class Game
                 };
                 tutr.initStuff();
                 readkeylog.RemoveAt(0);
+                cusc.theGame = tutr;
                 tutr.runTheGameIg();
+                cusc.theGame = this;
                 readkeylog.Add(key);
                 scene = "game";
                 forceUpdateAll();
@@ -959,7 +964,7 @@ public class Game
         List<string> from = menus[scene].ToList();
         foreach (string tp in spl)
         {
-            from.Add(tp);
+            from.Add(tp.Replace("\r", ""));
         }
         menus[scene] = from.ToArray();
     }
@@ -975,7 +980,7 @@ public class Game
             case "intro":
                 topbar.header = [];
                 displayStuff();
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
                 printToMenu(@"Your town was taken by a DRAGON.
 A group survived, (that includes you)
 But it is hungry.
@@ -1018,8 +1023,8 @@ Nobody follows, so to keep secrecy while you travel.
             hi();
             TileConsole.startSceneSelect(this, "title");
         }
-        Point windowSizePrevious = cusc.getWindowSize("window");
-        Point windowSize = new Point();
+        Point windowSizePrevious = cusc.getWindowSize(WindowSizes.WINDOW);
+        Point windowSize;
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
         adjustCamera();
@@ -1042,7 +1047,7 @@ Nobody follows, so to keep secrecy while you travel.
             }
             time = DateTime.Now;
             unnessaryFunctionForDecidingTips();
-            windowSize = cusc.getWindowSize("window");
+            windowSize = cusc.getWindowSize(WindowSizes.WINDOW);
             if (!windowSize.Equals(windowSizePrevious))
             {
                 windowSizePrevious = windowSize;
@@ -1065,7 +1070,7 @@ Nobody follows, so to keep secrecy while you travel.
             {
                 updateMenu();
             }
-            if (specialMode == "tutorial" && factory.tutorial != null && (factory.tutorial.size.x >= Console.WindowWidth || factory.tutorial.size.y+3 > Console.WindowHeight))
+            if (cusc.runnerType != "sdl" && specialMode == "tutorial" && factory.tutorial != null && (factory.tutorial.size.x >= Console.WindowWidth || factory.tutorial.size.y+3 > Console.WindowHeight))
             {
                 topbar.changeTip("/dWindow size too small!", 10, 4500, true);
             }

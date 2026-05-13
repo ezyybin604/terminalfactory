@@ -567,7 +567,7 @@ public class Factory // factory data / big verbose stuff related to factory
         string currentColor = "";
         string prevColor;
         int invertedColor = 0;
-        int tileWidth = tileConsole.getWindowSize("board").x;
+        int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
         lineResult = new string[(tileWidth*2)+2];
         for (int x=0;x<tileWidth;x++)
         {
@@ -817,6 +817,8 @@ public class Factory // factory data / big verbose stuff related to factory
             setTile(pt, tile);
         }
     }
+
+    // TODO: Move machine logic into its own file
     public void updateMachines()
     {
         Dictionary<Point, Machine>.KeyCollection why = machines.Keys;

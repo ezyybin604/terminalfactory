@@ -192,7 +192,7 @@ public class WindowHandler
     public static int? selected = null;
     private bool acceptingInput = false;
     public int lastkeyp = 0;
-    public const int tileSize = 160;
+    public const int tileSize = 64;
     private void changeInputAcceptance(bool newstat)
     {
         if (newstat != acceptingInput)
@@ -272,7 +272,7 @@ public class WindowHandler
     public static ConsoleKey GetConsoleKey(char c)
     {
         ConsoleKey ck;
-        Enum.TryParse<ConsoleKey>(c.ToString(), out ck);
+        Enum.TryParse(c.ToString(), out ck);
         return ck;
     }
     private void sendKeyEvent(string[] s)
@@ -412,7 +412,7 @@ public class WindowHandler
 
         windowSize = getWindowSize(window);
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
-        initFonts("sans", "opensans.ttf", [20, 8, 15, 25]); // sans_ 20,8,15
+        initFonts("sans", "opensans.ttf", [20, 8, 15, 25, 40]); // sans_ 20,8,15
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
@@ -440,6 +440,7 @@ public class WindowHandler
         int nearestSleep = 0;
         bool loop = true;
         bool validclick = false;
+        bool menu = true;
 
         //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
@@ -461,6 +462,9 @@ public class WindowHandler
                 {
                     case SDL.EventType.Quit:
                         loop = false;
+                        break;
+                    case SDL.EventType.WindowResized:
+                        windowSize = getWindowSize(window);
                         break;
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
@@ -568,7 +572,7 @@ public class WindowHandler
             }
             changeInputAcceptance(inpacc);
             if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
-            if (tc.misctext.ContainsKey("vers"))
+            if (tc.misctext.ContainsKey("vers") && menu)
             {
                 writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, Algn.leftlower);
             }
@@ -644,6 +648,10 @@ public class WindowHandler
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         break;
                     case "world":
+                        menu = false;
+                        writeText("its working!!!!!!!!!!!!!! (test text)", 5, 5, "sans_40", black);
+                        SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
+                        drawRect(tilex, black);
                         break;
                 }
                 if (tc.theGame.topbar.tipPriority > 1)
