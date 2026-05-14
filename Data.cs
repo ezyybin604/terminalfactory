@@ -89,6 +89,11 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         return new Point(x*m, y*m);
     }
+    public void multiply(int m)
+    {
+        x *= m;
+        y *= m;
+    }
     public Point getDivide(int m)
     {
         return new Point(x/m, y/m);

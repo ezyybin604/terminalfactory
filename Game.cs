@@ -27,6 +27,7 @@ namespace E604terminalfactory;
     - also add smooth scrolling with world rendering
     - once smooth scrolling is done, add connected grass
     - Move machine logic into its own file
+    - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
 */
 
 public class Game
@@ -104,6 +105,10 @@ public class Game
     }
     void initStuff()
     {
+        if (cusc.runnerType == "sdl")
+        {
+            factory.exposeDisplay = true;
+        }
         topbar.tips.Add("game", [
             "Use WASD to move",
             "Press P to pause",

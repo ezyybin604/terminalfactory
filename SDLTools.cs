@@ -65,6 +65,10 @@ public class SDLTools // MY sdl tools :))
         }
         return res;
     }
+    public static SDL.FPoint DividePoint(SDL.FPoint point, float divend)
+    {
+        return new SDL.FPoint{X = point.X/divend, Y = point.Y/divend};
+    }
     private static float between(float n1, float n2, float prog)
     {
         return n1+((n2-n1)*prog);
@@ -80,6 +84,10 @@ public class SDLTools // MY sdl tools :))
     public static SDL.Rect Cast(SDL.FRect rect)
     {
         return new SDL.Rect{X = (int)rect.X, Y = (int)rect.Y, W = (int)rect.W, H = (int)rect.H};
+    }
+    public static SDL.Point Cast(SDL.FPoint point)
+    {
+        return new SDL.Point{X = (int)point.X, Y = (int)point.Y};
     }
     public static SDL.FColor Lerp(SDL.FColor cols, SDL.FColor cole, float prog)
     {

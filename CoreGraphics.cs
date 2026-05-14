@@ -65,6 +65,34 @@ public class WindowHandler
             return this;
         }
     }
+    GameData gd;
+    SDL.Point spdm; // spritesheet dimensions
+    nint spritesheet;
+    public void drawTile(Tile tile, int x, int y, int spro=0) // sprite offset = 1 when machine on
+    {
+        string keyt = tile.type + "." + tile.subtype;
+        string val = gd.getFromKey("tileTileset", keyt);
+        if (val == "")
+        {
+            keyt = tile.type.ToString();
+            val = gd.getFromKey("tileTileset", keyt);
+        }
+        if (val == "")
+        {
+            val = "23";
+        }
+        string[] sprs = val.Split(","); // n,n < sprites
+        SDL.FRect dest = createRectF(x, y, tileSize, tileSize);
+        foreach (string s in sprs)
+        {
+            // UNFINISHED
+            int sp = JPI.parseInt(s)-1;
+            Point stpos = new Point(sp%spdm.X, (int)Math.Floor((double)(sp/spdm.Y)));
+            stpos.multiply(shTileS);
+            SDL.FRect clip = createRectF(stpos, shTileS, shTileS);
+            SDL.RenderTexture(renderer, spritesheet, clip, dest);
+        }
+    }
     public void fillCircle(SDL.FPoint[] circle, SDL.Color col)
     {
         int ymax = int.MinValue;
@@ -177,6 +205,10 @@ public class WindowHandler
     {
         return new SDL.Rect { X = x, Y = y, W = w, H = h };
     }
+    public static SDL.FRect createRectF(Point pt, int w, int h)
+    {
+        return new SDL.FRect { X = pt.x, Y = pt.y, W = w, H = h };
+    }
     public static SDL.FPoint createPoint(float x, float y)
     {
         return new SDL.FPoint { X = x, Y = y };
@@ -192,6 +224,7 @@ public class WindowHandler
     public static int? selected = null;
     private bool acceptingInput = false;
     public int lastkeyp = 0;
+    public const int shTileS = 32;
     public const int tileSize = 64;
     private void changeInputAcceptance(bool newstat)
     {
@@ -313,6 +346,7 @@ public class WindowHandler
     Dictionary<string, SDL.Color> colors = new Dictionary<string, SDL.Color>();
     public WindowHandler()
     {
+        gd = new GameData();
         clickmaps.Add(1, "lc");
         clickmaps.Add(2, "rc");
         clickmaps.Add(3, "mc");
@@ -370,6 +404,11 @@ public class WindowHandler
             at += asv;
         }
     }
+    public SDL.FPoint getTextureSize(nint texture)
+    {
+        if (!SDL.GetTextureSize(texture, out float x, out float y)) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
+        return createPoint(x, y);
+    }
     string curlayout = "none";
     private void changeUILayout(string name, UIElement[] elements)
     {
@@ -384,6 +423,10 @@ public class WindowHandler
     [STAThread]
     public void Loop()
     {
+        if (tc.theGame != null)
+        {
+            gd = tc.theGame.factory.gd;
+        }
         if (!SDL.Init(SDL.InitFlags.Video))
         {
             SDL.LogError(SDL.LogCategory.System, String.Format("SDL could not initialize: {0}", SDL.GetError()));
@@ -409,6 +452,9 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Render, $"Error setting icon: {SDL.GetError()}");
         }
         SDL.SetWindowMinimumSize(window, 800, 400);
+        spritesheet = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/tileset.png"));
+        if (spritesheet == NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
+        spdm = SDLTools.Cast(SDLTools.DividePoint(getTextureSize(spritesheet), shTileS));
 
         windowSize = getWindowSize(window);
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
@@ -649,9 +695,8 @@ public class WindowHandler
                         break;
                     case "world":
                         menu = false;
-                        writeText("its working!!!!!!!!!!!!!! (test text)", 5, 5, "sans_40", black);
+                        drawTile(new Tile("i.diamond"), 10, 10);
                         SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
-                        drawRect(tilex, black);
                         break;
                 }
                 if (tc.theGame.topbar.tipPriority > 1)
