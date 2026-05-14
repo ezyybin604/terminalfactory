@@ -420,6 +420,11 @@ public class WindowHandler
             ui[elements[i].id] = elements[i];
         }
     } // yoink end
+    public Dictionary<int, Tile[]> worldisplay = new Dictionary<int, Tile[]>();
+    public void sendTiles(Point startp, Tile[] tiles)
+    {
+        // stuff
+    }
     [STAThread]
     public void Loop()
     {
@@ -452,7 +457,7 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Render, $"Error setting icon: {SDL.GetError()}");
         }
         SDL.SetWindowMinimumSize(window, 800, 400);
-        
+
         spritesheet = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/tileset.png"));
         if (spritesheet == NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
         spdm = SDLTools.Cast(SDLTools.DividePoint(getTextureSize(spritesheet), shTileS));

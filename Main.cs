@@ -212,7 +212,10 @@ public class TileConsole
     public Dictionary<string,string> misctext = new Dictionary<string, string>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
-        // empty
+        if (runnerType == "sdl")
+        {
+            
+        }
     }
     public void setSplash(string text, string versionstr)
     {
