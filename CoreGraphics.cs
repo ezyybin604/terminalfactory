@@ -1,5 +1,4 @@
 
-using System.Security.Cryptography.X509Certificates;
 using E604terminalfactory;
 using SDL3;
 
@@ -423,7 +422,13 @@ public class WindowHandler
     public Dictionary<int, Tile[]> worldisplay = new Dictionary<int, Tile[]>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
-        // stuff
+        if (worldisplay.ContainsKey(startp.y))
+        {
+            worldisplay[startp.y] = tiles;
+        } else
+        {
+            worldisplay.Add(startp.y, tiles);
+        }
     }
     [STAThread]
     public void Loop()
@@ -702,7 +707,18 @@ public class WindowHandler
                         break;
                     case "world":
                         menu = false;
-                        drawTile(new Tile("i.diamond"), 10, 10);
+                        int brh = cusc.getWindowSize(WindowSizes.BOARD).y;
+                        for (int i=0;i<brh;i++)
+                        {
+                            if (worldisplay.ContainsKey(i))
+                            {
+                                Tile[] tiles = worldisplay[i];
+                                for (int x=0;x<tiles.Length;x++)
+                                { // add offsets for these so scroll
+                                    drawTile(tiles[x], x*tileSize, i*tileSize);
+                                }
+                            }
+                        }
                         SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
                         break;
                 }

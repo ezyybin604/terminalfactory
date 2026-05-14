@@ -23,11 +23,12 @@ namespace E604terminalfactory;
     - add cursor to prompt scene
     - add sfx to certain actions in graphics
     - add back button to prompt screen
-    - render world in game
     - also add smooth scrolling with world rendering
     - once smooth scrolling is done, add connected grass
     - Move machine logic into its own file
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
+    - add a "backbuffer" to sending tiles to CoreGraphics
+    - give world renderer more info of tile position
 */
 
 public class Game
