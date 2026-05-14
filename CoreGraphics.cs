@@ -452,9 +452,11 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.Render, $"Error setting icon: {SDL.GetError()}");
         }
         SDL.SetWindowMinimumSize(window, 800, 400);
+        
         spritesheet = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/tileset.png"));
         if (spritesheet == NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
         spdm = SDLTools.Cast(SDLTools.DividePoint(getTextureSize(spritesheet), shTileS));
+        SDL.SetTextureScaleMode(spritesheet, SDL.ScaleMode.PixelArt);
 
         windowSize = getWindowSize(window);
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
