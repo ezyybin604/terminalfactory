@@ -69,6 +69,7 @@ public class WindowHandler
     nint spritesheet;
     public void drawTile(Tile tile, int x, int y, int spro=0) // sprite offset = 1 when machine on
     {
+        if (tile.type == ' ') return;
         string keyt = tile.type + "." + tile.subtype;
         string val = gd.getFromKey("tileTileset", keyt);
         if (val == "")
@@ -86,6 +87,7 @@ public class WindowHandler
         {
             // UNFINISHED
             int sp = JPI.parseInt(s)-1;
+            sp += spro;
             Point stpos = new Point(sp%spdm.X, (int)Math.Floor((double)(sp/spdm.Y)));
             stpos.multiply(shTileS);
             SDL.FRect clip = createRectF(stpos, shTileS, shTileS);
@@ -223,8 +225,8 @@ public class WindowHandler
     public static int? selected = null;
     private bool acceptingInput = false;
     public int lastkeyp = 0;
-    public const int shTileS = 32;
-    public const int tileSize = 64;
+    public const int shTileS = 32; // size in spritesheet
+    public const int tileSize = 32; // size in pixels
     private void changeInputAcceptance(bool newstat)
     {
         if (newstat != acceptingInput)
@@ -419,9 +421,11 @@ public class WindowHandler
             ui[elements[i].id] = elements[i];
         }
     } // yoink end
+    Point startpn = new Point();
     public Dictionary<int, Tile[]> worldisplay = new Dictionary<int, Tile[]>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
+        if (!startpn.Equals(startp)) startpn = startp;
         if (worldisplay.ContainsKey(startp.y))
         {
             worldisplay[startp.y] = tiles;
@@ -431,7 +435,7 @@ public class WindowHandler
         }
     }
     [STAThread]
-    public void Loop()
+    public void Loop(Thread thread)
     {
         if (tc.theGame != null)
         {
@@ -505,6 +509,7 @@ public class WindowHandler
         SDL.FRect lowerRect = createRectF(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
+        thread.Start();
         while (loop)
         {
             LAST = NOW;
@@ -707,19 +712,19 @@ public class WindowHandler
                         break;
                     case "world":
                         menu = false;
-                        int brh = cusc.getWindowSize(WindowSizes.BOARD).y;
+                        int brh = game.cusc.getWindowSize(WindowSizes.BOARD).y;
                         for (int i=0;i<brh;i++)
                         {
-                            if (worldisplay.ContainsKey(i))
+                            if (worldisplay.ContainsKey(i+game.scroll.y))
                             {
-                                Tile[] tiles = worldisplay[i];
+                                Tile[] tiles = worldisplay[i+game.scroll.y];
                                 for (int x=0;x<tiles.Length;x++)
                                 { // add offsets for these so scroll
                                     drawTile(tiles[x], x*tileSize, i*tileSize);
                                 }
                             }
                         }
-                        SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
+                        //SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
                         break;
                 }
                 if (tc.theGame.topbar.tipPriority > 1)
@@ -749,6 +754,10 @@ public class WindowHandler
             }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
+            if (tc.theGame != null)
+            {
+                tc.theGame.acceptFrame = true;
+            }
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
         }
         SDL.DestroyRenderer(renderer);

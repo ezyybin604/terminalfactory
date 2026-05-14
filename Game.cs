@@ -35,7 +35,7 @@ public class Game
 {
     // Scenes: game,end,inv,pause,craft,custom,intro,prompt
     public string scene = "custom";
-    Point scroll = new Point();
+    public Point scroll = new Point();
     Point cursor = new Point(2,2);
     public Factory factory = new Factory
     {
@@ -183,6 +183,7 @@ public class Game
             ];
             factory.emptyTile = new Tile(" ");
             factory.tutorial = new FTutorial{fact = factory};
+            factory.tutorial.size = new Point(30, 15);
             factory.tutorial.updateAction();
             cursor = factory.tutorial.center;
         }
@@ -1022,6 +1023,7 @@ Nobody follows, so to keep secrecy while you travel.
                 break;
         }
     }
+    public bool acceptFrame = true;
     public void runTheGameIg()
     {
         if (specialMode != "tutorial")
@@ -1033,11 +1035,16 @@ Nobody follows, so to keep secrecy while you travel.
         Point windowSize;
         Point previousCamera = new Point(-1, 0);
         string previousScene = scene;
+        generateNeeded();
         adjustCamera();
         generateNeeded();
         displayStuff();
         while (scene != "end")
         {
+            while (!acceptFrame)
+            {
+                Thread.Sleep(10);
+            }
             if (previousScene != scene)
             {
                 previousScene = scene;
@@ -1100,6 +1107,7 @@ Nobody follows, so to keep secrecy while you travel.
                     topbar.lastTipChange = DateTime.MinValue.Ticks;
                 }
             }
+            if (cusc.runnerType == "sdl") acceptFrame = false;
             Thread.Sleep(50);
         }
         if (specialMode == "")

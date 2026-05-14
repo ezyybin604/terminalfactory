@@ -1,6 +1,7 @@
 
 // entry point
 
+using System.Net.Sockets;
 using E604terminalfactory;
 
 namespace gameRunner;
@@ -111,10 +112,9 @@ public class TileConsole
         {
             Name = "Game Logic"
         };
-        gameThread.Start();
         if (runnerType == "sdl")
         {
-            game.windowHandler.Loop();
+            game.windowHandler.Loop(gameThread);
             game.scene = "end";
             return;
         }
@@ -212,9 +212,9 @@ public class TileConsole
     public Dictionary<string,string> misctext = new Dictionary<string, string>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
-        if (runnerType == "sdl")
+        if (runnerType == "sdl" && theGame != null)
         {
-            
+            theGame.windowHandler.sendTiles(startp, tiles);
         }
     }
     public void setSplash(string text, string versionstr)

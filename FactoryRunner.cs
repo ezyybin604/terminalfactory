@@ -690,24 +690,19 @@ public class Factory // factory data / big verbose stuff related to factory
         Console.ResetColor();
         //Console.WriteLine(String.Join(",", lineResult)); // displayLine:debug
         Console.ForegroundColor = ConsoleColor.Green;
-        int cx = 0;
         for (int o=0;lineResult[o] != "/end";o++)
         {
             string yes = lineResult[o];
             if (exposeDisplay)
             {
-                if (yes[0] != '/')
+                List<Tile> ts = new List<Tile>();
+                Point startp = new Point(scroll.x, y);
+                for (int i=0;i<tileWidth;i++)
                 {
-                    List<Tile> ts = new List<Tile>();
-                    Point startp = new Point(cx, y);
-                    for (int i=0;i<yes.Length;i++)
-                    {
-                        ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
-                    }
-                    tileConsole.sendTiles(startp, ts.ToArray());
-                    cx += yes.Length;
+                    ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
                 }
-                continue;
+                tileConsole.sendTiles(startp, ts.ToArray());
+                return;
             }
             if (yes[0] == '/' && yes.Length > 1)
             {

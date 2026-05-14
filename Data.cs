@@ -1,4 +1,5 @@
 
+using System.Runtime.CompilerServices;
 using MessagePack;
 
 namespace E604terminalfactory;
@@ -436,7 +437,7 @@ public class Inventory
 
 public class FTutorial
 { // tutorial controller
-    public Point boxpos = new Point(256, 256); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES
+    public Point boxpos = new Point(1000, 1000); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES
     public Point size = new Point(60, 15);
     public Point center = new Point();
     string[] messageprog = [];
@@ -556,10 +557,10 @@ public class FTutorial
             case "placepipes":
                 getPath([
                     center.getTransform(2, 0),
-                    center.getTransform(8, 0),
-                    center.getTransform(8, 4),
-                    center.getTransform(-8, 4),
-                    center.getTransform(-8, 0),
+                    center.getTransform(5, 0),
+                    center.getTransform(5, 4),
+                    center.getTransform(-5, 4),
+                    center.getTransform(-5, 0),
                     center.getTransform(-2, 0)
                 ]);
                 animcur = "dopipepath";
@@ -572,8 +573,8 @@ public class FTutorial
             case "placecable":
                 getPath([
                     center.getTransform(2, 0),
-                    center.getTransform(8, 0),
-                    center.getTransform(8, -4),
+                    center.getTransform(6, 0),
+                    center.getTransform(6, -4),
                     center.getTransform(0, -4),
                     center.getTransform(0, -2),
                 ]);
