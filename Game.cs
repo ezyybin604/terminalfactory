@@ -753,7 +753,6 @@ public class Game
                     default:
                         break;
                 }
-                topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
                 break;
             case "inv":
                 switch (ch)
