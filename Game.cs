@@ -36,7 +36,7 @@ public class Game
     // Scenes: game,end,inv,pause,craft,custom,intro,prompt
     public string scene = "custom";
     public Point scroll = new Point();
-    Point cursor = new Point(2,2);
+    public Point cursor = new Point(2,2);
     public Factory factory = new Factory
     {
         gd = new GameData("data/gamedata") // add data path to gdm main path too maybe
@@ -329,6 +329,9 @@ public class Game
                 loadData();
                 scene = "game";
                 displayStuff();
+                break;
+            case "quit":
+                scene = "end";
                 break;
         }
     }
@@ -750,7 +753,7 @@ public class Game
                     default:
                         break;
                 }
-                topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus["pause"].Length-1);
+                topbar.menuSelection = Math.Clamp(topbar.menuSelection, 0, menus[scene].Length-1);
                 break;
             case "inv":
                 switch (ch)
@@ -1117,7 +1120,10 @@ Nobody follows, so to keep secrecy while you travel.
     }
     void bye()
     {
-        gdm.saveOption("defaultsave", factory.savefile);
+        if (gdm.savefileExists(factory.savefile))
+        {
+            gdm.saveOption("defaultsave", factory.savefile);
+        }
         if (cusc.runnerType != "sdl")
         {
             Console.ResetColor();

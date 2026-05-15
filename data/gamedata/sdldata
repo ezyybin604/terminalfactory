@@ -62,6 +62,7 @@ m.3=26
 F=45
 t=46
 M=47
+ =50
 # directional, maybe use negative number to add programable additional sprites on top
 p=7,30
 ~=7,39

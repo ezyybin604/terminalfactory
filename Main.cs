@@ -118,6 +118,7 @@ public class TileConsole
             game.scene = "end";
             return;
         }
+        gameThread.Start();
         string[] instantExitModes = ["demo", "tutorial"];
         ConsoleKeyInfo input;
         while (game.scene != "end")
@@ -176,7 +177,7 @@ public class TileConsole
         {
             case "title":
                 bool sf = game.gdm.savefileExists(game.factory.savefile);
-                if (game.gdm.optionExists("defaultsave"))
+                if (game.gdm.optionExists("defaultsave") && !sf)
                 {
                     game.factory.savefile = game.gdm.getOption("defaultsave");
                     sf = game.gdm.savefileExists(game.factory.savefile);
@@ -184,7 +185,8 @@ public class TileConsole
                 game.topbar.header = ["TERMINALFACTORY"];
                 List<string> menu = [
                     "New Game|nameprompt",
-                    "Options|opt"
+                    "Options|opt",
+                    "Quit|quit"
                 ];
                 if (sf)
                 {
@@ -196,6 +198,7 @@ public class TileConsole
             case "worldlist":
                 string[] saves = Directory.GetDirectories(game.gdm.worldFolder);
                 List<string> wlist = ["Back|back"];
+                game.topbar.header = ["Save Selected: " + game.factory.savefile];
                 foreach (string save in saves)
                 {
                     wlist.Add(JPI.getFilename(save) + "|selectworl");

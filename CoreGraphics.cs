@@ -69,7 +69,6 @@ public class WindowHandler
     nint spritesheet;
     public void drawTile(Tile tile, int x, int y, int spro=0) // sprite offset = 1 when machine on
     {
-        if (tile.type == ' ') return;
         string keyt = tile.type + "." + tile.subtype;
         string val = gd.getFromKey("tileTileset", keyt);
         if (val == "")
@@ -85,10 +84,9 @@ public class WindowHandler
         SDL.FRect dest = createRectF(x, y, tileSize, tileSize);
         foreach (string s in sprs)
         {
-            // UNFINISHED
             int sp = JPI.parseInt(s)-1;
             sp += spro;
-            Point stpos = new Point(sp%spdm.X, (int)Math.Floor((double)(sp/spdm.Y)));
+            Point stpos = new Point(sp%spdm.X, sp/spdm.X);
             stpos.multiply(shTileS);
             SDL.FRect clip = createRectF(stpos, shTileS, shTileS);
             SDL.RenderTexture(renderer, spritesheet, clip, dest);
@@ -509,12 +507,14 @@ public class WindowHandler
         SDL.FRect lowerRect = createRectF(0, 0, 0, 0);
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
+        double timePass = 0;
         thread.Start();
         while (loop)
         {
             LAST = NOW;
             NOW = SDL.GetPerformanceCounter();
             deltaTime = (NOW - LAST) / (double)SDL.GetPerformanceFrequency();
+            timePass += deltaTime;
 
             lastTick = SDL.GetTicks();
             bool clicked = false;
@@ -604,7 +604,6 @@ public class WindowHandler
             cursor = getCursorPoint();
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
-            if (tc.theGame != null) writeText(tc.theGame.topbar.tipPriority.ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
             foreach (int eidx in ui.Keys.ToArray())
             {
                 UIElement element = ui[eidx];
@@ -685,6 +684,7 @@ public class WindowHandler
                                 }
                             }
                         }
+                        if (!game.menus.ContainsKey(game.scene)) break;
                         SDL.FRect colliderect;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
@@ -724,7 +724,8 @@ public class WindowHandler
                                 }
                             }
                         }
-                        //SDL.FRect tilex = createRectF(tileSize, tileSize, tileSize, tileSize);
+                        SDL.FRect tilex = createRectF((game.cursor.x-game.scroll.x)*tileSize, (game.cursor.y-game.scroll.y)*tileSize, tileSize, tileSize);
+                        drawRect(tilex, createColor(0, (byte)(64+(64*Math.Abs((timePass%2)-1)))));
                         break;
                 }
                 if (tc.theGame.topbar.tipPriority > 1)
@@ -751,6 +752,7 @@ public class WindowHandler
                     drawHorizontalGradientBox(0, 0, windowSize.x, 50, 25, black, colors["blackTransparent"]);
                     writeText(flavortext, 5, 5, "sans_25", color);
                 }
+                writeText(Math.Round(timePass%2, 2).ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
             }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
