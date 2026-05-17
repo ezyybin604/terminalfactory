@@ -16,8 +16,16 @@ prompt=prompt
 # game valid = on tile
 game-lc-valid=k
 game-rc-valid=o
+game-keyI=i
+game-keyL=l
+game-keyJ=j
+game-keyC=c
+
 inv-lc-valid=z
 inv-rc=x
+inv-keyL=h
+inv-keyI=a
+
 pause-lc-valid=z
 custom-lc-valid=z
 craft-lc-valid=z
@@ -70,4 +78,8 @@ p=7,30
 i=23
 b=7,16
 f=7,9
+!! 
+
+!SDLTutorialMsg
+!!!!!sdltutorial
 !! 

@@ -74,9 +74,21 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         return new Point(x+point.x, y+point.y);
     }
+    public Point getTransformInverted(Point point)
+    {
+        return new Point(x-point.x, y-point.y);
+    }
     public Point getTransform(int tx, int ty)
     {
         return new Point(x+tx, y+ty);
+    }
+    public Point getTransformX(int tx)
+    {
+        return new Point(x+tx, y);
+    }
+    public Point getTransformY(int ty)
+    {
+        return new Point(x, y+ty);
     }
     public Point getTransform(int tp)
     {
@@ -110,6 +122,10 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     public Point getNeutralized()
     {
         return new Point(neutralize(x), neutralize(y));
+    }
+    public override string ToString()
+    {
+        return JPI.getJs(this);
     }
 }
 
@@ -435,6 +451,11 @@ public class Inventory
     }
 }
 
+/*
+Additional actions for Sdl tutorial
+
+//// secondpass: second passes (timer for second resets on updateAction) (not used)
+*/
 public class FTutorial
 { // tutorial controller
     public Point boxpos = new Point(1000, 1000); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES
@@ -453,26 +474,28 @@ public class FTutorial
     public bool canDelete = true;
     public bool worldModify = true;
     List<Point> path = [];
-    public void getPath(List<Point> dots)
+    public string tutorialkey = "tutorialMsg";
+    public static List<Point> getPathList(List<Point> dots)
     {
-        path = [];
+        List<Point> pathget = [];
         for (int i=0;i<dots.Count-1;i++)
         { // start dot + line dots
             Point pt = dots[i];
             Point df = dots[i+1].getTransform(pt.getMultiply(-1)).getNeutralized();
             while (!pt.Equals(dots[i+1]))
             {
-                path.Add(pt);
+                pathget.Add(pt);
                 pt.transform(df);
             }
         }
-        path.Add(dots.Last()); // last dot
+        pathget.Add(dots.Last()); // last dot
+        return pathget;
     }
     public void updateAction()
     {
-        messageprog = fact.gd.getKeys("tutorialMsg");
+        messageprog = fact.gd.getKeys(tutorialkey);
         center = boxpos.getTransform(size.getDivide(2));
-        string[] curd = fact.gd.getSplit("tutorialMsg", messageprog[mpgs]);
+        string[] curd = fact.gd.getSplit(tutorialkey, messageprog[mpgs]);
         numact = JPI.parseInt(curd[0]);
         curact = curd[1];
         beforeAction();
@@ -507,7 +530,7 @@ public class FTutorial
     }
     private void beforeAction()
     {
-        switch (GameData.getindex(fact.gd.getSplit("tutorialMsg", messageprog[mpgs]), 2))
+        switch (GameData.getindex(fact.gd.getSplit(tutorialkey, messageprog[mpgs]), 2))
         {
             case "spawnsand":
                 fact.placeFeatureUpdate(Factory.pointShapeGenerator(1, "diamond"), new Tile("f.sand.16"), center.getTransform(-1));
@@ -555,7 +578,7 @@ public class FTutorial
                 fact.setTileUpdate(center.getTransform(0, 1), new Tile('@'));
                 break;
             case "placepipes":
-                getPath([
+               path = getPathList([
                     center.getTransform(2, 0),
                     center.getTransform(5, 0),
                     center.getTransform(5, 4),
@@ -571,7 +594,7 @@ public class FTutorial
                 animf = 0;
                 break;
             case "placecable":
-                getPath([
+                path = getPathList([
                     center.getTransform(2, 0),
                     center.getTransform(6, 0),
                     center.getTransform(6, -4),

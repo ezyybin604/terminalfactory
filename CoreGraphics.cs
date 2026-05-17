@@ -426,11 +426,9 @@ public class WindowHandler
         if (!startpn.Equals(startp)) startpn = startp;
         if (worldisplay.ContainsKey(startp.y))
         {
-            worldisplay[startp.y] = tiles;
-        } else
-        {
-            worldisplay.Add(startp.y, tiles);
+            worldisplay.Remove(startp.y);
         }
+        worldisplay.Add(startp.y, tiles);
     }
     [STAThread]
     public void Loop(Thread thread)
@@ -502,9 +500,10 @@ public class WindowHandler
         bool validclick = false;
         bool menu = true;
 
+        Point debugPoint = new Point();
         //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
-        SDL.FRect lowerRect = createRectF(0, 0, 0, 0);
+        SDL.FRect lowerRect;
         ulong NOW = SDL.GetPerformanceCounter();
         ulong LAST;
         double timePass = 0;
@@ -548,6 +547,24 @@ public class WindowHandler
                     case SDL.EventType.KeyDown:
                         switch (e.Key.Scancode)
                         {
+                            case SDL.Scancode.I:
+                                sendKeyEvent("keyI");
+                                break;
+                            case SDL.Scancode.L:
+                                sendKeyEvent("keyL");
+                                break;
+                            case SDL.Scancode.J:
+                                sendKeyEvent("keyJ");
+                                break;
+                            case SDL.Scancode.C:
+                                sendKeyEvent("keyC");
+                                break;
+                            case SDL.Scancode.R: // reset cursor
+                                if (tc.theGame != null && tc.theGame.factory.tutorial != null)
+                                {
+                                    tc.theGame.cursor = tc.theGame.factory.tutorial.center;
+                                }
+                                break;
                             case SDL.Scancode.Backspace:
                                 if (selected != null && ui[(int)selected].cursorpos > 0)
                                 {
@@ -724,13 +741,59 @@ public class WindowHandler
                                 }
                             }
                         }
+                        Point newCursor = new Point(game.scroll.x+(int)(cursor.X/tileSize), game.scroll.y+(int)(cursor.Y/tileSize));
+                        if (!newCursor.Equals(game.cursor))
+                        {
+                            game.sendAction("cursorchange");
+                            if (game.specialMode == "tutorial")
+                            {
+                                Point inbetween = new Point(newCursor.x, game.cursor.y);
+                                List<Point> check = FTutorial.getPathList([game.cursor, inbetween]);
+                                int prevx = game.cursor.x;
+                                bool setNewX = false;
+                                foreach (Point pt in check)
+                                {
+                                    char ttype = game.factory.giveMeTheTile(pt).type;
+                                    if (ttype == 't')
+                                    {
+                                        setNewX = true;
+                                    } else if (!setNewX)
+                                    {
+                                        prevx = pt.x;
+                                    }
+                                }
+                                if (setNewX)
+                                {
+                                    newCursor.x = prevx;
+                                }
+                                bool setNewY = false;
+                                check = FTutorial.getPathList([new Point(newCursor.x, game.cursor.y), newCursor]);
+                                int prevy = game.cursor.y;
+                                foreach (Point pt in check)
+                                {
+                                    char ttype = game.factory.giveMeTheTile(pt).type;
+                                    if (ttype == 't')
+                                    {
+                                        setNewY = true;
+                                    } else if (!setNewY)
+                                    {
+                                        prevy = pt.y;
+                                    }
+                                }
+                                if (setNewY)
+                                {
+                                    newCursor.y = prevy;
+                                }
+                            } 
+                            game.cursor = newCursor;
+                        }
                         SDL.FRect tilex = createRectF((game.cursor.x-game.scroll.x)*tileSize, (game.cursor.y-game.scroll.y)*tileSize, tileSize, tileSize);
                         drawRect(tilex, createColor(0, (byte)(64+(64*Math.Abs((timePass%2)-1)))));
                         break;
                 }
-                if (tc.theGame.topbar.tipPriority > 1)
+                if (game.topbar.tipPriority > 0 || game.specialMode == "tutorial")
                 {
-                    string flavortext = tc.theGame.topbar.tipt;
+                    string flavortext = game.topbar.tipt;
                     char modifer = '\0';
                     if (flavortext[0] == '/')
                     {
@@ -751,8 +814,12 @@ public class WindowHandler
                     }
                     drawHorizontalGradientBox(0, 0, windowSize.x, 50, 25, black, colors["blackTransparent"]);
                     writeText(flavortext, 5, 5, "sans_25", color);
+                    if (game.factory.tutorial != null && game.factory.tutorial.curact == "continue")
+                    {
+                        writeText("{( C )}", 5, 35, "sans_25", black);
+                    }
                 }
-                writeText(Math.Round(timePass%2, 2).ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
+                writeText(debugPoint.ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
             }
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
