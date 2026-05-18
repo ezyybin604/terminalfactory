@@ -111,6 +111,10 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         return new Point(neutralize(x), neutralize(y));
     }
+    public override string ToString()
+    {
+        return string.Format("{0},{1}", x, y);
+    }
 }
 
 public class TopBar
