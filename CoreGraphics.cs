@@ -208,6 +208,10 @@ public class WindowHandler
     {
         return new SDL.FRect { X = pt.x, Y = pt.y, W = w, H = h };
     }
+    public static SDL.FRect createRectF(SDL.FPoint pt1, SDL.FPoint pt2)
+    {
+        return new SDL.FRect { X = pt1.X, Y = pt1.Y, W = pt2.X, H = pt2.Y };
+    }
     public static SDL.FPoint createPoint(float x, float y)
     {
         return new SDL.FPoint { X = x, Y = y };
@@ -249,6 +253,10 @@ public class WindowHandler
     {
         return p-(size/2*algn);
     }
+    /*public static float align(int algn, float p)
+    {
+        return p-(p/2*algn);
+    }*/
     public void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
         if (c.Length == 0) return;
         nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
@@ -347,8 +355,8 @@ public class WindowHandler
     {
         gd = new GameData();
         clickmaps.Add(1, "lc");
-        clickmaps.Add(2, "rc");
-        clickmaps.Add(3, "mc");
+        clickmaps.Add(2, "mc");
+        clickmaps.Add(3, "rc");
         colors.Add("titleColor", createColor(255, 128, 0));
         colors.Add("blackTransparent", createColor(0, SDL.AlphaTransparent));
         colors.Add("red", createColor(255, 0, 0));
@@ -403,7 +411,7 @@ public class WindowHandler
             at += asv;
         }
     }
-    public SDL.FPoint getTextureSize(nint texture)
+    public static SDL.FPoint getTextureSize(nint texture)
     {
         if (!SDL.GetTextureSize(texture, out float x, out float y)) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
         return createPoint(x, y);
@@ -466,6 +474,9 @@ public class WindowHandler
         spritesheet = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/tileset.png"));
         if (spritesheet == NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
         spdm = SDLTools.Cast(SDLTools.DividePoint(getTextureSize(spritesheet), shTileS));
+        nint backbutton = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/backbutton.png"));
+        nint pausebutton = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/pausebutton.png"));
+
         SDL.SetTextureScaleMode(spritesheet, SDL.ScaleMode.PixelArt);
 
         windowSize = getWindowSize(window);
@@ -527,6 +538,10 @@ public class WindowHandler
                         break;
                     case SDL.EventType.WindowResized:
                         windowSize = getWindowSize(window);
+                        foreach (UIElement element in ui.Values)
+                        {
+                            element.updateRect();
+                        }
                         break;
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
@@ -545,27 +560,27 @@ public class WindowHandler
                         sendKeyEvent("ac");
                         break;
                     case SDL.EventType.KeyDown:
-                        switch (e.Key.Scancode)
+                        switch (e.Key.Key)
                         {
-                            case SDL.Scancode.I:
+                            case SDL.Keycode.I:
                                 sendKeyEvent("keyI");
                                 break;
-                            case SDL.Scancode.L:
+                            case SDL.Keycode.L:
                                 sendKeyEvent("keyL");
                                 break;
-                            case SDL.Scancode.J:
+                            case SDL.Keycode.J:
                                 sendKeyEvent("keyJ");
                                 break;
-                            case SDL.Scancode.C:
+                            case SDL.Keycode.C:
                                 sendKeyEvent("keyC");
                                 break;
-                            case SDL.Scancode.R: // reset cursor
+                            case SDL.Keycode.R: // reset cursor
                                 if (tc.theGame != null && tc.theGame.factory.tutorial != null)
                                 {
                                     tc.theGame.cursor = tc.theGame.factory.tutorial.center;
                                 }
                                 break;
-                            case SDL.Scancode.Backspace:
+                            case SDL.Keycode.Backspace:
                                 if (selected != null && ui[(int)selected].cursorpos > 0)
                                 {
                                     int seld = (int)selected;
@@ -574,7 +589,7 @@ public class WindowHandler
                                     ui[seld].lastInput = "backspace";
                                 }
                                 break;
-                            case SDL.Scancode.Left:
+                            case SDL.Keycode.Left:
                                 if (selected != null)
                                 {
                                     int seld = (int)selected;
@@ -583,7 +598,7 @@ public class WindowHandler
                                     ui[seld].lastInput = "left";
                                 }
                                 break;
-                            case SDL.Scancode.Right:
+                            case SDL.Keycode.Right:
                                 if (selected != null)
                                 {
                                     int seld = (int)selected;
@@ -592,17 +607,16 @@ public class WindowHandler
                                     ui[seld].lastInput = "right";
                                 }
                                 break;
-                            case SDL.Scancode.Return: case SDL.Scancode.KpEnter:
-                                if (tc.theGame != null)
-                                {
-                                    Game game = tc.theGame;
-                                    sendKeyEvent("return");
-                                    if (selected != null) sendKeyEvent(["return", "valid"]);
-                                }
+                            case SDL.Keycode.Return: case SDL.Keycode.KpEnter: // also whats kpenter
+                                sendKeyEvent("return");
+                                // INCONSISTENT NAMING SCHEME!!!!!!!!! (input != prompt (no way (what (egbhdfsbi (vineboom))))) 
+                                if (selected != null && ui[(int)selected].type == "input") sendKeyEvent(["return", "valid"]);
                                 break;
                             default:
                                 break;
                         }
+                        break;
+                    case SDL.EventType.KeyUp:
                         break;
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
@@ -621,35 +635,6 @@ public class WindowHandler
             cursor = getCursorPoint();
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
-            foreach (int eidx in ui.Keys.ToArray())
-            {
-                UIElement element = ui[eidx];
-                element.Draw();
-                if (element.col_idx != 4 || element.time == element.transition_time || clicked)
-                {
-                    int finalc = 0;
-                    if (element.id == selected)
-                    {
-                        finalc = 5;
-                    }
-                    if (element.hovering)
-                    {
-                        finalc = 3;
-                        if (clicked)
-                        {
-                            finalc = 4;
-                            selected = element.id;
-                            if (element.type == "input")
-                            {
-                                if (!acceptingInput) element.cursorpos = element.contents.Length;
-                                inpacc = true;
-                            }
-                        }
-                    }
-                    element.changeColor(finalc);
-                }
-            }
-            changeInputAcceptance(inpacc);
             if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
             if (tc.misctext.ContainsKey("vers") && menu)
             {
@@ -657,25 +642,61 @@ public class WindowHandler
             }
             if (tc.theGame != null)
             {
-                // also what does clickkeys do or mean i forgor
-                //List<string> clickkeys = new List<string>(); // should ai be renanamed to ahc (artifical halluciantor creator)
                 Game game = tc.theGame;
-                validclick = true;
+                if (sceneUpdated)
+                {
+                    selected = null;
+                    switch (game.scene)
+                    {
+                        case "inv": case "craft":
+                            changeUILayout("backbutton", [
+                                new UIElement{
+                                    id = 1,
+                                    window = this,
+                                    type = "button",
+                                    texture = backbutton,
+                                    dynrect = createRectF(-15, 5, 32, 32),
+                                    alignment = Algn.rightupper,
+                                    action = "back",
+                                    color = [white, black, black, grey, darkergrey, darkgrey],
+                                }
+                            ]);
+                            break;
+                        case "game":
+                            changeUILayout("gameui", [
+                                new UIElement{
+                                    id = 1,
+                                    window = this,
+                                    type = "button",
+                                    texture = pausebutton,
+                                    dynrect = createRectF(-15, 5, 32, 32),
+                                    alignment = Algn.rightupper,
+                                    action = "pause",
+                                    color = [white, black, black, grey, darkergrey, darkgrey],
+                                }
+                            ]);
+                            break;
+                        case "custom": case "intro":
+                            changeUILayout("empty", []);
+                            break;
+                    }
+                    sceneUpdated = false;
+                }
+                validclick = false;
                 switch (tc.mode)
                 {
                     case "prompt":
-                        changeUILayout("prompt", [
-                            new UIElement{
-                                id = 0,
-                                window = this,
-                                type = "input",
-                                contents = "",
-                                rect = createRectF(20, 45+(30*game.topbar.header.Length), 200, 50),
-                                // button color, outline color, text color, highlight tint, selected tint, selecting tint
-                                color = [createColor(255, 249, 135), black, black, grey, darkergrey, darkgrey],
-                                font = "sans_15"
-                            }
-                        ]);
+                            changeUILayout("textprompt", [
+                                new UIElement{
+                                    id = 0,
+                                    window = this,
+                                    type = "input",
+                                    dynrect = createRectF(20, 45+(30*game.topbar.header.Length), 200, 50),
+                                    // button color, outline color, text color, highlight tint, selected tint, selecting tint
+                                    color = [createColor(255, 249, 135), black, black, grey, darkergrey, darkgrey],
+                                    font = "sans_15"
+                                }
+                            ]);
                         drawHeader();
                         game.menus["prompt"] = [ui[0].contents];
                         break;
@@ -705,7 +726,7 @@ public class WindowHandler
                         SDL.FRect colliderect;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
-                            string itm = game.menus[game.scene][i];
+                            string itm = game.menus[game.scene][i].Split("|")[0];
                             colliderect = createRectF(6, 11+(i*25), getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {
@@ -816,11 +837,41 @@ public class WindowHandler
                     writeText(flavortext, 5, 5, "sans_25", color);
                     if (game.factory.tutorial != null && game.factory.tutorial.curact == "continue")
                     {
-                        writeText("{( C )}", 5, 35, "sans_25", black);
+                        writeText("{( C )}", 5, 35, "sans_25", white);
                     }
                 }
                 writeText(debugPoint.ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
             }
+            foreach (int eidx in ui.Keys.ToArray())
+            {
+                UIElement element = ui[eidx];
+                element.Draw();
+                if (element.col_idx != 4 || element.time == element.transition_time || clicked)
+                {
+                    int finalc = 0;
+                    if (element.id == selected)
+                    {
+                        finalc = 5;
+                    }
+                    if (element.hovering)
+                    {
+                        finalc = 3;
+                        if (clicked)
+                        {
+                            finalc = 4;
+                            selected = element.id;
+                            if (element.type == "input")
+                            {
+                                if (!acceptingInput) element.cursorpos = element.contents.Length;
+                                inpacc = true;
+                            }
+                            sendKeyEvent(["ui", element.action]);
+                        }
+                    }
+                    element.changeColor(finalc);
+                }
+            }
+            changeInputAcceptance(inpacc);
             SDL.RenderPresent(renderer);
             nearestSleep = (int)(SDL.GetTicks()-lastTick);
             if (tc.theGame != null)

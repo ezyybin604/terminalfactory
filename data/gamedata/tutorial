@@ -10,7 +10,7 @@ Press H to delete an item=1,invdel
 # if player removed the sand add a random amount 32-64
 Press A to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
-Press Z to select/craft an item=7,craftdo,sneakysand
+Press Z to select/craft an item (Try glass!)=7,craftdo,sneakysand
 # until world (then spawn stone)
 Press X to go back=2,backgen,stopdelete
 # stop deleting of item while after this

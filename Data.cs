@@ -1,5 +1,4 @@
 
-using System.Runtime.CompilerServices;
 using MessagePack;
 
 namespace E604terminalfactory;

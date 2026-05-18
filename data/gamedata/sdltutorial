@@ -9,14 +9,14 @@ Press L to delete an item while hovering over it=1,invdel
 # if player removed the sand add a random amount 32-64
 Press I again to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
-Click to craft an item=7,craftdo,sneakysand
+Click to craft an item (Try glass!)=7,craftdo,sneakysand
 # until world (then spawn stone)
 Close the crafting menu & inventory=2,backgen,stopdelete
 # stop deleting of item while after this
 # wait until 16 stone is collected
 Collect some stone :)=16,breaktile-stone,placestone
 # wait until stone is selected
-Select Stone in inventory=1,invselect-stone
+Select Stone in inventory (Click on item to select)=1,invselect-stone
 # after continue, stop world modify (stop inventory access too)
 # also add (C) button continue in squiggle bar when an option
 Right-click to place a tile=10,placetile

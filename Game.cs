@@ -899,7 +899,7 @@ public class Game
                 cusc.theGame = this;
                 readkeylog.Add(key);
                 scene = "game";
-                forceUpdateAll();
+                displayStuff();
                 break;
         }
         if (scene != "game")
