@@ -29,6 +29,7 @@ namespace E604terminalfactory;
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
     - add a "backbuffer" to sending tiles to CoreGraphics
     - give world renderer more info of tile position
+    - make a "manual" with help topics and stuff
 */
 
 public class Game
@@ -183,7 +184,11 @@ public class Game
             ];
             factory.emptyTile = new Tile(" ");
             factory.tutorial = new FTutorial{fact = factory};
-            factory.tutorial.size = new Point(30, 15);
+            if (cusc.runnerType == "sdl")
+            {
+                factory.tutorial.tutorialkey = "SDLTutorialMsg";
+                factory.tutorial.size = new Point(30, 15);
+            }
             factory.tutorial.updateAction();
             cursor = factory.tutorial.center;
         }
@@ -327,6 +332,7 @@ public class Game
                 break;
             case "start":
                 loadData();
+                topbar.header = [];
                 scene = "game";
                 displayStuff();
                 break;
@@ -451,12 +457,12 @@ public class Game
     }
     void updateScreen()
     {
-        if (cusc.runnerType == "sdl") return;
-        for (int i=0;i<Console.WindowHeight-2;i++)
+        int grh = cusc.getWindowSize(WindowSizes.BOARD).y;
+        for (int i=0;i<grh;i++)
         {
             if (factory.linesToUpdate.Contains(i+scroll.y))
             {
-                Console.SetCursorPosition(0, i+2);
+                if (cusc.runnerType == "sdl") Console.SetCursorPosition(0, i+2);
                 factory.displayLine(i+scroll.y, cursor, scroll, cusc);
             }
         }
@@ -893,7 +899,7 @@ public class Game
                 cusc.theGame = this;
                 readkeylog.Add(key);
                 scene = "game";
-                forceUpdateAll();
+                displayStuff();
                 break;
         }
         if (scene != "game")
@@ -944,8 +950,10 @@ public class Game
                 {
                     tpr = "/d" + tpr;
                 }
-                topbar.changeTip(1, tpr);
-                //topbar.tip = String.Format("{0}, {1}, {2}", topbar.menuSelection, topbar.menuScroll, topbar.menuScroll+Console.WindowHeight-3);
+                if (!(factory.tutorial != null && factory.tutorial.curact == "backgen"))
+                {
+                    topbar.changeTip(1, tpr);
+                }
             }
         } else
         {
@@ -959,11 +967,12 @@ public class Game
         {
             int itip = (int)Math.Round(Factory.generateRange(0, topbar.tips[scene].Length-1));
             string ftip = topbar.tips[scene][itip]; // final tip
+            int overpri = 0;
             if (factory.tutorial != null)
             {
                 ftip = factory.tutorial.updateTip();
             }
-            topbar.changeTip(0, ftip, true);
+            topbar.changeTip(overpri, ftip, true);
             topbar.lastTipChange = time.Ticks;
         }
     }

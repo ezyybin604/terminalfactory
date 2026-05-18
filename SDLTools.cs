@@ -13,7 +13,8 @@ public enum Algn
     leftcenter = 1,
     rightcenter = 2,
     leftupper = 3, // default
-    centercenter = 4
+    centercenter = 4,
+    rightupper = 5
 }
 
 public enum TextA
@@ -45,6 +46,8 @@ public class SDLTools // MY sdl tools :))
                 return Get(TextA.LEFT, TextA.UPPER);
             case Algn.centercenter:
                 return Get(TextA.CENTER, TextA.CENTER);
+            case Algn.rightupper:
+                return Get(TextA.RIGHT, TextA.UPPER);
         }
         return Get(Algn.leftupper);
     }
@@ -120,6 +123,10 @@ public class SDLTools // MY sdl tools :))
     {
         return new SDL.FColor{R = value.R, G = value.G, B = value.B, A = value.A};
     }
+    public static SDL.FPoint Copy(SDL.FPoint value)
+    {
+        return new SDL.FPoint{X = value.X, Y = value.Y};
+    }
     public static SDL.FRect Copy(SDL.FRect value)
     {
         return new SDL.FRect{X = value.X, Y = value.Y, W = value.W, H = value.H};
@@ -135,7 +142,7 @@ public class SDLTools // MY sdl tools :))
 }
 
 public unsafe class PointerTools
-{ // if this ever crashes (poking into unsafe memory) BLAME THIS CLASS
+{ // if this ever crashes (via poking into unsafe memory) BLAME THIS CLASS
     public static char GetChar(nint ntn)
     {
         return *(char*)ntn.ToPointer();

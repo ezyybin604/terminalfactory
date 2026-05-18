@@ -356,8 +356,8 @@ public class FileManagement
         saveToFile("invdata", save, new InventoryData{data = convertSlots(fact.inventory.data, invleng)});
         MachineCursor machineCursor = new MachineCursor{
             macsd = new Dictionary<string, string>(),
-            cursor = JPI.getJs(cursor),
-            camera = JPI.getJs(camera),
+            cursor = cursor.ToString(),
+            camera = camera.ToString(),
             energyInNetwork = fact.energyInNetwork,
             version = 1,
             dragon = fact.dragon
@@ -370,7 +370,7 @@ public class FileManagement
         {
             Region region = new Region{
                 data = new string[regionLength][][],
-                regionLocation = JPI.getJs(regions[i])
+                regionLocation = regions[i].ToString()
             };
             int emptyLength = 0;
             List<string[][]> chunks = new List<string[][]>();
@@ -488,13 +488,9 @@ class JPI // JsonPointInterface / other things because i felt like it
         }
         return res;
     }
-    public static string getJs(Point p)
-    {
-        return p.x.ToString() + "," + p.y.ToString();
-    }
     public static string getJs()
     {
-        return getJs(new Point());
+        return "0,0";
     }
     public static string getJs(Point? p)
     {
@@ -502,7 +498,7 @@ class JPI // JsonPointInterface / other things because i felt like it
         {
             return getJs();
         }
-        return getJs((Point)p);
+        return ((Point)p).ToString();
     }
     public static Point getPoint(string p)
     {
@@ -532,7 +528,7 @@ class JPI // JsonPointInterface / other things because i felt like it
         string[] inputs = new string[mac.inputs.Count];
         for (int i=0;i<inputs.Length;i++)
         {
-            inputs[i] = JPI.getJs(mac.inputs[i]);
+            inputs[i] = mac.inputs[i].ToString();
         }
         outs.Add(String.Join('.', inputs)); // this will go well
         outs.Add(JPI.getJs(mac.output));
@@ -649,7 +645,7 @@ public class MachineCursor
         macsd = new Dictionary<string, string>();
         foreach (KeyValuePair<Point, Machine> kv in macs)
         {
-            macsd[JPI.getJs(kv.Key)] = JPI.convertMachine(kv.Value);
+            macsd[kv.Key.ToString()] = JPI.convertMachine(kv.Value);
         }
     }
     public MachineCursor() {}
@@ -676,7 +672,7 @@ public class MachineCursor
         populatedChunks = new string[points.Length];
         for (int i=0;i<points.Length;i++)
         {
-            populatedChunks[i] = JPI.getJs(points[i]);
+            populatedChunks[i] = points[i].ToString();
         }
     }
 }

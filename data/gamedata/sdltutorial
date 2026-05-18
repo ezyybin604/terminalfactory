@@ -1,28 +1,27 @@
 # After some move, next
-Use WASD to move=5,movepress
+Try moving around the cursor!=25,cursorchange
 # Spawn sand, once got some sand, next
-Press K to break/collect=10,breaktile-sand,spawnsand
+Left click to break/collect=10,breaktile-sand,spawnsand
 # just spawn in random copper / iron
 Press I to open inventory=1,inventoryopen,giveitem
-Try to move around in inventory..=2,inventorymove
 # when inv is empty, add more sand back
-Press H to delete an item=1,invdel
+Press L to delete an item while hovering over it=1,invdel
 # if player removed the sand add a random amount 32-64
-Press A to open the crafting menu=1,invcraft
+Press I again to open the crafting menu=1,invcraft
 # only glass,circuit,assembler,cable recipe
-Press Z to select/craft an item (Try glass!)=7,craftdo,sneakysand
+Click to craft an item (Try glass!)=7,craftdo,sneakysand
 # until world (then spawn stone)
-Press X to go back=2,backgen,stopdelete
+Close the crafting menu & inventory=2,backgen,stopdelete
 # stop deleting of item while after this
 # wait until 16 stone is collected
-Collect some stone using K :)=16,breaktile-stone,placestone
+Collect some stone :)=16,breaktile-stone,placestone
 # wait until stone is selected
-Select Stone in inventory (Select with Z) to select it=1,invselect-stone
+Select Stone in inventory (Click on item to select)=1,invselect-stone
 # after continue, stop world modify (stop inventory access too)
 # also add (C) button continue in squiggle bar when an option
-Press O to place a tile=10,placetile
+Right-click to place a tile=10,placetile
 # also continue automatically after 10 seconds and only let continue after 10 frames
-Once you feel like youre done, press C to continue.=1,continue
+Once you feel like you are done, press C to continue.=1,continue
 This is a Coal Generator.=1,continue,clearplacecgen
 Currently, it is not formed.=1,continue
 To form it, we will need a input,=1,continue,placeinput
@@ -43,7 +42,7 @@ You can transport all sorts of items and fluids with pipes!=1,continue,placepipe
 # reset centered machine and use only nessary (use COMPOSTER machine)
 Now, heres a machine with a recipe!=1,continue,getcomposter
 # stop big continuing block
-Press L to view view recipe=1,viewRecipe
+Press L on the machine to view view recipe=1,viewRecipe
 # just do x999 food or smth (strawberries)
 Now ive given you food, select that in the inventory..=1,invselect-fr1,givefood
 # only on exchange
@@ -53,17 +52,17 @@ Now you can also press L to view the contents of the input!=1,viewContents
 But that was a machine with only 1 recipe..=1,continue
 # do limited assembler (limit through replacing with different one in Gamedata)
 # USE COTTON U again
-Heres a machine with more recipes!=1,continue,changeToAssembler
+Here is a machine with more recipes!=1,continue,changeToAssembler
 # (action is selecting recipe)
-Also press J to select machine recipe=1,craftdoselect
+Also press J to select a machine recipe=1,craftdoselect
 # pause while machine gets replaced with cgen
 # when this is here, constantly feed the cgen with items from nowhere
-Press I to show machine progress=15,showmacprog,coalgenreplace
+Press I on a machine to show machine progress=15,showmacprog,coalgenreplace
 # DO CONTINUE STUFF YES
 (Insert how to use manual instructions here)=1,continue
 # 1 action for every frame
-Press P to pause (and exit the tutorial!!)=15000,tick
+The pause button is in the top right corner, you can leave now.=15000,tick
 # show this message only after waiting 10 minutes after pause (there is no action to satisfy this one)
-Anyway, i'm tired and it's 9:18 and i wanna stop=1,This is never gonna be a action thats actually gonna happen
+Anyway, i'm not tired and it's 8:32=1,This is never gonna be a action thats actually gonna happen
 # This comment fixes the file.
 # It just does.
