@@ -568,8 +568,10 @@ public class Factory // factory data / big verbose stuff related to factory
         string prevColor;
         int invertedColor = 0;
         int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
+        int initali = 0;
+        if (tileConsole.runnerType == "sdl") tileWidth++; initali--;
         lineResult = new string[(tileWidth*2)+2];
-        for (int x=0;x<tileWidth;x++)
+        for (int x=Math.Max(0, initali);x<tileWidth;x++)
         {
             colorNow = color;
             prevColor = currentColor;

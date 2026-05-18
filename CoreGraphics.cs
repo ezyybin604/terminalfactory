@@ -427,7 +427,24 @@ public class WindowHandler
             ui[elements[i].id] = elements[i];
         }
     } // yoink end
+    bool[] keyspressed = new bool[(int)SDL.Keycode.PlusMinus];
+    // get diagonal speed: (sqrt(num) / 2) ^ 2
+    private bool getKeyPressed(SDL.Keycode keycode)
+    {
+        int kc = (int)keycode;
+        if (kc < keyspressed.Length)
+        {
+            return keyspressed[kc];
+        }
+        return false;
+    }
+    private double diagSpeed(double d)
+    {
+        return Math.Pow(Math.Sqrt(d*2)/2, 2);
+    }
     Point startpn = new Point();
+    SDL.FPoint worldscroll = createPoint(0, 0);
+    const float camspeedc = 10;
     public Dictionary<int, Tile[]> worldisplay = new Dictionary<int, Tile[]>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
@@ -511,7 +528,6 @@ public class WindowHandler
         bool validclick = false;
         bool menu = true;
 
-        Point debugPoint = new Point();
         //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
         SDL.FRect lowerRect;
@@ -542,7 +558,7 @@ public class WindowHandler
                         {
                             element.updateRect();
                         }
-                        break;
+                        break; // worldscroll
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
                         {
@@ -560,6 +576,10 @@ public class WindowHandler
                         sendKeyEvent("ac");
                         break;
                     case SDL.EventType.KeyDown:
+                        if ((int)e.Key.Key < keyspressed.Length)
+                        {
+                            keyspressed[(int)e.Key.Key] = true;
+                        }
                         switch (e.Key.Key)
                         {
                             case SDL.Keycode.I:
@@ -607,7 +627,7 @@ public class WindowHandler
                                     ui[seld].lastInput = "right";
                                 }
                                 break;
-                            case SDL.Keycode.Return: case SDL.Keycode.KpEnter: // also whats kpenter
+                            case SDL.Keycode.Return: case SDL.Keycode.KpEnter: // kp enter is numpad enter
                                 sendKeyEvent("return");
                                 // INCONSISTENT NAMING SCHEME!!!!!!!!! (input != prompt (no way (what (egbhdfsbi (vineboom))))) 
                                 if (selected != null && ui[(int)selected].type == "input") sendKeyEvent(["return", "valid"]);
@@ -617,6 +637,10 @@ public class WindowHandler
                         }
                         break;
                     case SDL.EventType.KeyUp:
+                        if ((int)e.Key.Key < keyspressed.Length)
+                        {
+                            keyspressed[(int)e.Key.Key] = false;
+                        }
                         break;
                     case SDL.EventType.TextInput:
                         if (acceptingInput && selected != null)
@@ -749,20 +773,73 @@ public class WindowHandler
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         break;
                     case "world":
+                        if (game.specialMode != "tutorial")
+                        {
+                            SDL.FPoint camspeed = createPoint(0, 0);
+                            if (getKeyPressed(SDL.Keycode.A))
+                            {
+                                camspeed.X -= 1;
+                            }
+                            if (getKeyPressed(SDL.Keycode.W))
+                            {
+                                camspeed.Y -= 1;
+                            }
+                            if (getKeyPressed(SDL.Keycode.D))
+                            {
+                                camspeed.X += 1;
+                            }
+                            if (getKeyPressed(SDL.Keycode.S))
+                            {
+                                camspeed.Y += 1;
+                            }
+                            float speed = camspeedc;
+                            if (camspeed.X != 0 && camspeed.Y != 0)
+                            {
+                                speed = (float)diagSpeed(camspeedc);
+                            }
+                            camspeed.X *= speed;
+                            camspeed.Y *= speed;
+                            worldscroll.X += camspeed.X;
+                            worldscroll.Y += camspeed.Y;
+                            if (game.scroll.x == 0) worldscroll.X = Math.Max(0, worldscroll.X);
+                            bool changed = false;
+                            if (Math.Abs(worldscroll.Y) > tileSize)
+                            {
+                                int d = Point.neutralize((int)worldscroll.Y);
+                                worldscroll.Y -= d*tileSize;
+                                game.scroll.y += d;
+                                changed = true;
+                            }
+                            if (Math.Abs(worldscroll.X) > tileSize)
+                            {
+                                int d = Point.neutralize((int)worldscroll.X);
+                                worldscroll.X -= d*tileSize;
+                                game.scroll.x += d;
+                                changed = true;
+                            }
+                            if (changed)
+                            {
+                                game.generateNeeded();
+                                game.displayStuff();
+                            }
+                        }
+                        // CAMERA STUFFF GGBGDBGFBG
                         menu = false;
                         int brh = game.cusc.getWindowSize(WindowSizes.BOARD).y;
-                        for (int i=0;i<brh;i++)
+                        int dooffset = 0;
+                        if (game.scroll.x > 0) dooffset++;
+                        for (int i=-1;i<brh;i++)
                         {
                             if (worldisplay.ContainsKey(i+game.scroll.y))
                             {
                                 Tile[] tiles = worldisplay[i+game.scroll.y];
                                 for (int x=0;x<tiles.Length;x++)
                                 { // add offsets for these so scroll
-                                    drawTile(tiles[x], x*tileSize, i*tileSize);
+                                    drawTile(tiles[x], (x*tileSize)-(int)worldscroll.X-(tileSize*dooffset), (i*tileSize)-(int)worldscroll.Y);
                                 }
                             }
                         }
-                        Point newCursor = new Point(game.scroll.x+(int)(cursor.X/tileSize), game.scroll.y+(int)(cursor.Y/tileSize));
+                        Point newCursor = new Point(game.scroll.x+(int)((cursor.X+worldscroll.X)/tileSize), game.scroll.y+(int)((cursor.Y+worldscroll.Y)/tileSize));
                         if (!newCursor.Equals(game.cursor))
                         {
                             game.sendAction("cursorchange");
@@ -808,7 +885,7 @@ public class WindowHandler
                             } 
                             game.cursor = newCursor;
                         }
-                        SDL.FRect tilex = createRectF((game.cursor.x-game.scroll.x)*tileSize, (game.cursor.y-game.scroll.y)*tileSize, tileSize, tileSize);
+                        SDL.FRect tilex = createRectF(((game.cursor.x-game.scroll.x)*tileSize)-worldscroll.X, ((game.cursor.y-game.scroll.y)*tileSize)-worldscroll.Y, tileSize, tileSize);
                         drawRect(tilex, createColor(0, (byte)(64+(64*Math.Abs((timePass%2)-1)))));
                         break;
                 }
@@ -840,7 +917,7 @@ public class WindowHandler
                         writeText("{( C )}", 5, 35, "sans_25", white);
                     }
                 }
-                writeText(debugPoint.ToString() + ", " + nearestSleep.ToString(), 0, 0, "sans_8", black);
+                writeText(nearestSleep.ToString(), 0, 0, "sans_8", black);
             }
             foreach (int eidx in ui.Keys.ToArray())
             {

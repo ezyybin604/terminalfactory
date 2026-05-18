@@ -110,7 +110,7 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         return new Point(x/m, y/m);
     }
-    private static int neutralize(int n)
+    public static int neutralize(int n)
     {
         if (n == 0)
         {

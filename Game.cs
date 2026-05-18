@@ -73,15 +73,17 @@ public class Game
             factory.tutorial.acts.Add(act);
         }
     }
-    void generateNeeded()
+    public void generateNeeded()
     {
         Point boardSize = cusc.getWindowSize(WindowSizes.BOARD);
         int w = (int)Math.Ceiling((double)(boardSize.x/Factory.chunkSize));
         int h = (int)Math.Ceiling((double)(boardSize.y/Factory.chunkSize));
         w+=3;
         h+=3;
-        int sx = (int)Math.Floor((double)(scroll.x/Factory.chunkSize));
-        int sy = (int)Math.Floor((double)(scroll.y/Factory.chunkSize));
+        int initali = 0;
+        if (cusc.runnerType == "sdl") initali = -1;
+        int sx = (int)Math.Floor((double)(Math.Max(0, scroll.x+initali)/Factory.chunkSize));
+        int sy = (int)Math.Floor((double)((scroll.y+initali)/Factory.chunkSize));
         for (int x=-1;x<w;x++)
         {
             for (int y=-1;y<h;y++)
@@ -450,7 +452,9 @@ public class Game
             lookThisOneIsJustToDrawTheBigLine();
             return;
         }
-        for (int i=0;i<cusc.getWindowSize(WindowSizes.BOARD).y;i++)
+        int initali = 0;
+        if (cusc.runnerType == "sdl") initali = -1;
+        for (int i=initali;i<cusc.getWindowSize(WindowSizes.BOARD).y;i++)
         {
             factory.displayLine(i+scroll.y, cursor, scroll, cusc);
         }
@@ -458,11 +462,13 @@ public class Game
     void updateScreen()
     {
         int grh = cusc.getWindowSize(WindowSizes.BOARD).y;
-        for (int i=0;i<grh;i++)
+        int initali = 0;
+        if (cusc.runnerType == "sdl") initali = -1;
+        for (int i=initali;i<grh;i++)
         {
             if (factory.linesToUpdate.Contains(i+scroll.y))
             {
-                if (cusc.runnerType == "sdl") Console.SetCursorPosition(0, i+2);
+                if (cusc.runnerType != "sdl") Console.SetCursorPosition(0, i+2);
                 factory.displayLine(i+scroll.y, cursor, scroll, cusc);
             }
         }
