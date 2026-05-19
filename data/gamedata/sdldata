@@ -41,8 +41,8 @@ end-lc=que?
 
 !tileTileset
 i.oil=4
-i.water1=1
-i.water2=2
+i.water1=2
+i.water2=1
 i.water3=3
 `=7
 ]=6

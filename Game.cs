@@ -9,7 +9,7 @@ namespace E604terminalfactory;
 // todo:
 /*
     - splitter core - machine
-    - passthrough pipes (max 5 inbetween)
+    - passthrough pipes (max 5 tiles inbetween)
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - hope that all the machines are functional
     - super scale collection facility
@@ -20,15 +20,11 @@ namespace E604terminalfactory;
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - conceider serializing nextUpdateTick
     - finish dragon.putscale
-    - add cursor to prompt scene
+    - add cursor to prompt scene (in console mode)
     - add sfx to certain actions in graphics
     - add back button to prompt screen
-    - also add smooth scrolling with world rendering
-    - once smooth scrolling is done, add connected grass
     - Move machine logic into its own file
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
-    - add a "backbuffer" to sending tiles to CoreGraphics
-    - give world renderer more info of tile position
     - make a "manual" with help topics and stuff
 */
 
@@ -158,6 +154,7 @@ public class Game
         menus.Add("custom", []);
         menus.Add("customopt", []);
         menus.Add("nohighlight", ["prompt", "intro"]);
+        menus.Add("game", ["no"]);
         
         menus.Add("intro", []);
         topbar.tips.Add("intro", [" "]);
