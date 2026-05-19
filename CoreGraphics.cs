@@ -440,7 +440,7 @@ public class WindowHandler
     }
     private double diagSpeed(double d)
     {
-        return Math.Pow(Math.Sqrt(d*2)/2, 2);
+        return Math.Sqrt(Math.Pow(d, 2)/2);
     }
     Point startpn = new Point();
     SDL.FPoint worldscroll = createPoint(0, 0);
