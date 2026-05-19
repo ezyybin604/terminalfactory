@@ -570,8 +570,9 @@ public class Factory // factory data / big verbose stuff related to factory
         int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
         int initali = 0;
         if (tileConsole.runnerType == "sdl") tileWidth++; initali--;
+        if (scroll.x+initali < 0) initali = 0;
         lineResult = new string[(tileWidth*2)+2];
-        for (int x=Math.Max(0, initali);x<tileWidth;x++)
+        for (int x=initali;x<tileWidth;x++)
         {
             colorNow = color;
             prevColor = currentColor;
@@ -699,7 +700,7 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 List<Tile> ts = new List<Tile>();
                 Point startp = new Point(scroll.x, y);
-                for (int i=0;i<tileWidth;i++)
+                for (int i=initali;i<tileWidth;i++)
                 {
                     ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
                 }

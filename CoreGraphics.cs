@@ -439,8 +439,8 @@ public class WindowHandler
         return false;
     }
     private double diagSpeed(double d)
-    {
-        return Math.Pow(Math.Sqrt(d*2)/2, 2);
+    { // r^2 + r^2 = d^2 (solve for r) == Math.Sqrt((Math.Pow(d, 2))/2)
+        return Math.Sqrt(Math.Pow(d,2)/2);
     }
     Point startpn = new Point();
     SDL.FPoint worldscroll = createPoint(0, 0);
@@ -746,8 +746,8 @@ public class WindowHandler
                                 }
                             }
                         }
-                        if (!game.menus.ContainsKey(game.scene)) break;
                         SDL.FRect colliderect;
+                        if (!game.menus.ContainsKey(game.scene)) break;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i].Split("|")[0];
@@ -801,7 +801,6 @@ public class WindowHandler
                             camspeed.Y *= speed;
                             worldscroll.X += camspeed.X;
                             worldscroll.Y += camspeed.Y;
-                            if (game.scroll.x == 0) worldscroll.X = Math.Max(0, worldscroll.X);
                             bool changed = false;
                             if (Math.Abs(worldscroll.Y) > tileSize)
                             {
@@ -817,6 +816,7 @@ public class WindowHandler
                                 game.scroll.x += d;
                                 changed = true;
                             }
+                            if (game.scroll.x == 0) worldscroll.X = Math.Max(0, worldscroll.X);
                             if (changed)
                             {
                                 game.generateNeeded();
