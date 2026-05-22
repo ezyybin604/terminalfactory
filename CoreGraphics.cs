@@ -835,7 +835,21 @@ public class WindowHandler
                                 Tile[] tiles = worldisplay[i+game.scroll.y];
                                 for (int x=0;x<tiles.Length;x++)
                                 { // add offsets for these so scroll
-                                    drawTile(tiles[x], (x*tileSize)-(int)worldscroll.X-(tileSize*dooffset), (i*tileSize)-(int)worldscroll.Y);
+                                    SDL.Point pt = SDLTools.Cast(createPoint((x*tileSize)-(int)worldscroll.X-(tileSize*dooffset), (i*tileSize)-(int)worldscroll.Y));
+                                    drawTile(tiles[x], pt.X, pt.Y);
+                                    if (tiles[x].type == 'M')
+                                    {
+                                        Point yes = new Point(x+game.scroll.x, i+game.scroll.y);
+                                        bool uhh = game.factory.machines[yes].isFormed;
+                                        SDL.FRect iss = createRectF(yes, 5, 5);
+                                        if (uhh)
+                                        {
+                                            drawRect(iss, colors["green"]);
+                                        } else
+                                        {
+                                            drawRect(iss, colors["red"]);
+                                        }
+                                    }
                                 }
                             }
                         }

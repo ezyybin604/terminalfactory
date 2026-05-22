@@ -73,6 +73,24 @@ F=45
 t=46
 M=47
  =50
+
+#machines
+M.puri=51
+M.dist=52
+M.carb=53
+M.lasr=54
+M.cgen=55
+M.ogen=56
+M.pump=57
+M.miner=58
+M.asmb=59
+M.niem=60
+M.comp=62
+M.stor=63
+M.sltr=64
+M.mixr=65
+M.sscf=61
+M.split=66
 # directional, maybe use negative number to add programable additional sprites on top
 p=7,30
 ~=7,39
