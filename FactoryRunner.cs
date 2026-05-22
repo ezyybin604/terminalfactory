@@ -268,7 +268,10 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 generateChunkBasic(chunk);
             }
-            setTile(pointGo, copy);
+            if (pointGo.x != 0)
+            {
+                setTile(pointGo, copy);
+            }
         }
     }
     public void placeFeatureUpdate(List<Point> shape, Tile copy, Point pos)
