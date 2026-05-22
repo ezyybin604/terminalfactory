@@ -24,6 +24,7 @@ namespace E604terminalfactory;
     - add sfx to certain actions in graphics
     - add back button to prompt screen
     - Move machine logic into its own file
+    - menu scrolling
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
     - make a "manual" with help topics and stuff
 */

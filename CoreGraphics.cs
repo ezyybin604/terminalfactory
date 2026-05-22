@@ -652,6 +652,9 @@ public class WindowHandler
                             ui[seld].lastInput = yes.ToString();
                         }
                         break;
+                    case SDL.EventType.MouseWheel:
+                        // stuff
+                        break;
                     default:
                         break;
                 }
