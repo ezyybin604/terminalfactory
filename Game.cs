@@ -287,7 +287,7 @@ public class Game
             displayMenuLine(i+topbar.menuScroll);
         }
     }
-    void updateMenu()
+    public void updateMenu()
     {
         if (scene == "inv") menus["inv"] = inventory.invmenud;
         if (cusc.runnerType == "sdl") return;
@@ -924,7 +924,7 @@ public class Game
             displayStuff();
         }
     }
-    void unnessaryFunctionForDecidingTips()
+    public void unnessaryFunctionForDecidingTips()
     {
         bool repeatTime = time.Ticks-(TimeSpan.TicksPerSecond * 5) > topbar.lastTipChange;
         if (scene == "game")

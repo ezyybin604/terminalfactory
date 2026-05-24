@@ -528,6 +528,9 @@ public class WindowHandler
         bool validclick = false;
         bool menu = true;
 
+        float menuscroll = 0;
+        float menuscrollvel = 0;
+
         //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
         SDL.FRect lowerRect;
@@ -653,7 +656,7 @@ public class WindowHandler
                         }
                         break;
                     case SDL.EventType.MouseWheel:
-                        // stuff
+                        menuscrollvel += e.Wheel.Y;
                         break;
                     default:
                         break;
@@ -672,6 +675,7 @@ public class WindowHandler
                 Game game = tc.theGame;
                 if (sceneUpdated)
                 {
+                    menuscroll = 0;
                     selected = null;
                     switch (game.scene)
                     {
@@ -728,20 +732,24 @@ public class WindowHandler
                         game.menus["prompt"] = [ui[0].contents];
                         break;
                     case "menu":
+                        menuscroll += menuscrollvel * (float)deltaTime*100;
+                        menuscrollvel *= 0.7f;
                         lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
+                        menuscroll = Math.Clamp(menuscroll, 0, Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H));
                         drawHeader();
                         drawRect(lowerRect, grey, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
                         // menusurf start
                         if (!game.menus["nohighlight"].Contains(game.scene))
                         {
+                            SDL.FPoint scrollt = createPoint(0, -menuscroll);
                             if (timehigh == proghigh)
                             {
-                                drawRect(newhigh, darkergrey, null, 0, 1, menusurf);
+                                drawRect(SDLTools.Transform(newhigh, scrollt), darkergrey, null, 0, 1, menusurf);
                             } else
                             {
-                                drawRect(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), darkergrey, null, 0, 1, menusurf);
+                                drawRect(SDLTools.Transform(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), scrollt), darkergrey, null, 0, 1, menusurf);
                                 proghigh += (float)deltaTime;
                                 if (proghigh > timehigh)
                                 {
@@ -754,23 +762,34 @@ public class WindowHandler
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i].Split("|")[0];
-                            colliderect = createRectF(6, 11+(i*25), getStringLength("sans_15", itm).X+12, 20);
+                            colliderect = createRectF(6, 11+(i*25)-menuscroll, getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {
                                 // set topbar.menuselection here
-                                if (game.topbar.menuSelection != i) proghigh = 0;
+                                bool changed = game.topbar.menuSelection != i;
+                                game.factory.linesToUpdate.Add(game.topbar.menuSelection);
                                 game.topbar.menuSelection = i;
+                                game.factory.linesToUpdate.Add(game.topbar.menuSelection);
+                                if (changed)
+                                {
+                                    proghigh = 0;
+                                    if (game.scene == "craft")
+                                    {
+                                        game.unnessaryFunctionForDecidingTips();
+                                    }
+                                }
                                 validclick = true;
+                                game.updateMenu();
                             }
                             if (game.topbar.menuSelection == i)
                             {
                                 if (!prevhigh.Equals(colliderect))
                                 {
                                     prevhigh = SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh);
-                                    newhigh = SDLTools.Copy(colliderect);
+                                    newhigh = SDLTools.Transform(colliderect, createPoint(0, menuscroll));
                                 }
                             }
-                            writeText(itm, 10, 10+(i*25), "sans_15", black, copytexture:menusurf);
+                            writeText(itm, 10, 10+(i*25)-menuscroll, "sans_15", black, copytexture:menusurf);
                         }
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
