@@ -986,11 +986,11 @@ public class WindowHandler
             }
             changeInputAcceptance(inpacc);
             SDL.RenderPresent(renderer);
-            nearestSleep = (int)(SDL.GetTicks()-lastTick);
             if (tc.theGame != null)
             {
                 tc.theGame.acceptFrame = true;
             }
+            nearestSleep = (int)(SDL.GetTicks()-lastTick);
             Thread.Sleep(Math.Max(1, nsDelay-nearestSleep));
         }
         SDL.DestroyRenderer(renderer);

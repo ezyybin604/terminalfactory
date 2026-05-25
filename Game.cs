@@ -1,5 +1,6 @@
 
 using gameRunner;
+using SDL3;
 
 namespace E604terminalfactory;
 
@@ -290,12 +291,14 @@ public class Game
     public void updateMenu()
     {
         if (scene == "inv") menus["inv"] = inventory.invmenud;
-        if (cusc.runnerType == "sdl") return;
-        for (int i=-topbar.header.Length-1;i<menus[scene].Length;i++)
-        {
-            if (factory.linesToUpdate.Contains(i))
+        if (cusc.runnerType != "sdl")
+        { // (this is the fix in question in commit msg, wrapping this in a if statement instead of skipping over it)
+            for (int i=-topbar.header.Length-1;i<menus[scene].Length;i++)
             {
-                displayMenuLine(i);
+                if (factory.linesToUpdate.Contains(i))
+                {
+                    displayMenuLine(i);
+                }
             }
         }
         factory.linesToUpdate.Clear();
@@ -496,9 +499,9 @@ public class Game
         }
         if (scene != "game")
         {
-            int prevScroll = topbar.menuScroll;
             if (cusc.runnerType != "sdl")
             {
+                int prevScroll = topbar.menuScroll;
                 while (!(topbar.menuScroll <= topbar.menuSelection))
                 {
                     topbar.menuScroll--;
@@ -507,10 +510,10 @@ public class Game
                 {
                     topbar.menuScroll++;
                 }
-            }
-            if (prevScroll != topbar.menuScroll)
-            {
-                forceUpdateAll();
+                if (prevScroll != topbar.menuScroll)
+                {
+                    forceUpdateAll();
+                }
             }
             return;
         }
@@ -1173,50 +1176,8 @@ Nobody follows, so to keep secrecy while you travel.
         }
         if (factory.gd.state == "done")
         {
-            if (specialMode == "demo" && cusc.runnerType != "sdl")
-            {
-                while (true)
-                {
-                    Game game = new Game
-                    { // again, why
-                        specialMode = "demo",
-                        splashes = File.ReadAllText("data/splashes").Split("\n"),
-                        cusc = cusc,
-                        windowHandler = windowHandler
-                    };
-                    game.hi();
-                    if (cusc.choice("Would you like to play on a savefile? (y/n)", this, "hi"))
-                    {
-                        string? savef = null;
-                        while (savef == null)
-                        {
-                            cusc.Clear(); // change to ask tileconsole for savefile prompt
-                            TileConsole.Log("What is the savefile name?");
-                            savef = Console.ReadLine();
-                            if (savef == "" || (savef != null && (savef.Contains("/") || savef.Contains("\\"))))
-                            {
-                                savef = null;
-                            }
-                        }
-                        game.factory.savefile = "demosave-" + savef;
-                        if (!game.gdm.savefileExists(game.factory.savefile))
-                        {
-                            game.introduction();
-                        }
-                    } else
-                    {
-                        if (cusc.runnerType == "console") TileConsole.Log();
-                        game.factory.savefile = "";
-                        game.introduction();
-                    }
-                    game.initStuff();
-                    cusc.startGame(this);
-                }
-            } else
-            {
-                initStuff();
-                cusc.startGame(this);
-            }
+            initStuff();
+            cusc.startGame(this);
         } else
         {
             TileConsole.Error("\nAn error happened with GameData: " + factory.gd.state);
