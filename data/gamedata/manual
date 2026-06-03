@@ -1,0 +1,27 @@
+# topics: machines/machine list?, water upgraders, generators, pumps/miners, i/o machines: asmb/comp/salter/mixer, niem, storage unit, SSCF, splitter, pipes, dragon shedding mechanics, main objective
+# maybe add references/related list for easier nav
+# also add data for names of entries OTHER than their ids ofc
+
+machines.name=Introduction To Machines
+machines.refs=
+!!!!!!machines
+Machines are the fundumental building block of automation.
+You put down a machine and then surround it with machine blocks and whatever addons you need.
++-+
+|M|
++-+
+^^^ (Depiction of a machine)
+
+Those addons include:
+Energy Ports (for accepting energy)
+Inputs (for inputting items/fluids)
+Outputs (for outputting energy/items/fluids)
+World Interactors (for pumps/miners to "see" the world)
+
+Machines will not assemble without their required addons.
+Outputs will output items/energy automatically.
+
+There are 2 ways of transporting things:
+Pipes: for transporting items/fluids
+Cables: for transporting energy
+!! 

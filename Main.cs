@@ -42,7 +42,9 @@ Worlds
 
 Options
     - Back
-    - Options
+    - Mouse Sensitivity
+    - Volume
+    - Mode Change
 */
 
 public enum WindowSizes : ushort

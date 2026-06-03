@@ -27,6 +27,7 @@ namespace E604terminalfactory;
     - Move machine logic into its own file
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
     - make a "manual" with help topics and stuff
+    - way to unlock recipes to introduce them slower
 */
 
 public class Game

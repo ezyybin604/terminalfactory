@@ -57,9 +57,14 @@ public class GameData
         string mainf = Path.Join(foldername, "main");
         if (File.Exists(mainf))
         {
+            // ml stuff
+            string key = "";
+            bool multiline = false;
+            List<string> content = new List<string>();
+            // previous comment no more
             List<StreamReader> srs = [File.OpenText(mainf)];
             string? s;
-            string? sect = null;
+            string? sect = null; // sect = section
             List<string> keyl = new List<string>();
             Dictionary<string,string> stuff = new Dictionary<string, string>();
             while (srs.Count > 0)
@@ -67,8 +72,9 @@ public class GameData
                 s = srs.Last().ReadLine();
                 if (s == null)
                 {
+                    multiline = false;
                     srs.RemoveAt(srs.Count-1);
-                } else if (s != "" && s[0] != '#')
+                } else if ((s != "" && s[0] != '#') || multiline)
                 {
                     if (s[0] == '!')
                     {
@@ -82,9 +88,19 @@ public class GameData
                             sect = after;
                         } else if (i == 2 && sect != null)
                         {
-                            data[sect] = stuff;
-                            keylookup[sect] = keyl.ToArray();
-                            sect = null;
+                            if (multiline)
+                            {
+                                data[sect] = stuff;
+                                keylookup[sect] = keyl.ToArray();
+                                sect = null;
+                            } else
+                            {
+                                multiline = false;
+                                string strcnt = string.Join('\n', content);
+                                content.Clear();
+                                keyl.Add(key);
+                                stuff[key] = strcnt;
+                            }
                         } else if (i == 3 && sect != null)
                         { // i was doing stuff here before
                             string[] keys = keylookup[after];
@@ -116,10 +132,19 @@ public class GameData
                                 state = "subfile error (does not exist) " + after;
                                 return;
                             }
-                        } else 
+                        } else if (i == 6 && sect != null)
+                        {
+                            // multiline
+                            multiline = true;
+                            key = after;
+                            content.Clear();
+                        } else
                         {
                             Console.Error.WriteLine("gamedata ohno");
                         }
+                    } else if (multiline)
+                    {
+                        content.Add(s);
                     } else if (sect != null)
                     {
                         string[] ss = s.Split("=");

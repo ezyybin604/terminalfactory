@@ -308,6 +308,11 @@ f.sand=sand
 !!!!!tutorial
 !! 
 
+# aint no way linux reference
+!manPages
+!!!!!manual
+!! 
+
 !generatorMaterial
 cgen=coal
 ogen=oil
