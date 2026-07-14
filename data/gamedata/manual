@@ -1,15 +1,20 @@
 # topics: machines/machine list?, water upgraders, generators, pumps/miners, i/o machines: asmb/comp/salter/mixer, niem, storage unit, SSCF, splitter, pipes, dragon shedding mechanics, main objective
 # maybe add references/related list for easier nav
 # also add data for names of entries OTHER than their ids ofc
+# /h highlights a line
+
+start.name=Manual Start
+start.refs=machines,food,watert
+start=Welcome to the manual! Here is a bunch of important information about the game.
 
 machines.name=Introduction To Machines
-machines.refs=
+machines.refs=watert
 !!!!!!machines
 Machines are the fundumental building block of automation.
-You put down a machine and then surround it with machine blocks and whatever addons you need.
-+-+
-|M|
-+-+
+You put down a machine in the center and then surround it with machine blocks and whatever addons you need to use it. (Machine will not assemble without required addons)
+/h+-+
+/h|M|
+/h+-+
 ^^^ (Depiction of a machine)
 
 Those addons include:
@@ -18,10 +23,51 @@ Inputs (for inputting items/fluids)
 Outputs (for outputting energy/items/fluids)
 World Interactors (for pumps/miners to "see" the world)
 
-Machines will not assemble without their required addons.
 Outputs will output items/energy automatically.
 
 There are 2 ways of transporting things:
 Pipes: for transporting items/fluids
 Cables: for transporting energy
-!! 
+!!
+
+watert.name=Water Tiers
+watert.refs=machines,food
+!!!!!!watert
+So you want to stop the dragon from eating you and everyone you know?
+Sweet!
+It's hot outside, so you should give it plenty of water. But your pipes have only so much bandwidth to support that..
+
+Also yes you do have to put the water in the trough. I feel like i need to confirm that or else someone is gonna get the wrong idea.
+
+/hSay, what if you had better water to feed to the dragon so you could so more with less?
+Oh yeah, that's what water tiers are for.
+Every tier quenches the thirst exponentially more than the last.
+
+You can use 4 specialized machines to bring up the tier of the water:
+/hA purifier, for T2
+/hA distillery, for T3
+/hA Carbonator, giving the first non-natrual water tier, T4, needs a constant supply of carbon.
+/hAnd the Laser Purifier, which gives T5 water. This needs a constant supply of glass lenses, and only has a chance of consuming one every time it runs because sand isn't a renewable resource.
+
+Goodluck not dying!
+
+!!
+
+food.name=A guide to food (and feeding the dragon)
+food.refs=watert,machines
+!!!!!!food
+Well, there's a looming threat of a dragon coming to eat you, so why don't you make it eat the delicous fruit lying around instead?
+
+To feed it the food, you must direct some food in pipes to the trough. Then the dragon will eat it from there.
+
+You can harvest the bushes with the miner, the bushes replenish randomly.
+the Mixer combines two foods together.
+the Salter adds salt to the food, which of course makes it magically taste better.
+
+The food values are calculated like this:
+Plain: x^3
+Salter: food*2
+Mixer: food1*food2
+
+Also the mixer cannot accept two of the same food because that obviously wouldn't make sense.
+!!

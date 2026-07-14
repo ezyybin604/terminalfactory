@@ -1,6 +1,5 @@
 
 using gameRunner;
-using SDL3;
 
 namespace E604terminalfactory;
 
@@ -9,30 +8,38 @@ namespace E604terminalfactory;
 
 // todo:
 /*
+    bugs
+    - hope that all the machines are functional
+    - renember that changeProg exists (fit some functions that dont use it where it should be used)
+    - fix bug where machines dont start immedieatly after they finish
+    - make laser purifer lens consume chance
+    
+    orgn/maint
+    - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
+    - make worldgen features more datadriven (at least for main worldgen)
+    - move important centerialized data to central data structure
+    - Move machine logic into its own file
+
+    gameplay changes
+    - finish dragon.putscale
     - splitter core - machine
     - passthrough pipes (max 5 tiles inbetween)
-    - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - hope that all the machines are functional
     - super scale collection facility
     - dragon shedding
     - add machine loose forming
-    - make worldgen features more datadriven (at least for main worldgen)
-    - make laser purifer lens consume chance
-    - renember that changeProg exists (fit some functions that dont use it where it should be used)
-    - conceider serializing nextUpdateTick
-    - finish dragon.putscale
     - add cursor to prompt scene (in console mode)
     - add sfx to certain actions in graphics
     - add back button to prompt screen
-    - Move machine logic into its own file
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
     - make a "manual" with help topics and stuff
     - way to unlock recipes to introduce them slower
+    - add key button to view manual/manual option in menu
+    - delete key goes back in manual scene, max 50 queue
 */
 
 public class Game
 {
-    // Scenes: game,end,inv,pause,craft,custom,intro,prompt
+    // Scenes: game,end,inv,pause,craft,custom,intro,prompt,manual
     public string scene = "custom";
     public Point scroll = new Point();
     public Point cursor = new Point(2,2);
@@ -166,12 +173,14 @@ public class Game
             {
                 menus["pause"] = [
                     "Resume Game|resume",
+                    "View Manual|manual",
                     "Restart|quit"
                 ];
             } else
             {
                 menus["pause"] = [
                     "Resume Game|resume",
+                    "Manual|manual",
                     "Save Game|save",
                     "Delete Savefile|delete",
                     "Restart|quit"
@@ -380,6 +389,10 @@ public class Game
                             }
                             Directory.Delete(world);
                         }
+                        break;
+                    case "manual":
+                        scene = "manual";
+                        topbar.subscene = "start";
                         break;
                 }
                 break;
@@ -1044,6 +1057,7 @@ Nobody follows, so to keep secrecy while you travel.
     public bool acceptFrame = true;
     public void runTheGameIg()
     {
+        factory.specialModeFact = specialMode;
         if (specialMode != "tutorial")
         {
             hi();

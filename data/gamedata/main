@@ -64,7 +64,7 @@ M.sltr=Salter,sltr
 M.mixr=Mixer,mixr
 M.sscf=Super Scale Collection Facility,sscf
 M.splt=Splitter,split
-!! 
+!!
 
 !itemToBlock
 # machines again
@@ -313,6 +313,17 @@ f.sand=sand
 !!!!!manual
 !! 
 
+# add inspect feature or smth to get related page
+!manAccess
+M.sltr=food
+M.mixr=food
+M.puri=watert
+M.dist=watert
+M.carb=watert
+M.lasr=watert
+M=machines
+!!
+
 !generatorMaterial
 cgen=coal
 ogen=oil
@@ -410,14 +421,14 @@ wat5=x4,wat4,x1,lens
 !asmbRecipes
 !!!craftingRecipe
 lens=x2,glass
-salt=x16,wat1
+salt=x4,wat1
 !! 
 
 !sltrRecipes
 # Salted Fruit
 sf1=x2,salt,x1,fr1
 sf2=x4,salt,x1,fr2
-sf3=x8,salt,x1,fr3
-sf4=x16,salt,x1,fr4
-sf5=x32,salt,x1,fr5
+sf3=x6,salt,x1,fr3
+sf4=x8,salt,x1,fr4
+sf5=x12,salt,x1,fr5
 !! 

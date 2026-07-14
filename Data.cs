@@ -141,6 +141,7 @@ public class TopBar
     public string returnScene = "";
     public int areyousure = 0;
     public string[] header = []; // only in menu
+    public string subscene = "";
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)
@@ -265,7 +266,7 @@ public class Dragon
                 suffix = "b";
                 break;
         }
-        return shortNumber.ToString("N1") + suffix; // 4.3m
+        return shortNumber.ToString("N1") + suffix;
     }
     public string[] getInfo()
     {
@@ -450,11 +451,6 @@ public class Inventory
     }
 }
 
-/*
-Additional actions for Sdl tutorial
-
-//// secondpass: second passes (timer for second resets on updateAction) (not used)
-*/
 public class FTutorial
 { // tutorial controller
     public Point boxpos = new Point(1000, 1000); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES

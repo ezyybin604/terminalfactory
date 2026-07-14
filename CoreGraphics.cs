@@ -27,7 +27,7 @@ public class WindowHandler
             initFont(font, file, size);
         }
     }
-    // deg range: 0-360
+    // deg range: 0-360 (generatecircle degs,degf)
     public const float toRadians = MathF.PI/180;
     public const int circleDetail = 40;
     public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int extraPoint=0, int points=circleDetail)
@@ -151,7 +151,7 @@ public class WindowHandler
         {
             if (edgecol == null)
             {
-                // no alpha
+                // have no alpha
                 SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapSurfaceRGBA((nint)copytexture, col.R, col.G, col.B, col.A));
             }
             return;
@@ -342,10 +342,6 @@ public class WindowHandler
     {
         sendKeyEvent([s]);
     }
-    /*private void sendKeyEvent(List<string>[] s)
-    {
-        // try every combo
-    }*/
     public static SDL.Color black = createColor(0);
     public static SDL.Color white = createColor(255);
     public static bool sceneUpdated = false;
@@ -410,7 +406,7 @@ public class WindowHandler
             bt += bs;
             at += asv;
         }
-    }
+    } // yoink end
     public static SDL.FPoint getTextureSize(nint texture)
     {
         if (!SDL.GetTextureSize(texture, out float x, out float y)) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
@@ -426,9 +422,8 @@ public class WindowHandler
         {
             ui[elements[i].id] = elements[i];
         }
-    } // yoink end
+    }
     bool[] keyspressed = new bool[(int)SDL.Keycode.PlusMinus];
-    // get diagonal speed: (sqrt(num) / 2) ^ 2
     private bool getKeyPressed(SDL.Keycode keycode)
     {
         int kc = (int)keycode;
@@ -497,8 +492,8 @@ public class WindowHandler
         SDL.SetTextureScaleMode(spritesheet, SDL.ScaleMode.PixelArt);
 
         windowSize = getWindowSize(window);
-        initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_30
-        initFonts("sans", "opensans.ttf", [20, 8, 15, 25, 40]); // sans_ 20,8,15
+        initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_ 20,30
+        initFonts("sans", "opensans.ttf", [20, 8, 15, 25, 40]); // sans_ 20,8,15,25,40
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
         SDL.Color darkgrey = createColor(180);
@@ -531,7 +526,6 @@ public class WindowHandler
         float menuscroll = 0;
         float menuscrollvel = 0;
 
-        //defaultFormat = SDL.GetWindowPixelFormat(window);
         defaultFormat = SDL.PixelFormat.RGBA8888;
         SDL.FRect lowerRect;
         ulong NOW = SDL.GetPerformanceCounter();
@@ -561,7 +555,7 @@ public class WindowHandler
                         {
                             element.updateRect();
                         }
-                        break; // worldscroll
+                        break;
                     case SDL.EventType.MouseButtonDown:
                         if (e.Button.Button == 1)
                         {
@@ -597,7 +591,7 @@ public class WindowHandler
                             case SDL.Keycode.C:
                                 sendKeyEvent("keyC");
                                 break;
-                            case SDL.Keycode.R: // reset cursor
+                            case SDL.Keycode.R: // reset cursor (debug)
                                 if (tc.theGame != null && tc.theGame.factory.tutorial != null)
                                 {
                                     tc.theGame.cursor = tc.theGame.factory.tutorial.center;
@@ -793,6 +787,7 @@ public class WindowHandler
                         }
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
+                        SDL.DestroySurface(menusurf);
                         break;
                     case "world":
                         if (game.specialMode != "tutorial")

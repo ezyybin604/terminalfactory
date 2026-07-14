@@ -52,6 +52,23 @@ public class GameData
     {
         state = "done";
     }
+    private class FileCollection
+    {
+        public FileInfo info;
+        public StreamReader stream;
+        public int ln;
+        public FileCollection(string fn)
+        {
+            info = new FileInfo(fn);
+            stream = info.OpenText();
+            ln = 0;
+        }
+        public string? ReadLine()
+        {
+            ln++;
+            return stream.ReadLine();
+        }
+    }
     public GameData(string foldername)
     {
         string mainf = Path.Join(foldername, "main");
@@ -62,21 +79,21 @@ public class GameData
             bool multiline = false;
             List<string> content = new List<string>();
             // previous comment no more
-            List<StreamReader> srs = [File.OpenText(mainf)];
+            List<FileCollection> files = [new FileCollection(mainf)];
             string? s;
             string? sect = null; // sect = section
             List<string> keyl = new List<string>();
             Dictionary<string,string> stuff = new Dictionary<string, string>();
-            while (srs.Count > 0)
+            while (files.Count > 0)
             {
-                s = srs.Last().ReadLine();
+                s = files.Last().ReadLine();
                 if (s == null)
                 {
                     multiline = false;
-                    srs.RemoveAt(srs.Count-1);
-                } else if ((s != "" && s[0] != '#') || multiline)
+                    files.RemoveAt(files.Count-1);
+                } else if (s == "" || s[0] != '#' || multiline)
                 {
-                    if (s[0] == '!')
+                    if (s != "" && s[0] == '!')
                     {
                         int i=0;
                         while (s[i] == '!' && s.Length-1 > i) { i++; }
@@ -88,7 +105,7 @@ public class GameData
                             sect = after;
                         } else if (i == 2 && sect != null)
                         {
-                            if (multiline)
+                            if (!multiline)
                             {
                                 data[sect] = stuff;
                                 keylookup[sect] = keyl.ToArray();
@@ -126,7 +143,7 @@ public class GameData
                             string subfn = Path.Join(foldername, after);
                             if (File.Exists(subfn))
                             {
-                                srs.Add(File.OpenText(subfn));
+                                files.Add(new FileCollection(subfn));
                             } else
                             {
                                 state = "subfile error (does not exist) " + after;
@@ -145,7 +162,8 @@ public class GameData
                     } else if (multiline)
                     {
                         content.Add(s);
-                    } else if (sect != null)
+                    }  else if (s == "")
+                    {} else if (sect != null)
                     {
                         string[] ss = s.Split("=");
                         if (ss.Length == 2)
@@ -154,7 +172,7 @@ public class GameData
                             keyl.Add(ss[0]);
                         } else
                         {
-                            state = "formatting error";
+                            state = string.Format("formatting error, ln {0}, file {1}", files.Last().ln, files.Last().info.Name);
                             return;
                         }
                     }
@@ -388,6 +406,7 @@ public class FileManagement
             dragon = fact.dragon
         };
         machineCursor.putPopulated(fact.unpopulated.ToArray());
+        machineCursor.putUpdate(fact.nextUpdateTick.ToArray());
         machineCursor.applyDictionary(fact.machines);
         saveToFile("player", save, machineCursor);
         List<Point> regions = fact.getRegions(); // straightup stealing the concept of region files from minecraft
@@ -480,6 +499,7 @@ public class FileManagement
         fact.machines = deser.returnMachines();
         fact.energyInNetwork = deser.energyInNetwork;
         fact.unpopulated = deser.getPopulated();
+        fact.nextUpdateTick = deser.getUpdate();
         if (deser.version < 1)
         {
             List<Point> ne = fact.getChunks(); // get all chunks, remove populated
@@ -698,6 +718,23 @@ public class MachineCursor
         for (int i=0;i<points.Length;i++)
         {
             populatedChunks[i] = points[i].ToString();
+        }
+    }
+    public HashSet<Point> getUpdate() // haha ctrlc ctrlv go brr
+    {
+        HashSet<Point> res = new HashSet<Point>();
+        foreach (string itm in nextUpdate)
+        {
+            res.Add(JPI.getPoint(itm));
+        }
+        return res;
+    }
+    public void putUpdate(Point[] points)
+    {
+        nextUpdate = new string[points.Length];
+        for (int i=0;i<points.Length;i++)
+        {
+            nextUpdate[i] = points[i].ToString();
         }
     }
 }

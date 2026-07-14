@@ -41,8 +41,9 @@ public class Factory // factory data / big verbose stuff related to factory
     public int energyInNetwork = 0;
     public const int maxEnergy = int.MaxValue-2000; // in network
     public Inventory inventory = new Inventory();
-    // [x][y]
     public HashSet<Point> unpopulated = new HashSet<Point>();
+
+    // [x][y]
     public Dictionary<int, Dictionary<int, Tile[][]>> world = new Dictionary<int, Dictionary<int, Tile[][]>>();
     public Dictionary<Point, Machine> machines = new Dictionary<Point, Machine>();
     public HashSet<int> linesToUpdate = new HashSet<int>(); // i didnt renember what the data type was called so i had to google it
@@ -64,6 +65,7 @@ public class Factory // factory data / big verbose stuff related to factory
         new Point(1, 0),
         new Point(-1, 0),
     ];
+    public string specialModeFact = "";
     public Dragon dragon = new Dragon();
     public static int getWaterValue(string item)
     {
@@ -74,7 +76,7 @@ public class Factory // factory data / big verbose stuff related to factory
                 return (int)Math.Pow(4, JPI.parseInt(item.Substring(3)));
             }
         }
-        return 0; // no water
+        return 0; // not water
     }
     public static int getFoodValue(string item)
     {
@@ -289,7 +291,7 @@ public class Factory // factory data / big verbose stuff related to factory
     public void generateChunkBasic(Point chunkp)
     {
         Tile[][] chunk = new Tile[chunkSize][];
-        // Generate chunk data herre
+        // Generate chunk data herre (without populated features)
         for (int i=0;i<chunkSize;i++)
         {
             chunk[i] = new Tile[chunkSize];
@@ -527,7 +529,7 @@ public class Factory // factory data / big verbose stuff related to factory
     }
     public int getPipeDir(Point p)
     {
-        // 0,1,2,3,4
+        // 0,1,2,3,4 (what does this comment mean)
         int direction = 0;
         Tile ctl = giveMeTheTile(p);
         for (int i=4;i<machineArea.Length;i++)
@@ -723,7 +725,7 @@ public class Factory // factory data / big verbose stuff related to factory
             } else
             {
                 Console.Write(lineResult[o]);
-                //Thread.Sleep(100);
+                //Thread.Sleep(100); // debug
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Green;
             }
@@ -736,10 +738,8 @@ public class Factory // factory data / big verbose stuff related to factory
         if (info != "")
         {
             bool giveitem = true;
-            if (curs.type == 'i')
-            {
-                // idk dont do anything
-            } else if (curs.type == 'f')
+            if (curs.type == 'i') {}
+            else if (curs.type == 'f')
             {
                 curs.prog--;
                 if (curs.prog < 1)
@@ -830,8 +830,9 @@ public class Factory // factory data / big verbose stuff related to factory
             updateMachine(macp[i]);
         }
     }
-    int getEnergyReq(string subt)
+    int getEnergyReq(string subt) // add inf energy for creative and tutorial
     { // its called "i couldnt be bothered to do this 50 more times" and YOURE GETTING 3 MORE SEASONS!!!!
+        if (specialModeFact == "tutorial" || specialModeFact == "creative") return 0;
         return JPI.parseInt(gd.getFromKey("energyConsume", subt));
     }
     bool hasRequiredEnergy(Machine mach, string subt)
