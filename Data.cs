@@ -1,5 +1,6 @@
 
 using MessagePack;
+using SDL3;
 
 namespace E604terminalfactory;
 
@@ -63,6 +64,11 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         x = point.x;
         y = point.y;
+    }
+    public Point(SDL.Point point)
+    {
+        x = point.X;
+        y = point.Y;
     }
     public void transform(Point point)
     {

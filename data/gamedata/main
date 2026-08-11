@@ -97,7 +97,7 @@ energycable=~
 # build
 stone=o
 f.stone=s
-!! 
+!!
 
 !tileRecolors
 # blue isnt blue dont try it
@@ -137,7 +137,7 @@ F=darkmagenta
 m.1=gray
 m.2=darkcyan
 m.3=darkyellow
-!! 
+!!
 
 !tileRemaps
 stone=s
@@ -152,7 +152,7 @@ i.water2=░
 i.water3=░
 t=~
 F=-
-!! 
+!!
 
 !!!!!sdldata
 
@@ -223,7 +223,7 @@ wat4=Carbonated Water
 wat5=Refined Water
 energy=Raw Energy
 compo=Compost
-!! 
+!!
 
 # copyright from microsoft ai incoming
 !craftingRecipe
@@ -260,7 +260,7 @@ dist=x512,circ
 sscf=x1024,circ,x16,frium
 carb=x2048,circ,carbon
 lasr=x8192,circ,x128,glass
-!! 
+!!
 
 # fluids are just items but you cant have them and have to transport using pipes
 !tags
@@ -278,7 +278,7 @@ looseReq=splt
 pipeT=+]
 pipeB=-
 pipeD=p
-!! 
+!!
 
 # pump
 !fluidToItem
@@ -286,7 +286,7 @@ i.oil=oil
 i.water1=wat1
 i.water2=wat2
 i.water3=wat3
-!! 
+!!
 
 # miner
 !tileToItem
@@ -302,16 +302,16 @@ b.fr4=fr4
 b.fr5=fr5
 f.stone=stone
 f.sand=sand
-!! 
+!!
 
 !tutorialMsg
 !!!!!tutorial
-!! 
+!!
 
 # aint no way linux reference
 !manPages
 !!!!!manual
-!! 
+!!
 
 # add inspect feature or smth to get related page
 !manAccess
@@ -327,12 +327,12 @@ M=machines
 !generatorMaterial
 cgen=coal
 ogen=oil
-!! 
+!!
 
 !generatorOutput
 cgen=128
 ogen=2048
-!! 
+!!
 
 !energyConsume
 puri=128
@@ -350,7 +350,7 @@ stor=0
 sltr=16
 mixr=32
 sscf=64
-!! 
+!!
 
 # in ticks (50ms intervals, aka 1 frame)
 !machineTime
@@ -371,15 +371,15 @@ stor=0
 comp=20
 sltr=3
 mixr=5
-!! 
+!!
 
 !compRecipes
 compo=
-!! 
+!!
 
 !cgenRecipes
 energy=
-!! 
+!!
 
 !ogenRecipes
 !!!!cgenRecipes
@@ -398,31 +398,31 @@ energy=
 50000=Energy Selection
 100000=Energy Selection
 1000000=Energy Selection
-!! 
+!!
 
 !puriRecipes
 #res=t(ms),x(num),item
 wat2=x2,wat1
-!! 
+!!
 
 !distRecipes
 wat3=x4,wat2
-!! 
+!!
 
 !carbRecipes
 wat4=x4,wat3,x2,carbon
-!! 
+!!
 
 !lasrRecipes
 # consume 1 lens at 5% chance (add special % to consume modifier)
 wat5=x4,wat4,x1,lens
-!! 
+!!
 
 !asmbRecipes
 !!!craftingRecipe
 lens=x2,glass
 salt=x4,wat1
-!! 
+!!
 
 !sltrRecipes
 # Salted Fruit
@@ -431,4 +431,4 @@ sf2=x4,salt,x1,fr2
 sf3=x6,salt,x1,fr3
 sf4=x8,salt,x1,fr4
 sf5=x12,salt,x1,fr5
-!! 
+!!

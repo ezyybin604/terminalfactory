@@ -96,7 +96,7 @@ public class GameData
                     if (s != "" && s[0] == '!')
                     {
                         int i=0;
-                        while (s[i] == '!' && s.Length-1 > i) { i++; }
+                        while (s.Length > i && s[i] == '!') { i++; }
                         string after = s.Substring(i);
                         if (i == 1)
                         {
