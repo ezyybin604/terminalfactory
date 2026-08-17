@@ -46,6 +46,7 @@ Once in the inventory, press R/F to move cursor, W to use item, S to exit, H to 
     - Press L to view tile contents/view recipe
     - Press J to exhange contents with tile
     - Press J to change machine recipe
+    - Press M to open the manual
 
 2. Pause
     - Use WS to change selection

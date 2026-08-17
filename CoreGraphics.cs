@@ -9,50 +9,10 @@ namespace gameRunner;
 public class WindowHandler
 {
     static Dictionary<string, nint> fonts = new Dictionary<string, nint>();
-    public required TileConsole tc;
-    public static void initFont(string font, string file, float size)
-    {
-        string id = font + "_" + ((int)size).ToString();
-        fonts.Add(id, TTF.OpenFont(Path.Join("data/fonts", file), size));
-        //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
-        if (fonts[id] == 0)
-        {
-            SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
-        }
-    }
-    public static void initFonts(string font, string file, float[] sizes)
-    {
-        foreach (float size in sizes)
-        {
-            initFont(font, file, size);
-        }
-    }
+    public TileConsole tc;
     // deg range: 0-360 (generatecircle degs,degf)
     public const float toRadians = MathF.PI/180;
     public const int circleDetail = 40;
-    public SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int extraPoint=0, int points=circleDetail)
-    {
-        if (degf < degs) return [];
-        int afterd = degf-degs;
-        SDL.FPoint[] res = new SDL.FPoint[points+extraPoint];
-        for (int i=0;i<points+extraPoint;i++)
-        {
-            double deg = degs+(i*afterd/points);
-            deg *= toRadians;
-            res[i] = new SDL.FPoint
-            {
-                X = (float)(Math.Cos(deg) * radius) + offset.X,
-                Y = (float)(Math.Sin(deg) * radius) + offset.Y
-            };
-        }
-        return res;
-    }
-    public static SDL.FPoint getCursorPoint()
-    {
-        float x, y;
-        SDL.GetMouseState(out x, out y);
-        return new SDL.FPoint{X = x, Y = y};
-    }
     public struct Line
     {
         public float xmin;
@@ -65,34 +25,14 @@ public class WindowHandler
         }
     }
     GameData gd;
-    SDL.Point spdm; // spritesheet dimensions
-    nint spritesheet;
-    public void drawTile(Tile tile, int x, int y, int spro=0) // sprite offset = 1 when machine on
+    public static SDL.Point getStringLength(string font, string text)
     {
-        string keyt = tile.type + "." + tile.subtype;
-        string val = gd.getFromKey("tileTileset", keyt);
-        if (val == "")
-        {
-            keyt = tile.type.ToString();
-            val = gd.getFromKey("tileTileset", keyt);
-        }
-        if (val == "")
-        {
-            val = "23";
-        }
-        string[] sprs = val.Split(","); // n,n < sprites
-        SDL.FRect dest = createRectF(x, y, tileSize, tileSize);
-        foreach (string s in sprs)
-        {
-            int sp = JPI.parseInt(s)-1;
-            sp += spro;
-            Point stpos = new Point(sp%spdm.X, sp/spdm.X);
-            stpos.multiply(shTileS);
-            SDL.FRect clip = createRectF(stpos, shTileS, shTileS);
-            SDL.RenderTexture(renderer, spritesheet, clip, dest);
-        }
+        int x, y;
+        TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
+        return new SDL.Point{X=x, Y=y};
     }
-    public void fillCircle(SDL.FPoint[] circle, SDL.Color col)
+    SDL.PixelFormat defaultFormat = SDL.PixelFormat.Unknown;
+    public static void fillCircle(SDL.FPoint[] circle, SDL.Color col)
     {
         int ymax = int.MinValue;
         int ymin = int.MaxValue;
@@ -130,22 +70,7 @@ public class WindowHandler
             }
         }
     }
-    public void SetRenderDrawColor(SDL.Color col)
-    {
-        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
-    }
-    public void SetRenderDrawColor(SDL.FColor col)
-    {
-        SDL.SetRenderDrawColor(renderer, (byte)col.R, (byte)col.G, (byte)col.B, (byte)col.A);
-    }
-    public SDL.Point getStringLength(string font, string text)
-    {
-        int x, y;
-        TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
-        return new SDL.Point{X=x, Y=y};
-    }
-    SDL.PixelFormat defaultFormat = SDL.PixelFormat.Unknown;
-    public void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1, nint? copytexture=null)
+    public static void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1, nint? copytexture=null)
     {
         if (copytexture != null)
         {
@@ -189,37 +114,19 @@ public class WindowHandler
         }
         SDL.SetRenderScale(renderer, 1, 1);
     }
-    public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
-        return new SDL.Color { R = r, G = g, B = b, A = a };
-    }
-    public static SDL.Color createColor(byte un, byte a=(byte)SDL.AlphaOpaque) // uno/un value
+    public static void initFont(string font, string file, float size)
     {
-        return createColor(un, un, un, a);
-    }
-    public static SDL.FRect createRectF(float x, float y, float w, float h)
-    {
-        return new SDL.FRect { X = x, Y = y, W = w, H = h };
-    }
-    public static SDL.Rect createRect(int x, int y, int w, int h)
-    {
-        return new SDL.Rect { X = x, Y = y, W = w, H = h };
-    }
-    public static SDL.FRect createRectF(Point pt, int w, int h)
-    {
-        return new SDL.FRect { X = pt.x, Y = pt.y, W = w, H = h };
-    }
-    public static SDL.FRect createRectF(SDL.FPoint pt1, SDL.FPoint pt2)
-    {
-        return new SDL.FRect { X = pt1.X, Y = pt1.Y, W = pt2.X, H = pt2.Y };
-    }
-    public static SDL.FPoint createPoint(float x, float y)
-    {
-        return new SDL.FPoint { X = x, Y = y };
+        string id = font + "_" + ((int)size).ToString();
+        fonts.Add(id, TTF.OpenFont(Path.Join("data/fonts", file), size));
+        //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
+        if (fonts[id] == 0)
+        {
+            SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
+        }
     }
     public const nint NULL = 0;
-    public nint renderer;
+    public static nint renderer;
     nint window;
-    SDL.FRect textRect;
     public Point windowSize;
     Dictionary<int, UIElement> ui = new Dictionary<int, UIElement>();
     public static SDL.FPoint cursor;
@@ -227,8 +134,6 @@ public class WindowHandler
     public static int? selected = null;
     private bool acceptingInput = false;
     public int lastkeyp = 0;
-    public const int shTileS = 32; // size in spritesheet
-    public const int tileSize = 32; // size in pixels
     private void changeInputAcceptance(bool newstat)
     {
         if (newstat != acceptingInput)
@@ -243,21 +148,7 @@ public class WindowHandler
             }
         }
     }
-    public static Point getWindowSize(nint window)
-    {
-        int w, h;
-        SDL.GetWindowSize(window, out w, out h);
-        return new Point(w, h);
-    }
-    public static float align(int algn, float p, int size)
-    {
-        return p-(size/2*algn);
-    }
-    /*public static float align(int algn, float p)
-    {
-        return p-(p/2*algn);
-    }*/
-    public void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
+    public static void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
         if (c.Length == 0) return;
         nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
         if (surface == NULL)
@@ -265,6 +156,7 @@ public class WindowHandler
             SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
             return;
         }
+        SDL.FRect textRect;
         SDL.Surface surf = PointerTools.GetSurface(surface);
         textRect.W = surf.Width;
         textRect.H = surf.Height;
@@ -346,33 +238,21 @@ public class WindowHandler
     public static SDL.Color white = createColor(255);
     public static bool sceneUpdated = false;
     Dictionary<int, string> clickmaps = new Dictionary<int, string>();
-    Dictionary<string, SDL.Color> colors = new Dictionary<string, SDL.Color>();
-    public WindowHandler()
+    public static Dictionary<string, SDL.Color> colors = new Dictionary<string, SDL.Color>();
+    public WindowHandler(Game theGame, TileConsole tileConsole)
     {
         gd = new GameData();
         clickmaps.Add(1, "lc");
         clickmaps.Add(2, "mc");
         clickmaps.Add(3, "rc");
+        game = theGame;
+        tc = tileConsole;
+        gamegraphics = new GameGraphics(game);
+        if (colors.Count > 0) return;
         colors.Add("titleColor", createColor(255, 128, 0));
         colors.Add("blackTransparent", createColor(0, SDL.AlphaTransparent));
         colors.Add("red", createColor(255, 0, 0));
         colors.Add("green", createColor(0, 255, 0));
-    }
-    private void drawHeader()
-    {
-        if (tc.theGame == null) return;
-        Game game = tc.theGame;
-        for (int i=0;i<game.topbar.header.Length;i++)
-        {
-            if (game.topbar.header[i] == "TERMINALFACTORY")
-            {
-                writeText("TERMINAL", 15, 15+(30*i), "consbold_20", colors["titleColor"], Algn.leftupper);
-                writeText("FACTORY", 25+getStringLength("consbold_20", "TERMINAL").X, 15+(30*i), "consbold_20", SDLTools.Invert(colors["titleColor"]), Algn.leftupper);
-            } else
-            {
-                writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", black, Algn.leftupper);
-            }
-        }
     }
     // Yoink start from https://discourse.libsdl.org/t/sdl2-color-gradient/25408/4 (modified)
     void drawHorizontalGradientBox(int x, int y, int w, int h, float steps, SDL.Color c1, SDL.Color c2)
@@ -407,11 +287,6 @@ public class WindowHandler
             at += asv;
         }
     } // yoink end
-    public static SDL.FPoint getTextureSize(nint texture)
-    {
-        if (!SDL.GetTextureSize(texture, out float x, out float y)) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
-        return createPoint(x, y);
-    }
     string curlayout = "none";
     private void changeUILayout(string name, UIElement[] elements)
     {
@@ -423,33 +298,8 @@ public class WindowHandler
             ui[elements[i].id] = elements[i];
         }
     }
-    bool[] keyspressed = new bool[(int)SDL.Keycode.PlusMinus];
-    private bool getKeyPressed(SDL.Keycode keycode)
-    {
-        int kc = (int)keycode;
-        if (kc < keyspressed.Length)
-        {
-            return keyspressed[kc];
-        }
-        return false;
-    }
-    private double diagSpeed(double d)
-    { // r^2 + r^2 = d^2 (solve for r) == Math.Sqrt((Math.Pow(d, 2))/2)
-        return Math.Sqrt(Math.Pow(d,2)/2);
-    }
-    Point startpn = new Point();
-    SDL.FPoint worldscroll = createPoint(0, 0);
-    const float camspeedc = 10;
-    public Dictionary<int, Tile[]> worldisplay = new Dictionary<int, Tile[]>();
-    public void sendTiles(Point startp, Tile[] tiles)
-    {
-        if (!startpn.Equals(startp)) startpn = startp;
-        if (worldisplay.ContainsKey(startp.y))
-        {
-            worldisplay.Remove(startp.y);
-        }
-        worldisplay.Add(startp.y, tiles);
-    }
+    Game game;
+    public GameGraphics gamegraphics;
     [STAThread]
     public void Loop(Thread thread)
     {
@@ -483,13 +333,9 @@ public class WindowHandler
         }
         SDL.SetWindowMinimumSize(window, 800, 400);
 
-        spritesheet = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/tileset.png"));
-        if (spritesheet == NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
-        spdm = SDLTools.Cast(SDLTools.DividePoint(getTextureSize(spritesheet), shTileS));
         nint backbutton = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/backbutton.png"));
         nint pausebutton = SDL.CreateTextureFromSurface(renderer, Image.Load("data/textures/pausebutton.png"));
-
-        SDL.SetTextureScaleMode(spritesheet, SDL.ScaleMode.PixelArt);
+        gamegraphics.init();
 
         windowSize = getWindowSize(window);
         initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_ 20,30
@@ -591,6 +437,9 @@ public class WindowHandler
                             case SDL.Keycode.C:
                                 sendKeyEvent("keyC");
                                 break;
+                            case SDL.Keycode.M:
+                                sendKeyEvent("keyM");
+                                break;
                             case SDL.Keycode.R: // reset cursor (debug)
                                 if (tc.theGame != null && tc.theGame.factory.tutorial != null)
                                 {
@@ -664,9 +513,8 @@ public class WindowHandler
             {
                 writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, Algn.leftlower);
             }
-            if (tc.theGame != null)
+            if (tc.theGame != null && tc.theGame.initalized)
             {
-                Game game = tc.theGame;
                 if (sceneUpdated)
                 {
                     menuscroll = 0;
@@ -722,7 +570,7 @@ public class WindowHandler
                                     font = "sans_15"
                                 }
                             ]);
-                        drawHeader();
+                        gamegraphics.drawHeader();
                         game.menus["prompt"] = [ui[0].contents];
                         break;
                     case "menu":
@@ -731,7 +579,7 @@ public class WindowHandler
                         lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
                         menuscroll = Math.Clamp(menuscroll, 0, Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H));
-                        drawHeader();
+                        gamegraphics.drawHeader();
                         drawRect(lowerRect, grey, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
                         // menusurf start
@@ -792,131 +640,25 @@ public class WindowHandler
                     case "world":
                         if (game.specialMode != "tutorial")
                         {
-                            SDL.FPoint camspeed = createPoint(0, 0);
-                            if (getKeyPressed(SDL.Keycode.A))
-                            {
-                                camspeed.X -= 1;
-                            }
-                            if (getKeyPressed(SDL.Keycode.W))
-                            {
-                                camspeed.Y -= 1;
-                            }
-                            if (getKeyPressed(SDL.Keycode.D))
-                            {
-                                camspeed.X += 1;
-                            }
-                            if (getKeyPressed(SDL.Keycode.S))
-                            {
-                                camspeed.Y += 1;
-                            }
-                            float speed = camspeedc;
-                            if (camspeed.X != 0 && camspeed.Y != 0)
-                            {
-                                speed = (float)diagSpeed(camspeedc);
-                            }
-                            camspeed.X *= speed;
-                            camspeed.Y *= speed;
-                            worldscroll.X += camspeed.X;
-                            worldscroll.Y += camspeed.Y;
-                            bool changed = false;
-                            if (Math.Abs(worldscroll.Y) > tileSize)
-                            {
-                                int d = Point.neutralize((int)worldscroll.Y);
-                                worldscroll.Y -= d*tileSize;
-                                game.scroll.y += d;
-                                changed = true;
-                            }
-                            if (Math.Abs(worldscroll.X) > tileSize)
-                            {
-                                int d = Point.neutralize((int)worldscroll.X);
-                                worldscroll.X -= d*tileSize;
-                                game.scroll.x += d;
-                                changed = true;
-                            }
-                            if (game.scroll.x == 0) worldscroll.X = Math.Max(0, worldscroll.X);
-                            if (changed)
-                            {
-                                game.generateNeeded();
-                                game.displayStuff();
-                            }
+                            gamegraphics.cameraController();
                         }
-                        // CAMERA STUFFF GGBGDBGFBG
                         menu = false;
-                        int brh = game.cusc.getWindowSize(WindowSizes.BOARD).y;
-                        int dooffset = 0;
-                        if (game.scroll.x > 0) dooffset++;
-                        for (int i=-1;i<brh;i++)
-                        {
-                            if (worldisplay.ContainsKey(i+game.scroll.y))
-                            {
-                                Tile[] tiles = worldisplay[i+game.scroll.y];
-                                for (int x=0;x<tiles.Length;x++)
-                                { // add offsets for these so scroll
-                                    SDL.Point pt = SDLTools.Cast(createPoint((x*tileSize)-(int)worldscroll.X-(tileSize*dooffset), (i*tileSize)-(int)worldscroll.Y));
-                                    drawTile(tiles[x], pt.X, pt.Y);
-                                    if (tiles[x].type == 'M')
-                                    {
-                                        Point yes = new Point(x+game.scroll.x-1, i+game.scroll.y);
-                                        bool uhh = game.factory.machines[yes].isFormed;
-                                        SDL.FRect iss = createRectF(new Point(pt), 5, 5);
-                                        if (uhh)
-                                        {
-                                            drawRect(iss, colors["green"]);
-                                        } else
-                                        {
-                                            drawRect(iss, colors["red"]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Point newCursor = new Point(game.scroll.x+(int)((cursor.X+worldscroll.X)/tileSize), game.scroll.y+(int)((cursor.Y+worldscroll.Y)/tileSize));
+                        gamegraphics.drawWorld();
+                        Point newCursor = new Point(game.scroll.x+(int)((cursor.X+gamegraphics.worldscroll.X)/GameGraphics.tileSize), game.scroll.y+(int)((cursor.Y+gamegraphics.worldscroll.Y)/GameGraphics.tileSize));
                         if (!newCursor.Equals(game.cursor))
                         {
-                            game.sendAction("cursorchange");
                             if (game.specialMode == "tutorial")
                             {
-                                Point inbetween = new Point(newCursor.x, game.cursor.y);
-                                List<Point> check = FTutorial.getPathList([game.cursor, inbetween]);
-                                int prevx = game.cursor.x;
-                                bool setNewX = false;
-                                foreach (Point pt in check)
-                                {
-                                    char ttype = game.factory.giveMeTheTile(pt).type;
-                                    if (ttype == 't')
-                                    {
-                                        setNewX = true;
-                                    } else if (!setNewX)
-                                    {
-                                        prevx = pt.x;
-                                    }
-                                }
-                                if (setNewX)
-                                {
-                                    newCursor.x = prevx;
-                                }
-                                bool setNewY = false;
-                                check = FTutorial.getPathList([new Point(newCursor.x, game.cursor.y), newCursor]);
-                                int prevy = game.cursor.y;
-                                foreach (Point pt in check)
-                                {
-                                    char ttype = game.factory.giveMeTheTile(pt).type;
-                                    if (ttype == 't')
-                                    {
-                                        setNewY = true;
-                                    } else if (!setNewY)
-                                    {
-                                        prevy = pt.y;
-                                    }
-                                }
-                                if (setNewY)
-                                {
-                                    newCursor.y = prevy;
-                                }
-                            } 
+                                game.sendAction("cursorchange");
+                                game.cursor = gamegraphics.cursorLimiter(newCursor);
+                            }
                             game.cursor = newCursor;
                         }
-                        SDL.FRect tilex = createRectF(((game.cursor.x-game.scroll.x)*tileSize)-worldscroll.X, ((game.cursor.y-game.scroll.y)*tileSize)-worldscroll.Y, tileSize, tileSize);
+                        SDL.FRect tilex = createRectF(
+                            ((game.cursor.x-game.scroll.x)*GameGraphics.tileSize)-gamegraphics.worldscroll.X,
+                            ((game.cursor.y-game.scroll.y)*GameGraphics.tileSize)-gamegraphics.worldscroll.Y,
+                            GameGraphics.tileSize, GameGraphics.tileSize
+                        );
                         drawRect(tilex, createColor(0, (byte)(64+(64*Math.Abs((timePass%2)-1)))));
                         break;
                 }
@@ -992,5 +734,100 @@ public class WindowHandler
         SDL.DestroyWindow(window);
         TTF.Quit();
         SDL.Quit();
+    }
+    // Data Generation
+    public static bool[] keyspressed = new bool[(int)SDL.Keycode.PlusMinus];
+    public static bool getKeyPressed(SDL.Keycode keycode)
+    {
+        int kc = (int)keycode;
+        if (kc < keyspressed.Length)
+        {
+            return keyspressed[kc];
+        }
+        return false;
+    }
+    public static Point getWindowSize(nint window)
+    {
+        int w, h;
+        SDL.GetWindowSize(window, out w, out h);
+        return new Point(w, h);
+    }
+    public static float align(int algn, float p, int size)
+    {
+        return p-(size/2*algn);
+    }
+    public static SDL.FPoint getTextureSize(nint texture)
+    {
+        if (!SDL.GetTextureSize(texture, out float x, out float y)) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
+        return createPoint(x, y);
+    }
+    public static double diagSpeed(double d)
+    { // r^2 + r^2 = d^2 (solve for r) == Math.Sqrt((Math.Pow(d, 2))/2)
+        return Math.Sqrt(Math.Pow(d,2)/2);
+    }
+    public static SDL.FPoint[] generateCircle(int radius, int degs, int degf, SDL.FPoint offset=new SDL.FPoint(), int extraPoint=0, int points=circleDetail)
+    {
+        if (degf < degs) return [];
+        int afterd = degf-degs;
+        SDL.FPoint[] res = new SDL.FPoint[points+extraPoint];
+        for (int i=0;i<points+extraPoint;i++)
+        {
+            double deg = degs+(i*afterd/points);
+            deg *= toRadians;
+            res[i] = new SDL.FPoint
+            {
+                X = (float)(Math.Cos(deg) * radius) + offset.X,
+                Y = (float)(Math.Sin(deg) * radius) + offset.Y
+            };
+        }
+        return res;
+    }
+    public static SDL.FPoint getCursorPoint()
+    {
+        float x, y;
+        SDL.GetMouseState(out x, out y);
+        return new SDL.FPoint{X = x, Y = y};
+    }
+    public static void initFonts(string font, string file, float[] sizes)
+    {
+        foreach (float size in sizes)
+        {
+            initFont(font, file, size);
+        }
+    }
+    public static void SetRenderDrawColor(SDL.Color col)
+    {
+        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+    }
+    public static void SetRenderDrawColor(SDL.FColor col)
+    {
+        SDL.SetRenderDrawColor(renderer, (byte)col.R, (byte)col.G, (byte)col.B, (byte)col.A);
+    }
+    public static SDL.Color createColor(byte r, byte g, byte b, byte a=(byte)SDL.AlphaOpaque) {
+        return new SDL.Color { R = r, G = g, B = b, A = a };
+    }
+    public static SDL.Color createColor(byte un, byte a=(byte)SDL.AlphaOpaque) // uno/un value
+    {
+        return createColor(un, un, un, a);
+    }
+    public static SDL.FRect createRectF(float x, float y, float w, float h)
+    {
+        return new SDL.FRect { X = x, Y = y, W = w, H = h };
+    }
+    public static SDL.Rect createRect(int x, int y, int w, int h)
+    {
+        return new SDL.Rect { X = x, Y = y, W = w, H = h };
+    }
+    public static SDL.FRect createRectF(Point pt, int w, int h)
+    {
+        return new SDL.FRect { X = pt.x, Y = pt.y, W = w, H = h };
+    }
+    public static SDL.FRect createRectF(SDL.FPoint pt1, SDL.FPoint pt2)
+    {
+        return new SDL.FRect { X = pt1.X, Y = pt1.Y, W = pt2.X, H = pt2.Y };
+    }
+    public static SDL.FPoint createPoint(float x, float y)
+    {
+        return new SDL.FPoint { X = x, Y = y };
     }
 }

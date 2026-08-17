@@ -19,6 +19,8 @@ namespace E604terminalfactory;
     - make worldgen features more datadriven (at least for main worldgen)
     - move important centerialized data to central data structure
     - Move machine logic into its own file
+    - add splash text to menu
+    - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
 
     gameplay changes
     - finish dragon.putscale
@@ -59,7 +61,7 @@ public class Game
     int? usingItem = null;
     int timer = 0;
     public required TileConsole cusc;
-    public required WindowHandler windowHandler;
+    public bool initalized = false;
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -752,6 +754,8 @@ public class Game
                             sendAction("continue");
                         }
                         break;
+                    case 'm':
+                        break;
                 }
                 break;
             case "pause": case "custom":
@@ -908,7 +912,6 @@ public class Game
                 { // Why does c# want me to do this isnt "simplified" what
                     specialMode = "tutorial",
                     cusc = cusc,
-                    windowHandler = windowHandler,
                     splashes = splashes,
                     scene = "game"
                 };
@@ -1057,6 +1060,7 @@ Nobody follows, so to keep secrecy while you travel.
     public bool acceptFrame = true;
     public void runTheGameIg()
     {
+        initalized = true;
         factory.specialModeFact = specialMode;
         if (specialMode != "tutorial")
         {

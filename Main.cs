@@ -14,11 +14,11 @@ class Runner {
         }
         Game game = new Game
         {
-            cusc = new TileConsole(),
-            windowHandler = new WindowHandler{tc = new TileConsole()}
+            cusc = new TileConsole() // dummy console
         };
         game.cusc = new TileConsole{runnerType = runnerT, theGame = game};
-        game.windowHandler.tc = game.cusc;
+        WindowHandler wh = new WindowHandler(game, game.cusc);
+        game.cusc.windowHandler = wh;
         game.Start();
     }
 }
@@ -56,6 +56,12 @@ public enum WindowSizes : ushort
 
 public class TileConsole
 {
+    public TileConsole()
+    {
+        runnerType = "sdl";
+        theGame = new Game{cusc = this};
+        windowHandler = new WindowHandler(theGame, this);
+    }
     public static void Error(string s)
     {
         Console.WriteLine(s); // replace with the err function in unity
@@ -73,10 +79,11 @@ public class TileConsole
     bool doConsole = true;
     public void Clear()
     {
-        if (!doConsole) return;
+        if (runnerType == "sdl" || !doConsole) return;
         try { Console.Clear(); }
         catch (IOException) {doConsole = false;}
     }
+    public WindowHandler windowHandler;
     public Game? theGame;
     public Point getWindowSize(WindowSizes type)
     { // possible: board size, max text length (or maybe have function that returns if cursor beyond screen), window size
@@ -97,11 +104,11 @@ public class TileConsole
                 case WindowSizes.TEXT:
                     return new Point(); // just ignore this one
                 case WindowSizes.WINDOW:
-                    return theGame.windowHandler.windowSize;
+                    return windowHandler.windowSize;
                 case WindowSizes.BOARD:
                     return new Point(
-                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.x/WindowHandler.tileSize))+2,
-                        (int)Math.Floor((double)(theGame.windowHandler.windowSize.y/WindowHandler.tileSize))+2
+                        (int)Math.Floor((double)(windowHandler.windowSize.x/GameGraphics.tileSize))+2,
+                        (int)Math.Floor((double)(windowHandler.windowSize.y/GameGraphics.tileSize))+2
                     );
             }
         }
@@ -115,7 +122,7 @@ public class TileConsole
         };
         if (runnerType == "sdl")
         {
-            game.windowHandler.Loop(gameThread);
+            windowHandler.Loop(gameThread);
             game.scene = "end";
             return;
         }
@@ -218,7 +225,7 @@ public class TileConsole
     {
         if (runnerType == "sdl" && theGame != null)
         {
-            theGame.windowHandler.sendTiles(startp, tiles);
+            windowHandler.gamegraphics.sendTiles(startp, tiles);
         }
     }
     public void setSplash(string text, string versionstr)

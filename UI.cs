@@ -79,20 +79,20 @@ public class UIElement
         if (type == "input") curve = 5;
         if (texture == null)
         {
-            window.drawRect(rect, SDLTools.Cast(curcol), color[1], curve, 1);
+            WindowHandler.drawRect(rect, SDLTools.Cast(curcol), color[1], curve, 1);
         } else
         {
             SDL.SetTextureColorModFloat((nint)texture, curcol.R/255, curcol.G/255, curcol.B/255);
-            SDL.RenderTexture(window.renderer, (nint)texture, texturesrc, rect);
+            SDL.RenderTexture(WindowHandler.renderer, (nint)texture, texturesrc, rect);
             SDL.SetTextureColorModFloat((nint)texture, 1, 1, 1);
         }
         if (type == "button")
         {
-            window.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], Algn.centercenter);
+            WindowHandler.writeText(contents, rect.X+(rect.W/2), rect.Y+(rect.H/2), font, color[2], Algn.centercenter);
         } else if (type == "input")
         {
             float ytex = rect.Y+(rect.H/2);
-            SDL.Point size = window.getStringLength(font, contents.Substring(0, Math.Max(0, cursorpos)));
+            SDL.Point size = WindowHandler.getStringLength(font, contents.Substring(0, Math.Max(0, cursorpos)));
             if (size.X+5-cursorscrl > rect.W/2) // fix text streching when deleting from scroll
             {
                 // right half
@@ -104,15 +104,15 @@ public class UIElement
                 if (lastInput == "backspace") offset = 15;
                 cursorscrl = Math.Min(cursorscrl, Math.Max(0, size.X-offset));
             }
-            window.writeText(
+            WindowHandler.writeText(
                 contents, 5+rect.X, ytex, font, color[2],
                 Algn.leftcenter,
                 new SDL.FRect{ X = cursorscrl, W = rect.W-10 }
             );
             if (id == WindowHandler.selected)
             {
-                window.SetRenderDrawColor(color[2]);
-                SDL.RenderLine(window.renderer, size.X+rect.X+5-cursorscrl, ytex-(size.Y/2), size.X+rect.X+5-cursorscrl, ytex+(size.Y/2));
+                WindowHandler.SetRenderDrawColor(color[2]);
+                SDL.RenderLine(WindowHandler.renderer, size.X+rect.X+5-cursorscrl, ytex-(size.Y/2), size.X+rect.X+5-cursorscrl, ytex+(size.Y/2));
             }
         }
         getColor();
