@@ -190,7 +190,7 @@ public class TileConsole
                     game.factory.savefile = game.gdm.getOption("defaultsave");
                     sf = game.gdm.savefileExists(game.factory.savefile);
                 }
-                game.topbar.header = ["TERMINALFACTORY"];
+                game.topbar.header = [misctext["name"], misctext["quote"]];
                 List<string> menu = [
                     "New Game|nameprompt",
                     "Options|opt",
@@ -220,7 +220,7 @@ public class TileConsole
     // 3 modes: console, world, menu, prompt
     public string mode = "console";
     public List<string> currentText = [];
-    public Dictionary<string,string> misctext = new Dictionary<string, string>();
+    public static Dictionary<string,string> misctext = new Dictionary<string, string>();
     public void sendTiles(Point startp, Tile[] tiles)
     {
         if (runnerType == "sdl" && theGame != null)
@@ -230,9 +230,9 @@ public class TileConsole
     }
     public void setSplash(string text, string versionstr)
     {
-        misctext.TryAdd("name", "TERMINAL|FACTORY");;
+        misctext.TryAdd("name", "logo|TERMINAL|FACTORY");;
         misctext.TryAdd("vers", String.Format("terminalfactory {0}, by:ezyybin604/Ezra", versionstr));
-        misctext.TryAdd("quote", "\"" + text + "\"");
+        misctext.TryAdd("quote", "consbold_10|\"" + text + "\"");
         if (runnerType == "sdl")
         {
             return;

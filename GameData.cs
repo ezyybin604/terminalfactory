@@ -222,7 +222,7 @@ public class FileManagement
     // copying from docs (jsonserializer code)
     private void saveToFile(string fn, string savefile, object toSer)
     {
-        Console.WriteLine("Saving file " + fn);
+        //Console.WriteLine("Saving file " + fn);
         string file = Path.Join(worldFolder, savefile, fn);
         File.WriteAllBytes(file, MessagePackSerializer.Serialize(toSer));
     }

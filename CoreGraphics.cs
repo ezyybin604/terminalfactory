@@ -8,7 +8,7 @@ namespace gameRunner;
 
 public class WindowHandler
 {
-    static Dictionary<string, nint> fonts = new Dictionary<string, nint>();
+    public static Dictionary<string, nint> fonts = new Dictionary<string, nint>();
     public TileConsole tc;
     // deg range: 0-360 (generatecircle degs,degf)
     public const float toRadians = MathF.PI/180;
@@ -338,7 +338,7 @@ public class WindowHandler
         gamegraphics.init();
 
         windowSize = getWindowSize(window);
-        initFonts("consbold", "consbold.ttf", [20, 30]); // consbold_ 20,30
+        initFonts("consbold", "consbold.ttf", [10, 20, 30]); // consbold_ 10,20,30
         initFonts("sans", "opensans.ttf", [20, 8, 15, 25, 40]); // sans_ 20,8,15,25,40
         SDL.Color grey = createColor(205);
         SDL.Color darkergrey = createColor(150);
@@ -509,9 +509,9 @@ public class WindowHandler
             SDL.SetRenderDrawColor(renderer, 255, 255, 255, 0);
             SDL.RenderClear(renderer);
             if (tc.theGame != null) tc.changeMode(tc.theGame.factory.gd.getFromKey("modeMaps", tc.theGame.scene));
-            if (tc.misctext.ContainsKey("vers") && menu)
+            if (TileConsole.misctext.ContainsKey("vers") && menu)
             {
-                writeText(tc.misctext["vers"], 10, windowSize.y-10, "sans_20", black, Algn.leftlower);
+                writeText(TileConsole.misctext["vers"], 10, windowSize.y-10, "sans_20", black, Algn.leftlower);
             }
             if (tc.theGame != null && tc.theGame.initalized)
             {

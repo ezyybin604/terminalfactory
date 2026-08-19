@@ -19,7 +19,6 @@ namespace E604terminalfactory;
     - make worldgen features more datadriven (at least for main worldgen)
     - move important centerialized data to central data structure
     - Move machine logic into its own file
-    - add splash text to menu
     - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
 
     gameplay changes
@@ -98,21 +97,6 @@ public class Game
                 factory.generateChunk(Math.Max(x+sx, 0), y+sy);
             }
         }
-    }
-    public void introduction()
-    {
-        string text = "Skip introduction?";
-        if (cusc.runnerType == "sdl")
-        {
-            cusc.changeMode("prompt");
-            cusc.writeText(text);
-        } else
-        {
-            text += " (Please read i beg) (Press key: y/n):";
-            Console.Write(text);
-        }
-        Console.WriteLine("This introduction is being DELETED. go away and pretend it doesnt exist");
-        Console.ReadLine();
     }
     void initStuff()
     {
@@ -1168,7 +1152,7 @@ Nobody follows, so to keep secrecy while you travel.
     }
     public void hi()
     {
-        string splash = splashes[Factory.generateIntRange(1, splashes.Length)-1].Replace('\r', '\0');
+        string splash = splashes[Factory.generateIntRange(1, splashes.Length)-1].Replace("\r", "").Replace("\n", "");
         cusc.setSplash(splash, "0.1");
     }
     public void Start()

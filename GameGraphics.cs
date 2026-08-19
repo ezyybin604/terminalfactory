@@ -1,4 +1,5 @@
 
+using System.Text.RegularExpressions;
 using E604terminalfactory;
 using SDL3;
 
@@ -35,17 +36,45 @@ public class GameGraphics
         }
         worldisplay.Add(startp.y, tiles);
     }
+    private readonly Regex startEnd = new Regex("\\|(.*)");
     public void drawHeader()
     { // add splash
         for (int i=0;i<game.topbar.header.Length;i++)
         {
-            if (game.topbar.header[i] == "TERMINALFACTORY")
+            string[] intp = game.topbar.header[i].Split("|");
+            string mode = intp[0];
+
+            bool alternate = true;
+            string font = "consbold_20";
+            if (intp.Length > 1)
             {
-                WindowHandler.writeText("TERMINAL", 15, 15+(30*i), "consbold_20", WindowHandler.colors["titleColor"], Algn.leftupper);
-                WindowHandler.writeText("FACTORY", 25+WindowHandler.getStringLength("consbold_20", "TERMINAL").X, 15+(30*i), "consbold_20", SDLTools.Invert(WindowHandler.colors["titleColor"]), Algn.leftupper);
-            } else
+                switch (mode)
+                {
+                    case "logo":
+                        WindowHandler.writeText(intp[1], 15, 15+(30*i), font, WindowHandler.colors["titleColor"], Algn.leftupper);
+                        WindowHandler.writeText(intp[2],
+                            25+WindowHandler.getStringLength(font, intp[1]).X, 15+(30*i),
+                            font, SDLTools.Invert(WindowHandler.colors["titleColor"]), Algn.leftupper
+                        );
+                        break;
+                    default:
+                        alternate = false;
+                        if (WindowHandler.fonts.Keys.Contains(mode))
+                        {
+                            font = mode;
+                        }
+                        break;
+                }
+            }
+            if (!alternate)
             {
-                WindowHandler.writeText(game.topbar.header[i], 15, 15+(30*i), "consbold_20", WindowHandler.black, Algn.leftupper);
+                string text = game.topbar.header[i];
+                Match match = startEnd.Match(game.topbar.header[i]);
+                if (match.Groups.Count > 1)
+                {
+                    text = match.Groups[1].Value;
+                }
+                WindowHandler.writeText(text, 15, 15+(30*i), font, WindowHandler.black, Algn.leftupper);
             }
         }
     }
