@@ -1,5 +1,6 @@
 
 using gameRunner;
+using SDL3;
 
 namespace E604terminalfactory;
 
@@ -8,18 +9,19 @@ namespace E604terminalfactory;
 
 // todo:
 /*
-    bugs
+    minor bugs
     - hope that all the machines are functional
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - fix bug where machines dont start immedieatly after they finish
     - make laser purifer lens consume chance
     
-    orgn/maint
+    orgn/maint/everything else
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
     - make worldgen features more datadriven (at least for main worldgen)
     - move important centerialized data to central data structure
     - Move machine logic into its own file
     - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
+    - 
 
     gameplay changes
     - finish dragon.putscale
@@ -230,7 +232,13 @@ public class Game
             si = menus[scene + "_info"][lowerIndex].Split("|")[0];
         } else if (headeridx < topbar.header.Length && hasHeader)
         {
-            si = topbar.header[headeridx];
+            string txt = topbar.header[headeridx];
+            string[] spl = txt.Split("|");
+            if (spl[0] == "logo")
+            {
+                txt = spl[1] + spl[2];
+            }
+            si = TopBar.CleanHeader(txt);
         } else if (headeridx == topbar.header.Length && hasHeader) {} else
         {
             si = menus[scene][i].Split("|")[0];

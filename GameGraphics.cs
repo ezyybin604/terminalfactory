@@ -1,5 +1,4 @@
 
-using System.Text.RegularExpressions;
 using E604terminalfactory;
 using SDL3;
 
@@ -36,7 +35,6 @@ public class GameGraphics
         }
         worldisplay.Add(startp.y, tiles);
     }
-    private readonly Regex startEnd = new Regex("\\|(.*)");
     public void drawHeader()
     { // add splash
         for (int i=0;i<game.topbar.header.Length;i++)
@@ -68,13 +66,7 @@ public class GameGraphics
             }
             if (!alternate)
             {
-                string text = game.topbar.header[i];
-                Match match = startEnd.Match(game.topbar.header[i]);
-                if (match.Groups.Count > 1)
-                {
-                    text = match.Groups[1].Value;
-                }
-                WindowHandler.writeText(text, 15, 15+(30*i), font, WindowHandler.black, Algn.leftupper);
+                WindowHandler.writeText(TopBar.CleanHeader(game.topbar.header[i]), 15, 15+(30*i), font, WindowHandler.black, Algn.leftupper);
             }
         }
     }

@@ -25,105 +25,7 @@ public class WindowHandler
         }
     }
     GameData gd;
-    public static SDL.Point getStringLength(string font, string text)
-    {
-        int x, y;
-        TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
-        return new SDL.Point{X=x, Y=y};
-    }
     SDL.PixelFormat defaultFormat = SDL.PixelFormat.Unknown;
-    public static void fillCircle(SDL.FPoint[] circle, SDL.Color col)
-    {
-        int ymax = int.MinValue;
-        int ymin = int.MaxValue;
-        Dictionary<int, Line> lines = new Dictionary<int, Line>();
-        for (int i=0;i<circle.Length;i++)
-        {
-            int y = (int)Math.Round(circle[i].Y);
-            ymax = Math.Max(y, ymax);
-            ymin = Math.Min(y, ymin);
-            if (lines.ContainsKey(y))
-            {
-                lines[y] = lines[y].expandLine(circle[i].X);
-            } else
-            {
-                lines.Add(y, new Line
-                {
-                    xmin = circle[i].X,
-                    xmax = circle[i].X
-                });
-            }
-        }
-        int ydif = ymax - ymin;
-        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
-        int currentline = 0;
-        int[] keys = lines.Keys.ToArray();
-        keys.Sort();
-        for (int i=0;i<ydif;i++)
-        {
-            int truey = ymin+i;
-            Line line = lines[keys[currentline]];
-            SDL.RenderLine(renderer, line.xmin, truey, line.xmax, truey);
-            if (lines.ContainsKey(truey))
-            {
-                currentline++;
-            }
-        }
-    }
-    public static void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1, nint? copytexture=null)
-    {
-        if (copytexture != null)
-        {
-            if (edgecol == null)
-            {
-                // have no alpha
-                SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapSurfaceRGBA((nint)copytexture, col.R, col.G, col.B, col.A));
-            }
-            return;
-        }
-        SDL.SetRenderScale(renderer, lineScale, lineScale);
-        SDL.FPoint[] outline = [];
-        if (linecurve > 0)
-        {
-            // outline not converted
-            List<SDL.FPoint> outlinenc = SDLTools.DividePoints([
-                .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
-                .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}, 1),
-                .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
-                .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}, 1),
-            ], lineScale).ToList();
-            outlinenc.Add(outlinenc[0]);
-            outline = outlinenc.ToArray();
-            fillCircle(outline, col);
-        } else
-        {
-            SetRenderDrawColor(col);
-            SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
-        }
-        if (edgecol != null)
-        {
-            SDL.Color ce = (SDL.Color)edgecol;
-            SDL.SetRenderDrawColor(renderer, ce.R, ce.G, ce.B, ce.A);
-            if (linecurve > 0)
-            { // maybe add whatever anti aliasing is to outline
-                SDL.RenderLines(renderer, outline, outline.Length);
-            } else
-            {
-                SDL.RenderRect(renderer, SDLTools.DivideRect(rect, lineScale));
-            }
-        }
-        SDL.SetRenderScale(renderer, 1, 1);
-    }
-    public static void initFont(string font, string file, float size)
-    {
-        string id = font + "_" + ((int)size).ToString();
-        fonts.Add(id, TTF.OpenFont(Path.Join("data/fonts", file), size));
-        //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
-        if (fonts[id] == 0)
-        {
-            SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
-        }
-    }
     public const nint NULL = 0;
     public static nint renderer;
     nint window;
@@ -147,59 +49,6 @@ public class WindowHandler
                 SDL.StopTextInput(window);
             }
         }
-    }
-    public static void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
-        if (c.Length == 0) return;
-        nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
-        if (surface == NULL)
-        {
-            SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
-            return;
-        }
-        SDL.FRect textRect;
-        SDL.Surface surf = PointerTools.GetSurface(surface);
-        textRect.W = surf.Width;
-        textRect.H = surf.Height;
-        if (src != null)
-        {
-            SDL.FRect rsrc = (SDL.FRect)src;
-            textRect.W = MathF.Min(textRect.W, MathF.Max(0, MathF.Min(rsrc.W, textRect.W-rsrc.X)));
-        }
-        int[] arl = SDLTools.Get(alignment);
-        textRect.X = align(arl[0], x, surf.Width);
-        textRect.Y = align(arl[1], y, surf.Height);
-        if (copytexture != null)
-        {
-            nint surfblit = (nint)copytexture;
-             if (src == null)
-            {
-                SDL.BlitSurface(surface, NULL, surfblit, SDLTools.Cast(textRect));
-            } else
-            {
-                SDL.FRect rsrc = (SDL.FRect)src;
-                SDL.BlitSurface(surface, new SDL.Rect
-                {
-                    X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
-                    Y = 0, H = (int)textRect.H
-                }, surfblit, SDLTools.Cast(textRect));
-            }
-        } else
-        {
-            nint texture = SDL.CreateTextureFromSurface(renderer, surface);
-            if (src == null)
-            {
-                SDL.RenderTexture(renderer, texture, NULL, textRect);
-            } else
-            {
-                SDL.FRect rsrc = (SDL.FRect)src;
-                rsrc = new SDL.FRect {
-                   X = (int)rsrc.X, W = Math.Min(rsrc.W, textRect.W),
-                   Y = 0, H = (int)textRect.H
-                };
-                SDL.RenderTexture(renderer, texture, rsrc, textRect);
-            }
-        }
-        SDL.DestroySurface(surface);
     }
     public static ConsoleKey GetConsoleKey(char c)
     {
@@ -735,6 +584,142 @@ public class WindowHandler
         TTF.Quit();
         SDL.Quit();
     }
+    // Primitives
+    public static void fillCircle(SDL.FPoint[] circle, SDL.Color col)
+    {
+        int ymax = int.MinValue;
+        int ymin = int.MaxValue;
+        Dictionary<int, Line> lines = new Dictionary<int, Line>();
+        for (int i=0;i<circle.Length;i++)
+        {
+            int y = (int)Math.Round(circle[i].Y);
+            ymax = Math.Max(y, ymax);
+            ymin = Math.Min(y, ymin);
+            if (lines.ContainsKey(y))
+            {
+                lines[y] = lines[y].expandLine(circle[i].X);
+            } else
+            {
+                lines.Add(y, new Line
+                {
+                    xmin = circle[i].X,
+                    xmax = circle[i].X
+                });
+            }
+        }
+        int ydif = ymax - ymin;
+        SDL.SetRenderDrawColor(renderer, col.R, col.G, col.B, col.A);
+        int currentline = 0;
+        int[] keys = lines.Keys.ToArray();
+        keys.Sort();
+        for (int i=0;i<ydif;i++)
+        {
+            int truey = ymin+i;
+            Line line = lines[keys[currentline]];
+            SDL.RenderLine(renderer, line.xmin, truey, line.xmax, truey);
+            if (lines.ContainsKey(truey))
+            {
+                currentline++;
+            }
+        }
+    }
+    public static void drawRect(SDL.FRect rect, SDL.Color col, SDL.Color? edgecol=null, int linecurve=0, int lineScale=1, nint? copytexture=null)
+    {
+        if (copytexture != null)
+        {
+            if (edgecol == null)
+            {
+                // have no alpha
+                SDL.FillSurfaceRect((nint)copytexture, SDLTools.Cast(rect), SDL.MapSurfaceRGBA((nint)copytexture, col.R, col.G, col.B, col.A));
+            }
+            return;
+        }
+        SDL.SetRenderScale(renderer, lineScale, lineScale);
+        SDL.FPoint[] outline = [];
+        if (linecurve > 0)
+        {
+            // outline not converted
+            List<SDL.FPoint> outlinenc = SDLTools.DividePoints([
+                .. generateCircle(linecurve, 0, 90, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+rect.H-linecurve}),
+                .. generateCircle(linecurve, 90, 180, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+rect.H-linecurve}, 1),
+                .. generateCircle(linecurve, 180, 270, new SDL.FPoint{X = rect.X+linecurve, Y=rect.Y+linecurve}),
+                .. generateCircle(linecurve, 270, 360, new SDL.FPoint{X = rect.X+rect.W-linecurve, Y=rect.Y+linecurve}, 1),
+            ], lineScale).ToList();
+            outlinenc.Add(outlinenc[0]);
+            outline = outlinenc.ToArray();
+            fillCircle(outline, col);
+        } else
+        {
+            SetRenderDrawColor(col);
+            SDL.RenderFillRect(renderer, SDLTools.DivideRect(rect, lineScale));
+        }
+        if (edgecol != null)
+        {
+            SDL.Color ce = (SDL.Color)edgecol;
+            SDL.SetRenderDrawColor(renderer, ce.R, ce.G, ce.B, ce.A);
+            if (linecurve > 0)
+            { // maybe add whatever anti aliasing is to outline
+                SDL.RenderLines(renderer, outline, outline.Length);
+            } else
+            {
+                SDL.RenderRect(renderer, SDLTools.DivideRect(rect, lineScale));
+            }
+        }
+        SDL.SetRenderScale(renderer, 1, 1);
+    }
+    public static void writeText(string c, float x, float y, string font, SDL.Color fg, Algn alignment=Algn.leftupper, SDL.FRect? src=null, nint? copytexture=null) {
+        if (c.Length == 0) return;
+        nint surface = TTF.RenderTextBlended(fonts[font], c, (uint)c.Length, fg);
+        if (surface == NULL)
+        {
+            SDL.LogError(SDL.LogCategory.System, String.Format("Font Surface could not display: {0}", SDL.GetError()));
+            return;
+        }
+        SDL.FRect textRect;
+        SDL.Surface surf = PointerTools.GetSurface(surface);
+        textRect.W = surf.Width;
+        textRect.H = surf.Height;
+        if (src != null)
+        {
+            SDL.FRect rsrc = (SDL.FRect)src;
+            textRect.W = MathF.Min(textRect.W, MathF.Max(0, MathF.Min(rsrc.W, textRect.W-rsrc.X)));
+        }
+        int[] arl = SDLTools.Get(alignment);
+        textRect.X = align(arl[0], x, surf.Width);
+        textRect.Y = align(arl[1], y, surf.Height);
+        if (copytexture != null)
+        {
+            nint surfblit = (nint)copytexture;
+             if (src == null)
+            {
+                SDL.BlitSurface(surface, NULL, surfblit, SDLTools.Cast(textRect));
+            } else
+            {
+                SDL.FRect rsrc = (SDL.FRect)src;
+                SDL.BlitSurface(surface, new SDL.Rect
+                {
+                    X = (int)rsrc.X, W = (int)Math.Min(rsrc.W, textRect.W),
+                    Y = 0, H = (int)textRect.H
+                }, surfblit, SDLTools.Cast(textRect));
+            }
+        } else
+        {
+            nint texture = SDL.CreateTextureFromSurface(renderer, surface);
+            if (src == null)
+            {
+                SDL.RenderTexture(renderer, texture, NULL, textRect);
+            } else
+            {
+                SDL.FRect rsrc = (SDL.FRect)src;
+                rsrc = new SDL.FRect {
+                   X = (int)rsrc.X, W = Math.Min(rsrc.W, textRect.W),
+                   Y = 0, H = (int)textRect.H
+                };
+                SDL.RenderTexture(renderer, texture, rsrc, textRect);
+            }
+        }
+        SDL.DestroySurface(surface);
+    }
     // Data Generation
     public static bool[] keyspressed = new bool[(int)SDL.Keycode.PlusMinus];
     public static bool getKeyPressed(SDL.Keycode keycode)
@@ -829,5 +814,21 @@ public class WindowHandler
     public static SDL.FPoint createPoint(float x, float y)
     {
         return new SDL.FPoint { X = x, Y = y };
+    }
+    public static SDL.Point getStringLength(string font, string text)
+    {
+        int x, y;
+        TTF.GetStringSize(fonts[font], text, (nuint)text.Length, out x, out y);
+        return new SDL.Point{X=x, Y=y};
+    }
+    public static void initFont(string font, string file, float size)
+    {
+        string id = font + "_" + ((int)size).ToString();
+        fonts.Add(id, TTF.OpenFont(Path.Join("data/fonts", file), size));
+        //Console.WriteLine(String.Format("Initalized font {0} in size {1} as {2}", font, size, id));
+        if (fonts[id] == 0)
+        {
+            SDL.LogError(SDL.LogCategory.System, $"Font could not initalize: {SDL.GetError()}");
+        }
     }
 }

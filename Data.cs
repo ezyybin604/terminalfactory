@@ -1,4 +1,5 @@
 
+using System.Text.RegularExpressions;
 using MessagePack;
 using SDL3;
 
@@ -160,6 +161,16 @@ public class TopBar
     public void changeTip(int priority, string tipi, bool forced=false)
     {
         changeTip(tipi, priority, 0, forced);
+    }
+    private static readonly Regex startEnd = new Regex("\\|(.*)");
+    public static string CleanHeader(string text)
+    {
+        Match match = startEnd.Match(text);
+        if (match.Groups.Count > 1)
+        {
+            return match.Groups[1].Value;
+        }
+        return text;
     }
 }
 
