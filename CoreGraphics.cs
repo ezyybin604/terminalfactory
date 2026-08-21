@@ -1,4 +1,5 @@
 
+using System.Net.Sockets;
 using E604terminalfactory;
 using SDL3;
 
@@ -146,6 +147,12 @@ public class WindowHandler
         {
             ui[elements[i].id] = elements[i];
         }
+    }
+    public void updateGame(Game gamei)
+    {
+        game = gamei;
+        tc.theGame = gamei;
+        gamegraphics.game = gamei;
     }
     Game game;
     public GameGraphics gamegraphics;
@@ -496,12 +503,12 @@ public class WindowHandler
                         Point newCursor = new Point(game.scroll.x+(int)((cursor.X+gamegraphics.worldscroll.X)/GameGraphics.tileSize), game.scroll.y+(int)((cursor.Y+gamegraphics.worldscroll.Y)/GameGraphics.tileSize));
                         if (!newCursor.Equals(game.cursor))
                         {
+                            game.cursor = newCursor;
                             if (game.specialMode == "tutorial")
                             {
                                 game.sendAction("cursorchange");
                                 game.cursor = gamegraphics.cursorLimiter(newCursor);
                             }
-                            game.cursor = newCursor;
                         }
                         SDL.FRect tilex = createRectF(
                             ((game.cursor.x-game.scroll.x)*GameGraphics.tileSize)-gamegraphics.worldscroll.X,

@@ -21,7 +21,7 @@ namespace E604terminalfactory;
     - move important centerialized data to central data structure
     - Move machine logic into its own file
     - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
-    - 
+    - fix cursorstoppers
 
     gameplay changes
     - finish dragon.putscale
@@ -909,9 +909,9 @@ public class Game
                 };
                 tutr.initStuff();
                 readkeylog.RemoveAt(0);
-                cusc.theGame = tutr;
+                cusc.windowHandler.updateGame(tutr);
                 tutr.runTheGameIg();
-                cusc.theGame = this;
+                cusc.windowHandler.updateGame(this);
                 readkeylog.Add(key);
                 scene = "game";
                 displayStuff();

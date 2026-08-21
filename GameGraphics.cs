@@ -179,7 +179,7 @@ public class GameGraphics
     }
     public Point cursorLimiter(Point cursor)
     {
-        Point newCursor = cursor;
+        Point newCursor = new Point(cursor);
         Point inbetween = new Point(newCursor.x, game.cursor.y);
         List<Point> check = FTutorial.getPathList([game.cursor, inbetween]);
         int prevx = game.cursor.x;
