@@ -16,12 +16,13 @@ namespace E604terminalfactory;
     - make laser purifer lens consume chance
     
     orgn/maint/everything else
+    - EXTREMELY LOW PRIORITY add multivalues to gamedata (and add function to address them) (map keys to multiple other keys) (key_1,key_2) / add function for amount of keys contained within
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - make worldgen features more datadriven (at least for main worldgen)
+    - impliment the datadriven worldgen specified in main gamedata
     - move important centerialized data to central data structure
     - Move machine logic into its own file
     - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
-    - fix cursorstoppers
+    - see if i can make displayLine a little less messy
 
     gameplay changes
     - finish dragon.putscale

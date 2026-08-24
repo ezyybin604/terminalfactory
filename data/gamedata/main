@@ -432,3 +432,79 @@ sf3=x6,salt,x1,fr3
 sf4=x8,salt,x1,fr4
 sf5=x12,salt,x1,fr5
 !!
+
+# World Generation (use prefixes for generating presets: default, tutorial)
+# not implimented (this is an example for now on how it could be used)
+
+# -1 priority = metadata:
+# (-1,export) export extra variables: (current world position is exported automatically(x/y)+JPI) (trect/tutorial rectangle)
+# (-1,postgen) add post generation stuff
+# no more metadata
+#
+# priority (lower=more important, starts at 0), chance, extra
+# wgen will try all in first pri then next ones
+# extra arguments (limiters)
+# rp (random point), $Expression
+# add expresions to values for keys 
+# 1 random point is picked per evaluation
+# use https://www.nuget.org/packages/Microsoft.CodeAnalysis.CSharp.Scripting/ for expressions
+# pl prefix for tile = place feature group ({group}FeatureGroup) (featuregroup can place areas of tiles in places optionally)
+# ps prefix to place areas of tiles defined by {name}TilesArea and mapped from {name}MapTiles
+# dm prefix to generate diamond shape (dmNumber,Tile)
+# sc prefix to generate scatter (scSize,Amount,Tile)
+# priorities in FeatureGroup(s) will execute one at a time
+# featuregroups can be recursive
+# ", " seperator for args in functions for expression & readability bcs whynot
+
+!defaultWorldBase
+-1, postgen=pldefaultWorld
+0, 1, $x==0=]
+1, 5= 
+1, 95=`
+!!
+
+!defaultWorldFeatureGroup
+0, 1, rp=pldefResources
+1, 1, rp=pldefResources
+!!
+
+!defResourcesFeatureGroup
+0, 10=plwaterSpring
+0, 20=plbushes
+0, 15=ploreCluster
+0, 30= 
+!!
+
+!waterSpringFeatureGroup
+0, 010=dm2, i.water3
+0, 040=dm1, i.water2
+0, 125=dm3, i.water1
+!!
+
+!bushesFeatureGroup
+0, 256=sc4, $JPI.randomInt(3,5), br1
+0, 128=sc4, $JPI.randomInt(3,5), br2
+0, 032=sc4, $JPI.randomInt(3,5), br3
+0, 016=sc4, $JPI.randomInt(3,5), br4
+0, 008=sc4, $JPI.randomInt(3,5), br5
+!!
+
+!oreClusterFeatureGroup
+0, 2=sc5 $JPI.randomInt(8,20), i.diamond
+0, 20=sc5 $JPI.randomInt(8,20), i.iron
+0, 20=sc5 $JPI.randomInt(8,20), i.copper
+0, 5=sc5 $JPI.randomInt(8,20), i.carbon
+0, 25=sc5 $JPI.randomInt(8,20), $"f.stone."+JPI.randomInt(4,128)
+0, 5=sc5 $JPI.randomInt(8,20), $"f.bone."+JPI.randomInt(4,128)
+0, 10=dm3, i.oil
+0, 25=dm1, f.sand.4096
+0, 25=sc5 $JPI.randomInt(8,20), i.coal
+!!
+
+!tutorialWorldBase
+-1, export=trect
+0, 1, $(y == trect.Y || y == trect.H) && JPI.inRange(trect.X,x,trect.W)=t
+0, 1, $(x == trect.X || x == trect.W) && JPI.inRange(trect.Y,y,trect.H)=t
+1, 1, $!(JPI.inRange(trect.X,x,trect.W) && JPI.inRange(trect.Y,y,trect.H))=F
+2, 1= 
+!!

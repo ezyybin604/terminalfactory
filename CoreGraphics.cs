@@ -502,11 +502,13 @@ public class WindowHandler
                         Point newCursor = new Point(game.scroll.x+(int)((cursor.X+gamegraphics.worldscroll.X)/GameGraphics.tileSize), game.scroll.y+(int)((cursor.Y+gamegraphics.worldscroll.Y)/GameGraphics.tileSize));
                         if (!newCursor.Equals(game.cursor))
                         {
-                            game.cursor = newCursor;
                             if (game.specialMode == "tutorial")
                             {
                                 game.sendAction("cursorchange");
                                 game.cursor = gamegraphics.cursorLimiter(newCursor);
+                            } else
+                            {
+                                game.cursor = newCursor;
                             }
                         }
                         SDL.FRect tilex = createRectF(
@@ -808,6 +810,10 @@ public class WindowHandler
     public static SDL.Rect createRect(int x, int y, int w, int h)
     {
         return new SDL.Rect { X = x, Y = y, W = w, H = h };
+    }
+    public static SDL.Rect createRect(Point pt1, Point pt2)
+    {
+        return new SDL.Rect { X = pt1.x, Y = pt1.y, W = pt2.x, H = pt2.y };
     }
     public static SDL.FRect createRectF(Point pt, int w, int h)
     {

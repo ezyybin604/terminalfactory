@@ -63,6 +63,9 @@ public class GameGraphics
                         }
                         break;
                 }
+            } else
+            {
+                alternate = false;
             }
             if (!alternate)
             {

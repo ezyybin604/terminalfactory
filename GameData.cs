@@ -452,7 +452,7 @@ public class FileManagement
             Region region = (Region)loadFromFile(typeof(Region), fname, save, new Region
             {
                 data = new string[regionLength][][],
-                regionLocation = JPI.getJs()
+                regionLocation = Point.EmptyString
             });
             int rli = 0; // real index in loaded region
             int rem = -1; // not rem (basic), remaining
@@ -492,8 +492,8 @@ public class FileManagement
     {
         MachineCursor deser = (MachineCursor)loadFromFile(typeof(MachineCursor), "player", fact.savefile, new MachineCursor
         {
-            cursor = JPI.getJs(),
-            camera = JPI.getJs(),
+            cursor = Point.EmptyString,
+            camera = Point.EmptyString,
             macsd = new Dictionary<string, string>(),
             dragon = new Dragon()
         });
@@ -534,15 +534,11 @@ class JPI // JsonPointInterface / other things because i felt like it
         }
         return res;
     }
-    public static string getJs()
-    {
-        return "0,0";
-    }
     public static string getJs(Point? p)
     {
         if (p == null)
         {
-            return getJs();
+            return Point.EmptyString;
         }
         return ((Point)p).ToString();
     }
@@ -557,11 +553,7 @@ class JPI // JsonPointInterface / other things because i felt like it
     }
     public static Point? getPointNull(string p, bool nil)
     {
-        if (nil)
-        {
-            return null;
-        }
-        return getPoint(p);
+        return nil ? null : getPoint(p);
     }
     public static string stringCharSubt(string s, int i, char c)
     {
@@ -577,9 +569,9 @@ class JPI // JsonPointInterface / other things because i felt like it
             inputs[i] = mac.inputs[i].ToString();
         }
         outs.Add(String.Join('.', inputs)); // this will go well
-        outs.Add(JPI.getJs(mac.output));
-        outs.Add(JPI.getJs(mac.worldInteractor));
-        outs.Add(JPI.getJs(mac.energyPort));
+        outs.Add(getJs(mac.output));
+        outs.Add(getJs(mac.worldInteractor));
+        outs.Add(getJs(mac.energyPort));
         string isnull = "000";
         if (mac.energyPort == null) isnull = JPI.stringCharSubt(isnull, 2, '1');
         if (mac.worldInteractor == null) isnull = JPI.stringCharSubt(isnull, 1, '1');
@@ -617,8 +609,8 @@ class JPI // JsonPointInterface / other things because i felt like it
         }
         string isnull = mac[5];
         macr.output = getPointNull(mac[2], isnull[0] == '1');
-        macr.worldInteractor = JPI.getPointNull(mac[3], isnull[1] == '1');
-        macr.energyPort = JPI.getPointNull(mac[4], isnull[2] == '1');
+        macr.worldInteractor = getPointNull(mac[3], isnull[1] == '1');
+        macr.energyPort = getPointNull(mac[4], isnull[2] == '1');
         macr.runningRecipe = parseInt(mac[6]) == 1; // Generally Perposturus Tenitis (Desicion)
         macr.selectedRecipe = mac[7];
         macr.startedRecipe = parseInt(mac[8]);
@@ -648,6 +640,10 @@ class JPI // JsonPointInterface / other things because i felt like it
     public static bool inRange(int min, int n, int max)
     { // yoink stackover flowing
         return min <= n && n <= max;
+    }
+    public static int randomInt(int min, int max) // ONLY for worldgen interface 
+    {
+        return Factory.generateIntRange(min, max);
     }
 }
 

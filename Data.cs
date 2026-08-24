@@ -1,5 +1,6 @@
 
 using System.Text.RegularExpressions;
+using gameRunner;
 using MessagePack;
 using SDL3;
 
@@ -133,6 +134,7 @@ public struct Point // Wait wdm theres a Point data structure in system.drawing 
     {
         return string.Format("{0},{1}", x, y);
     }
+    public const string EmptyString = "0,0";
 }
 
 public class TopBar
@@ -473,6 +475,7 @@ public class FTutorial
     public Point boxpos = new Point(1000, 1000); // JUST PUT THIS AS FAR AWAY FROM 0,0 IF IT ERRORS OUT ON HIGH WINDOWSIZES
     public Point size = new Point(60, 15);
     public Point center = new Point();
+    public SDL.Rect indbox; // Individual Point Box
     string[] messageprog = [];
     int mpgs = 0; // number in tutorial (21 is pipe)
     private int action = 0; // how many times action happened
@@ -512,7 +515,10 @@ public class FTutorial
         curact = curd[1];
         beforeAction();
     }
-    public FTutorial() {}
+    public FTutorial()
+    {
+        indbox = WindowHandler.createRect(boxpos, center.getTransform(boxpos));
+    }
     public bool tickTutorial()
     {
         for (string goin;acts.Count>0;acts.RemoveAt(0)) // chat is this a cool way to use a for loop

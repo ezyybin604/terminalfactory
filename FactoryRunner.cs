@@ -291,7 +291,9 @@ public class Factory // factory data / big verbose stuff related to factory
     public void generateChunkBasic(Point chunkp)
     {
         Tile[][] chunk = new Tile[chunkSize][];
+        char[] getc = [' ', 't', 'F'];
         // Generate chunk data herre (without populated features)
+        // Use worldBase
         for (int i=0;i<chunkSize;i++)
         {
             chunk[i] = new Tile[chunkSize];
@@ -307,8 +309,7 @@ public class Factory // factory data / big verbose stuff related to factory
                 { // @tutorialgen dynamic grid
                     Point offs = tutorial.boxpos;
                     int which = 0;
-                    char[] getc = [' ', 't', 'F'];
-                    Point gx = new Point(getAxis(chunkp.x, i), getAxis(chunkp.y, o)); // got axis
+                    Point gx = new Point(getAxis(chunkp.x, i), getAxis(chunkp.y, o)); // got axis (position in world)
                     if (!(JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)&&JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y))) which = 2;
                     if ((gx.y == offs.y || gx.y == tutorial.size.y+offs.y) && JPI.inRange(offs.x, gx.x, tutorial.size.x+offs.x)) which = 1;
                     if ((gx.x == offs.x || gx.x == tutorial.size.x+offs.x) && JPI.inRange(offs.y, gx.y, tutorial.size.y+offs.y)) which = 1;
