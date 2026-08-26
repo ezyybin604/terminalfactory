@@ -69,12 +69,20 @@ public class GameData
             return stream.ReadLine();
         }
     }
-    public GameData(string foldername)
+    private Dictionary<char, char> backslashmap = new Dictionary<char, char>();
+    public GameData(string foldername, string initalFile)
     {
-        string mainf = Path.Join(foldername, "main");
+        backslashmap.Add('\\', '\\');
+        backslashmap.Add('n', '\n');
+        backslashmap.Add('t', '\t');
+        backslashmap.Add('=', '='); 
+        backslashmap.Add('0', '\0'); 
+
+        string[] doublenames = ["section", "stop", "add", "quickcopy", "copyfile", "multiline", "replace"];
+        string mainf = Path.Join(foldername, initalFile);
         if (File.Exists(mainf))
         {
-            // ml stuff
+            // multiline stuff
             string key = "";
             bool multiline = false;
             List<string> content = new List<string>();
@@ -98,6 +106,13 @@ public class GameData
                         int i=0;
                         while (s.Length > i && s[i] == '!') { i++; }
                         string after = s.Substring(i);
+                        if (i == 2 && after != "" && doublenames.Contains(after))
+                        {
+                            i = doublenames.IndexOf(after)+1; // alternate amount
+                            List<string> aftersplit = after.Split(" ").ToList();
+                            aftersplit.RemoveAt(0);
+                            after = string.Join(" ", aftersplit);
+                        }
                         if (i == 1)
                         {
                             stuff = new Dictionary<string, string>();
@@ -165,7 +180,45 @@ public class GameData
                     }  else if (s == "")
                     {} else if (sect != null)
                     {
-                        string[] ss = s.Split("=");
+                        List<string> sspre = [""];// use string sw
+                        char prev = '\0';
+                        for (int i=0;i<s.Length;i++)
+                        {
+                            // Literally Parsing Interpeter (no way) (tokenizing next)
+                            char c = s[i];
+                            char addc = '\0';
+                            bool preven = true;
+                            if (prev == '\\')
+                            {
+                                if (backslashmap.ContainsKey(c))
+                                {
+                                    addc = backslashmap[c];
+                                } else
+                                {
+                                    state = string.Format("invallid backslash char. ln {}, file {1}", files.Last().ln, files.Last().info.Name);
+                                }
+                                prev = '\0';
+                            } else if (c == '\\')
+                            {
+                                continue;
+                            } else if (c == '=')
+                            {
+                                addc = '\0';
+                                sspre.Add("");
+                            } else
+                            {
+                                addc = c;
+                            }
+                            if (addc != '\0')
+                            {
+                                sspre[sspre.Count-1] += addc;
+                            }
+                            if (preven)
+                            {
+                                prev = c;
+                            }
+                        }
+                        string[] ss = sspre.ToArray();
                         if (ss.Length == 2)
                         {
                             stuff[ss[0]] = ss[1];

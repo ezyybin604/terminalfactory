@@ -1,10 +1,11 @@
 # gamedata for terminalfactory
-# ! (1) signal a section
-# !! (2) means stop
-# !!! (3) means add contents from existing section
-# !!!! (4) means 2 and 3 combined (quick copy)
-# !!!!! (5) copy from file
-# !!!!!! (6) start multiline text, end with !!
+# !!section {key} = ! (1) signal a section
+# !!stop = !! (2) means stop
+# !!add {key} = !!!{key} (3) means add contents from existing section
+# !!quickcopy {key} = !!!!{key} (4) means 2 and 3 combined (quick copy)
+# !!copyfile {file} = !!!!!{file} (5) copy from file
+# !!multiline {key} = !!!!!!{key} (6) start multiline text, end with !!
+# !!replace {group} = !!!!!!!{group} (7) use the equals to replace values/keys in same key 
 # *=* are a recipe, can be all kinds of abstract
 # also whats the icon vscode is telling me this file is (its just a text file now :)
 !blockinfo
@@ -458,7 +459,7 @@ sf5=x12,salt,x1,fr5
 
 !defaultWorldBase
 -1, postgen=pldefaultWorld
-0, 1, $x==0=]
+0, 1, $x\=\=0=]
 1, 5= 
 1, 95=`
 !!
@@ -503,8 +504,8 @@ sf5=x12,salt,x1,fr5
 
 !tutorialWorldBase
 -1, export=trect
-0, 1, $(y == trect.Y || y == trect.H) && JPI.inRange(trect.X,x,trect.W)=t
-0, 1, $(x == trect.X || x == trect.W) && JPI.inRange(trect.Y,y,trect.H)=t
+0, 1, $(y \=\= trect.Y || y \=\= trect.H) && JPI.inRange(trect.X,x,trect.W)=t
+0, 1, $(x \=\= trect.X || x \=\= trect.W) && JPI.inRange(trect.Y,y,trect.H)=t
 1, 1, $!(JPI.inRange(trect.X,x,trect.W) && JPI.inRange(trect.Y,y,trect.H))=F
 2, 1= 
 !!

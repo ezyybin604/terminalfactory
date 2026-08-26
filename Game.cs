@@ -49,7 +49,7 @@ public class Game
     public Point cursor = new Point(2,2);
     public Factory factory = new Factory
     {
-        gd = new GameData("data/gamedata") // add data path to gdm main path too maybe
+        gd = new GameData("data/gamedata", "main") // add data path to gdm main path too maybe
     };
     public static List<ConsoleKeyInfo> readkeylog = new List<ConsoleKeyInfo>();
     DateTime time = DateTime.Now;
