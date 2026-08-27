@@ -21,7 +21,7 @@ namespace E604terminalfactory;
     - impliment the datadriven worldgen specified in main gamedata
     - move important centerialized data to central data structure
     - Move machine logic into its own file
-    - PLEASE FIX THE WORLD SAVING ITS BROKEN D:
+    - PLEASE FIX THE WORLD SAVING ITS BROKEN D: (for graphics mode?)
     - see if i can make displayLine a little less messy
 
     gameplay changes

@@ -200,7 +200,7 @@ public class GameData
                                 prev = '\0';
                             } else if (c == '\\')
                             {
-                                continue;
+                                addc = '\0';
                             } else if (c == '=')
                             {
                                 addc = '\0';
