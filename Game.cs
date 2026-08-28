@@ -64,6 +64,7 @@ public class Game
     int timer = 0;
     public required TileConsole cusc;
     public bool initalized = false;
+    private string[] supportedModes = ["tutorial", "creative"];
     public void loadData()
     {
         factory.world = new Dictionary<int, Dictionary<int, Tile[][]>>();
@@ -340,6 +341,10 @@ public class Game
             case "start":
                 loadData();
                 topbar.header = [];
+                if (supportedModes.Contains(factory.savefile))
+                {
+                    specialMode = factory.savefile;
+                }
                 scene = "game";
                 displayStuff();
                 break;
