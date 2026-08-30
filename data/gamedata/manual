@@ -12,9 +12,9 @@ machines.refs=watert
 !!!!!!machines
 Machines are the fundumental building block of automation.
 You put down a machine in the center and then surround it with machine blocks and whatever addons you need to use it. (Machine will not assemble without required addons)
-/h+-+
-/h|M|
-/h+-+
+/y+-+
+/y|M|
+/y+-+
 ^^^ (Depiction of a machine)
 
 Those addons include:

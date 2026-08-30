@@ -185,7 +185,7 @@ public class TileConsole
         {
             case "title":
                 bool sf = game.gdm.savefileExists(game.factory.savefile);
-                if (game.gdm.optionExists("defaultsave") && !sf)
+                if (game.gdm.optionExists("defaultsave"))
                 {
                     game.factory.savefile = game.gdm.getOption("defaultsave");
                     sf = game.gdm.savefileExists(game.factory.savefile);

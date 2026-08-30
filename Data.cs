@@ -378,9 +378,7 @@ public class Inventory
                 recipe.Add(new Slot(cur, numitem));
             }
         }
-        Slot[] copied = new Slot[recipe.Count];
-        recipe.CopyTo(copied);
-        return copied;
+        return recipe.ToArray();
     }
     public bool verifyRecipe(string catg, string result)
     {

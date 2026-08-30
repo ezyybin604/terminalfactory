@@ -1,6 +1,5 @@
 
 using gameRunner;
-using SDL3;
 
 namespace E604terminalfactory;
 
@@ -14,22 +13,23 @@ namespace E604terminalfactory;
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - fix bug where machines dont start immedieatly after they finish
     - make laser purifer lens consume chance
+    - add color flags to menu sdl graphics
     
     orgn/maint/everything else
     - EXTREMELY LOW PRIORITY add multivalues to gamedata (and add function to address them) (map keys to multiple other keys) (key_1,key_2) / add function for amount of keys contained within
     - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
-    - impliment the datadriven worldgen specified in main gamedata
+    - impliment the datadriven worldgen specified in main gamedata (@SPEC-WG > gamedata/main)
     - move important centerialized data to central data structure
     - Move machine logic into its own file
-    - PLEASE FIX THE WORLD SAVING ITS BROKEN D: (for graphics mode?)
     - see if i can make displayLine a little less messy
+    - /o flag so a scene can bypass nohighlight (finish for graphics)
+    - add demo option by adding demo_ to start of modeoverride (it will be substringed)
 
     gameplay changes
-    - finish dragon.putscale
+    - finish dragon.putscale (dragon shedding)
     - splitter core - machine
     - passthrough pipes (max 5 tiles inbetween)
     - super scale collection facility
-    - dragon shedding
     - add machine loose forming
     - add cursor to prompt scene (in console mode)
     - add sfx to certain actions in graphics
@@ -39,12 +39,14 @@ namespace E604terminalfactory;
     - way to unlock recipes to introduce them slower
     - add key button to view manual/manual option in menu
     - delete key goes back in manual scene, max 50 queue
+    - add quit to main menu
 */
 
 public class Game
 {
     // Scenes: game,end,inv,pause,craft,custom,intro,prompt,manual
     public string scene = "custom";
+    public string subscene = ""; // for manual
     public Point scroll = new Point();
     public Point cursor = new Point(2,2);
     public Factory factory = new Factory
@@ -152,7 +154,7 @@ public class Game
         ]);
         menus.Add("custom", []);
         menus.Add("customopt", []);
-        menus.Add("nohighlight", ["prompt", "intro"]);
+        menus.Add("nohighlight", ["prompt", "intro", "manual"]);
         menus.Add("game", ["no"]);
         
         menus.Add("intro", []);
@@ -254,8 +256,25 @@ public class Game
         }
         Console.SetCursorPosition(0, gi);
         Console.Write(new string(' ', Console.WindowWidth));
-        Console.ForegroundColor = ConsoleColor.DarkRed;
+        char flagchar = '\0';
         bool nohighlight = menus["nohighlight"].Contains(scene);
+        if (si[0] == '/' && si.Length > 2)
+        {
+            flagchar = si[1];
+            si = si.Substring(2);
+        }
+        switch  (flagchar)
+        {
+            case '\0':
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                break;
+            case 'o':
+                nohighlight = false; // idk if this works
+                break; // override flag for nohighlight
+            default:
+                Console.ForegroundColor = factory.charColor[flagchar];
+                break;
+        }
         if (nohighlight)
         {
             menuprefix = "";
@@ -753,6 +772,18 @@ public class Game
                         }
                         break;
                     case 'm':
+                        string page = factory.gd.autoTilePick(factory.giveMeTheTile(cursor), 0, "manAccess");
+                        if (page == "")
+                        {
+                            page = "start";
+                        }
+                        subscene = page;
+                        scene = "manual";
+                        initManualPage();
+                        if (factory.tutorial != null)
+                        {
+                            sendAction("manual");
+                        }
                         break;
                 }
                 break;
@@ -940,6 +971,10 @@ public class Game
             topbar.menuSelection = 0;
             displayStuff();
         }
+    }
+    void initManualPage()
+    {
+        // finish once all flags are doned
     }
     public void unnessaryFunctionForDecidingTips()
     {

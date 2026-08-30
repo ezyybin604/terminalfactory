@@ -32,6 +32,7 @@ public class Factory // factory data / big verbose stuff related to factory
     public FTutorial? tutorial = null;
     required public GameData gd;
     Dictionary<string, ConsoleColor> strColor = new Dictionary<string, ConsoleColor>();
+    public Dictionary<char, ConsoleColor> charColor = new Dictionary<char, ConsoleColor>();
     Random rng = new Random();
     public Tile emptyTile = new Tile("`");
     public string savefile = "defualtfsave";
@@ -144,13 +145,11 @@ public class Factory // factory data / big verbose stuff related to factory
     public List<Point> getChunks()
     {
         List<Point> chunks = [];
-        int[] yposb = new int[world.Count];
+        int[] yposb = world.Keys.ToArray();
         int[] xposb;
-        world.Keys.CopyTo(yposb, 0);
         for (int x=0;x<yposb.Length;x++)
         {
-            xposb = new int[world[yposb[x]].Keys.Count];
-            world[x].Keys.CopyTo(xposb, 0);
+            xposb = world[yposb[x]].Keys.ToArray();
             for (int y=0;y<xposb.Length;y++)
             {
                 chunks.Add(new Point(yposb[x], xposb[y]));
@@ -161,12 +160,11 @@ public class Factory // factory data / big verbose stuff related to factory
     public List<Point> getRegions()
     {
         HashSet<Point> regions = [];
-        int[] yposb = new int[world.Count];
+        int[] yposb = world.Keys.ToArray();
         int[] xposb;
-        world.Keys.CopyTo(yposb, 0);
         for (int x=0;x<yposb.Length;x++)
         {
-            xposb = new int[world[yposb[x]].Keys.Count];
+            xposb = world[yposb[x]].Keys.ToArray();
             for (int y=0;y<xposb.Length;y++)
             {
                 regions.Add(getRegion(new Point(yposb[x], xposb[y])));
@@ -446,6 +444,23 @@ public class Factory // factory data / big verbose stuff related to factory
         strColor.Add("darkcyan", ConsoleColor.DarkCyan);
         strColor.Add("darkmagenta", ConsoleColor.DarkMagenta);
         strColor.Add("darkblue", ConsoleColor.DarkBlue);
+
+        // chars of two words are roughly averaged on qwerty layout
+        charColor.Add('e', ConsoleColor.DarkRed);
+        charColor.Add('b', ConsoleColor.Blue); // dont use as blue
+        charColor.Add('f', ConsoleColor.DarkGray);
+        charColor.Add('c', ConsoleColor.Cyan);
+        charColor.Add('p', ConsoleColor.DarkYellow);
+        charColor.Add('h', ConsoleColor.Gray);
+        charColor.Add('y', ConsoleColor.Yellow);
+        charColor.Add('g', ConsoleColor.Green);
+        charColor.Add('w', ConsoleColor.White);
+        charColor.Add('r', ConsoleColor.Red);
+        charColor.Add('m', ConsoleColor.Magenta);
+        charColor.Add('v', ConsoleColor.DarkGreen);
+        charColor.Add('x', ConsoleColor.DarkCyan);
+        charColor.Add('b', ConsoleColor.DarkMagenta);
+        charColor.Add('t', ConsoleColor.DarkBlue);
     }
     public void invertColors()
     { // hheheheeheh
@@ -823,9 +838,7 @@ public class Factory // factory data / big verbose stuff related to factory
     // TODO: Move machine logic into its own file
     public void updateMachines()
     {
-        Dictionary<Point, Machine>.KeyCollection why = machines.Keys;
-        Point[] macp = new Point[why.Count];
-        why.CopyTo(macp, 0);
+        Point[] macp = machines.Keys.ToArray();
         for (int i=0;i<macp.Length;i++)
         {
             updateMachine(macp[i]);
@@ -1183,8 +1196,7 @@ public class Factory // factory data / big verbose stuff related to factory
     }
     public void tickMachines()
     {
-        Point[] macp = new Point[machines.Keys.Count];
-        machines.Keys.CopyTo(macp, 0);
+        Point[] macp = machines.Keys.ToArray();
         for (int i=0;i<macp.Length;i++)
         {
             Machine mac = machines[macp[i]];

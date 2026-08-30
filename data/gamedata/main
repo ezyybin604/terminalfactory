@@ -279,6 +279,7 @@ looseReq=splt
 pipeT=+]
 pipeB=-
 pipeD=p
+scrollscenes=intro,manual
 !!
 
 # pump
@@ -436,6 +437,7 @@ sf5=x12,salt,x1,fr5
 
 # World Generation (use prefixes for generating presets: default, tutorial)
 # not implimented (this is an example for now on how it could be used)
+# @SPEC-WG
 
 # -1 priority = metadata:
 # (-1,export) export extra variables: (current world position is exported automatically(x/y)+JPI) (trect/tutorial rectangle)
