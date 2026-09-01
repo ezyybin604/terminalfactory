@@ -235,6 +235,7 @@ public class WindowHandler
         thread.Start();
         while (loop)
         {
+            if (game.scene == "end") loop = false;      
             LAST = NOW;
             NOW = SDL.GetPerformanceCounter();
             deltaTime = (NOW - LAST) / (double)SDL.GetPerformanceFrequency();
@@ -354,7 +355,7 @@ public class WindowHandler
                         }
                         break;
                     case SDL.EventType.MouseWheel:
-                        menuscrollvel += e.Wheel.Y;
+                        menuscrollvel -= e.Wheel.Y;
                         break;
                     default:
                         break;
@@ -376,7 +377,7 @@ public class WindowHandler
                     selected = null;
                     switch (game.scene)
                     {
-                        case "inv": case "craft":
+                        case "inv": case "craft": case "manual":
                             changeUILayout("backbutton", [
                                 new UIElement{
                                     id = 1,
@@ -429,16 +430,17 @@ public class WindowHandler
                         game.menus["prompt"] = [ui[0].contents];
                         break;
                     case "menu":
-                        menuscroll += menuscrollvel * (float)deltaTime*100;
+                        menuscroll += menuscrollvel * (float)deltaTime*300;
                         menuscrollvel *= 0.7f;
                         lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
                         menuscroll = Math.Clamp(menuscroll, 0, Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H));
                         gamegraphics.drawHeader();
                         drawRect(lowerRect, grey, black);
+                        bool nohighlight = game.menus["nohighlight"].Contains(game.scene);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
                         // menusurf start
-                        if (!game.menus["nohighlight"].Contains(game.scene) ||
+                        if (!nohighlight ||
                             (JPI.idxInRange(game.menus[game.scene].Length, game.topbar.menuSelection) &&
                             Game.getModifier(game.menus[game.scene][game.topbar.menuSelection]) == 'o'))
                         {
@@ -460,8 +462,12 @@ public class WindowHandler
                         if (!game.menus.ContainsKey(game.scene)) break;
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
-                            string itm = game.menus[game.scene][i].Split("|")[0];
-                            char modifer = Game.getModifier(game.menus[game.scene][i]);
+                            string itm = game.menus[game.scene][i];
+                            if (!nohighlight)
+                            {
+                                itm = itm.Split("|")[0];
+                            }
+                            char modifer = Game.getModifier(game.menus[game.scene][i],  out itm);
                             colliderect = createRectF(6, 11+(i*25)-menuscroll, getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {

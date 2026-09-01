@@ -7,6 +7,7 @@ pause=menu
 craft=menu
 custom=menu
 intro=menu
+manual=menu
 prompt=prompt
 !! 
 
@@ -33,6 +34,7 @@ custom-lc-valid=z
 craft-lc-valid=z
 
 craft-ui-back=x
+manual-ui-back=x
 intro-ac=a
 prompt-return-valid=enter
 

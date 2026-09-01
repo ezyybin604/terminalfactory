@@ -817,6 +817,7 @@ public class Game
                         {
                             page = "start";
                         }
+                        topbar.returnScene = "game";
                         subscene = page;
                         scene = "manual";
                         initManualPage();
@@ -852,6 +853,12 @@ public class Game
                             case "manual":
                                 // add stuff later
                                 break;
+                        }
+                        break;
+                    case 'x':
+                        if (scene == "manual")
+                        {
+                            scene = topbar.returnScene;
                         }
                         break;
                     default:
@@ -1019,6 +1026,7 @@ public class Game
     }
     void initManualPage()
     {
+        TileConsole.Log("Opened manual entry: " + subscene);
         menus["manual"] = [];
         printToMenu(factory.gd.getFromKey("manPages", subscene));
         // ADD BOTTOM< TEXT LArtrtwdzsbzNFGGSB

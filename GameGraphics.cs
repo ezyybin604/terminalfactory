@@ -185,7 +185,7 @@ public class GameGraphics
                     drawTile(tiles[x], pt.X, pt.Y);
                     if (tiles[x].type == 'M')
                     {
-                        Point yes = new Point(x+game.scroll.x-1, i+game.scroll.y);
+                        Point yes = new Point(x+game.scroll.x, i+game.scroll.y); // why x-1??????????????????????????????????????????????
                         bool uhh = game.factory.machines[yes].isFormed;
                         SDL.FRect iss = WindowHandler.createRectF(new Point(pt), 5, 5);
                         if (uhh)

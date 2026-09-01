@@ -316,13 +316,12 @@ f.sand=sand
 !!
 
 # add inspect feature or smth to get related page
+# add info about related machine instead of general
 !manAccess
-M.sltr=food
-M.mixr=food
-M.puri=watert
-M.dist=watert
-M.carb=watert
-M.lasr=watert
+b=food
+i.water1=watert
+i.water2=watert
+i.water3=watert
 M=machines
 !!
 
