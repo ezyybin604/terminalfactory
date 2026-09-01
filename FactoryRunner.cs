@@ -459,7 +459,7 @@ public class Factory // factory data / big verbose stuff related to factory
         charColor.Add('m', ConsoleColor.Magenta);
         charColor.Add('v', ConsoleColor.DarkGreen);
         charColor.Add('x', ConsoleColor.DarkCyan);
-        charColor.Add('b', ConsoleColor.DarkMagenta);
+        charColor.Add('n', ConsoleColor.DarkMagenta);
         charColor.Add('t', ConsoleColor.DarkBlue);
     }
     public void invertColors()

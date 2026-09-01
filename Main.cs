@@ -8,14 +8,19 @@ namespace gameRunner;
 class Runner {
     public static void Main() {
         string runnerT = "sdl";
-        if (File.Exists("modeoverride"))
-        {
-            runnerT = File.ReadAllText("modeoverride").Replace("\n", "");
-        }
         Game game = new Game
         {
             cusc = new TileConsole() // dummy console
         };
+        if (File.Exists("modeoverride"))
+        {
+            runnerT = File.ReadAllText("modeoverride").Replace("\n", "");
+            if (runnerT.StartsWith("demo_"))
+            {
+                game.specialMode = "demo";
+                runnerT = runnerT.Substring(5);
+            }
+        }
         game.cusc = new TileConsole{runnerType = runnerT, theGame = game};
         WindowHandler wh = new WindowHandler(game, game.cusc);
         game.cusc.windowHandler = wh;

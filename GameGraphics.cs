@@ -16,7 +16,27 @@ public class GameGraphics
         if (spritesheet == WindowHandler.NULL) SDL.LogError(SDL.LogCategory.Video, SDL.GetError());
         spdm = SDLTools.Cast(SDLTools.DividePoint(WindowHandler.getTextureSize(spritesheet), shTileS));
         SDL.SetTextureScaleMode(spritesheet, SDL.ScaleMode.PixelArt);
+        if (consoleColorMap.Count == 0)
+        {
+            consoleColorMap.Add(0, WindowHandler.createColor(20));
+            consoleColorMap.Add((ConsoleColor)1, WindowHandler.createColor(10, 10, 128));
+            consoleColorMap.Add((ConsoleColor)2, WindowHandler.createColor(10, 128, 10));
+            consoleColorMap.Add((ConsoleColor)3, WindowHandler.createColor(10, 120, 128));
+            consoleColorMap.Add((ConsoleColor)4, WindowHandler.createColor(128, 10, 10));
+            consoleColorMap.Add((ConsoleColor)5, WindowHandler.createColor(128, 10, 128));
+            consoleColorMap.Add((ConsoleColor)6, WindowHandler.createColor(128, 128, 10));
+            consoleColorMap.Add((ConsoleColor)7, WindowHandler.createColor(160));
+            consoleColorMap.Add((ConsoleColor)8, WindowHandler.createColor(80));
+            consoleColorMap.Add((ConsoleColor)9, WindowHandler.createColor(20, 20, 230));
+            consoleColorMap.Add((ConsoleColor)10, WindowHandler.createColor(20, 230, 20));
+            consoleColorMap.Add((ConsoleColor)11, WindowHandler.createColor(20, 230, 230));
+            consoleColorMap.Add((ConsoleColor)12, WindowHandler.createColor(230, 20, 20));
+            consoleColorMap.Add((ConsoleColor)13, WindowHandler.createColor(230, 20, 230));
+            consoleColorMap.Add((ConsoleColor)14, WindowHandler.createColor(230, 230, 20));
+            consoleColorMap.Add((ConsoleColor)15, WindowHandler.createColor(230));
+        }
     }
+    public static Dictionary<ConsoleColor, SDL.Color> consoleColorMap = new Dictionary<ConsoleColor, SDL.Color>();
     nint spritesheet;
     const float camspeedc = 10;
     public const int shTileS = 32; // size in spritesheet

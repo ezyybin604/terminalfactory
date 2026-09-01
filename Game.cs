@@ -22,8 +22,8 @@ namespace E604terminalfactory;
     - move important centerialized data to central data structure
     - Move machine logic into its own file
     - see if i can make displayLine a little less messy
-    - /o flag so a scene can bypass nohighlight (finish for graphics)
-    - add demo option by adding demo_ to start of modeoverride (it will be substringed)
+    - impliment demo stuff for new menu system
+    - add scrollbar (graphics)
 
     gameplay changes
     - finish dragon.putscale (dragon shedding)
@@ -40,6 +40,7 @@ namespace E604terminalfactory;
     - add key button to view manual/manual option in menu
     - delete key goes back in manual scene, max 50 queue
     - add quit to main menu
+    - impliment manual navigation
 */
 
 public class Game
@@ -139,10 +140,16 @@ public class Game
             "Press Z to select",
             "Press X to go back"
         ]);
+        topbar.tips.Add("manual", [
+            "Use WS to change selection",
+            "Press Z to select",
+            "Press X to go back"
+        ]);
         topbar.tips.Add("custom", topbar.tips["pause"]);
         topbar.tips.Add("prompt", ["Press ENTER to continue"]);
         topbar.tips.Add("end", ["now go away"]);
 
+        menus.Add("manual", []);
         menus.Add("pause_info", [
             "Placeholder Information"
         ]);
@@ -156,6 +163,7 @@ public class Game
         menus.Add("customopt", []);
         menus.Add("nohighlight", ["prompt", "intro", "manual"]);
         menus.Add("game", ["no"]);
+        
         
         menus.Add("intro", []);
         topbar.tips.Add("intro", [" "]);
@@ -209,6 +217,26 @@ public class Game
         factory.inventory = inventory;
     }
     string menuprefix = "- ";
+    public static char getModifier(string inp, out string ou_t)
+    {
+        char flagchar = '\0';
+        ou_t = "";
+        if (inp.Length > 2 && inp[0] == '/')
+        {
+            flagchar = inp[1];
+            ou_t = inp.Substring(2);
+        }
+        return flagchar;
+    }
+    public static char getModifier(string inp)
+    {
+        char flagchar = '\0';
+        if (inp.Length > 2 && inp[0] == '/')
+        {
+            flagchar = inp[1];
+        }
+        return flagchar;
+    }
     void displayMenuLine(int i)
     {
         bool hasHeader = topbar.header.Length > 0;
@@ -256,8 +284,20 @@ public class Game
         }
         Console.SetCursorPosition(0, gi);
         Console.Write(new string(' ', Console.WindowWidth));
-        char flagchar = '\0';
+        char flagchar = getModifier(si, out si);
         bool nohighlight = menus["nohighlight"].Contains(scene);
+        switch  (flagchar)
+        {
+            case '\0':
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                break;
+            case 'o':
+                nohighlight = false; // idk if this works
+                break; // override flag for nohighlight
+            default:
+                Console.ForegroundColor = factory.charColor[flagchar];
+                break;
+        }
         if (si[0] == '/' && si.Length > 2)
         {
             flagchar = si[1];
@@ -787,7 +827,7 @@ public class Game
                         break;
                 }
                 break;
-            case "pause": case "custom":
+            case "pause": case "custom": case "manual":
                 switch (ch)
                 {
                     case 'w':
@@ -801,12 +841,17 @@ public class Game
                         topbar.areyousure = 0;
                         break;
                     case 'z':
-                        if (scene == "pause")
+                        switch (scene)
                         {
-                            selectItemMenu();
-                        } else
-                        {
-                            selectItemMenuCustom(menus["customopt"][topbar.menuSelection]);
+                            case "pause":
+                                selectItemMenu();
+                                break;
+                            case "custom":
+                                selectItemMenuCustom(menus["customopt"][topbar.menuSelection]);
+                                break;
+                            case "manual":
+                                // add stuff later
+                                break;
                         }
                         break;
                     default:
@@ -974,7 +1019,9 @@ public class Game
     }
     void initManualPage()
     {
-        // finish once all flags are doned
+        menus["manual"] = [];
+        printToMenu(factory.gd.getFromKey("manPages", subscene));
+        // ADD BOTTOM< TEXT LArtrtwdzsbzNFGGSB
     }
     public void unnessaryFunctionForDecidingTips()
     {

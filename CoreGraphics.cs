@@ -438,7 +438,9 @@ public class WindowHandler
                         drawRect(lowerRect, grey, black);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
                         // menusurf start
-                        if (!game.menus["nohighlight"].Contains(game.scene))
+                        if (!game.menus["nohighlight"].Contains(game.scene) ||
+                            (JPI.idxInRange(game.menus[game.scene].Length, game.topbar.menuSelection) &&
+                            Game.getModifier(game.menus[game.scene][game.topbar.menuSelection]) == 'o'))
                         {
                             SDL.FPoint scrollt = createPoint(0, -menuscroll);
                             if (timehigh == proghigh)
@@ -459,6 +461,7 @@ public class WindowHandler
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i].Split("|")[0];
+                            char modifer = Game.getModifier(game.menus[game.scene][i]);
                             colliderect = createRectF(6, 11+(i*25)-menuscroll, getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {
@@ -486,7 +489,12 @@ public class WindowHandler
                                     newhigh = SDLTools.Transform(colliderect, createPoint(0, menuscroll));
                                 }
                             }
-                            writeText(itm, 10, 10+(i*25)-menuscroll, "sans_15", black, copytexture:menusurf);
+                            SDL.Color texcol = black;
+                            if (game.factory.charColor.Keys.Contains(modifer))
+                            {
+                                texcol = GameGraphics.consoleColorMap[game.factory.charColor[modifer]];
+                            }
+                            writeText(itm, 10, 10+(i*25)-menuscroll, "sans_15", texcol, copytexture:menusurf);
                         }
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
