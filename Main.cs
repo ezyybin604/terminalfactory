@@ -148,25 +148,6 @@ public class TileConsole
             }
         }
     }
-    public bool choice(string prompt, Game game, string extra="")
-    {
-        char res = '\0';
-        while (res == '\0')
-        {
-            Console.Clear();
-            if (extra == "hi")
-            {
-                game.hi();
-            }
-            Console.Write(prompt);
-            res = Console.ReadKey().KeyChar.ToString().ToLower()[0];
-            if (res != 'y' && res != 'n')
-            {
-                res = '\0';
-            }
-        }
-        return res == 'y';
-    }
     public static void setCustomMenu(Game game, string[] menu)
     {
         string[] data = new string[menu.Length];
@@ -254,29 +235,5 @@ public class TileConsole
     {
         mode = mod;
         currentText.Clear();
-    }
-    public void writeText(string text)
-    {
-        switch (mode)
-        {
-            case "console": case "menu":
-                currentText.Add(text);
-                break;
-            case "prompt":
-                currentText = [text];
-                break;
-        }
-    }
-    public void resetScreen(Game game)
-    {
-        switch (mode)
-        {
-            case "console":
-                Console.Clear();
-                break;
-            case "menu": case "world":
-                game.displayStuff();
-                break;
-        }
     }
 }

@@ -220,7 +220,7 @@ public class Game
     public static char getModifier(string inp, out string ou_t)
     {
         char flagchar = '\0';
-        ou_t = "";
+        ou_t = inp;
         if (inp.Length > 2 && inp[0] == '/')
         {
             flagchar = inp[1];
@@ -1029,7 +1029,6 @@ public class Game
         TileConsole.Log("Opened manual entry: " + subscene);
         menus["manual"] = [];
         printToMenu(factory.gd.getFromKey("manPages", subscene));
-        // ADD BOTTOM< TEXT LArtrtwdzsbzNFGGSB
     }
     public void unnessaryFunctionForDecidingTips()
     {
@@ -1271,7 +1270,7 @@ Nobody follows, so to keep secrecy while you travel.
         }
         try
         {
-            if (cusc.runnerType != "sdl")
+            if (cusc.runnerType == "console")
             {
                 Console.Title = "terminalfactory";
             }

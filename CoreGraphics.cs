@@ -100,6 +100,7 @@ public class WindowHandler
         if (colors.Count > 0) return;
         colors.Add("titleColor", createColor(255, 128, 0));
         colors.Add("blackTransparent", createColor(0, SDL.AlphaTransparent));
+        colors.Add("blackPartial", createColor(0, 128));
         colors.Add("red", createColor(255, 0, 0));
         colors.Add("green", createColor(0, 255, 0));
     }
@@ -235,7 +236,7 @@ public class WindowHandler
         thread.Start();
         while (loop)
         {
-            if (game.scene == "end") loop = false;      
+            if (game.scene == "end" && game.factory.tutorial == null) loop = false;
             LAST = NOW;
             NOW = SDL.GetPerformanceCounter();
             deltaTime = (NOW - LAST) / (double)SDL.GetPerformanceFrequency();
@@ -405,7 +406,7 @@ public class WindowHandler
                                 }
                             ]);
                             break;
-                        case "custom": case "intro":
+                        case "custom": case "intro": case "pause":
                             changeUILayout("empty", []);
                             break;
                     }
@@ -434,7 +435,8 @@ public class WindowHandler
                         menuscrollvel *= 0.7f;
                         lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
-                        menuscroll = Math.Clamp(menuscroll, 0, Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H));
+                        float maxscroll = Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H);
+                        menuscroll = Math.Clamp(menuscroll, 0, maxscroll);
                         gamegraphics.drawHeader();
                         drawRect(lowerRect, grey, black);
                         bool nohighlight = game.menus["nohighlight"].Contains(game.scene);
@@ -447,10 +449,10 @@ public class WindowHandler
                             SDL.FPoint scrollt = createPoint(0, -menuscroll);
                             if (timehigh == proghigh)
                             {
-                                drawRect(SDLTools.Transform(newhigh, scrollt), darkergrey, null, 0, 1, menusurf);
+                                drawRect(SDLTools.Transform(newhigh, scrollt), darkergrey, copytexture:menusurf);
                             } else
                             {
-                                drawRect(SDLTools.Transform(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), scrollt), darkergrey, null, 0, 1, menusurf);
+                                drawRect(SDLTools.Transform(SDLTools.Lerp(prevhigh, newhigh, proghigh/timehigh), scrollt), darkergrey, copytexture:menusurf);
                                 proghigh += (float)deltaTime;
                                 if (proghigh > timehigh)
                                 {
@@ -467,7 +469,7 @@ public class WindowHandler
                             {
                                 itm = itm.Split("|")[0];
                             }
-                            char modifer = Game.getModifier(game.menus[game.scene][i],  out itm);
+                            char modifer = Game.getModifier(itm,  out itm);
                             colliderect = createRectF(6, 11+(i*25)-menuscroll, getStringLength("sans_15", itm).X+12, 20);
                             if (SDL.PointInRectFloat(cursor, SDLTools.Transform(colliderect, createPoint(lowerRect.X, lowerRect.Y))))
                             {
@@ -502,6 +504,10 @@ public class WindowHandler
                             }
                             writeText(itm, 10, 10+(i*25)-menuscroll, "sans_15", texcol, copytexture:menusurf);
                         }
+                        // width 8px
+                        float maxHeight = lowerRect.H-16;
+                        float barSize = 64; // unfinished
+                        drawRect(createRectF(lowerRect.W-16, (maxHeight-barSize)*menuscroll/maxscroll+8, 8, barSize), colors["blackPartial"], copytexture:menusurf);
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         SDL.DestroySurface(menusurf);
