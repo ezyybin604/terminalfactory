@@ -465,7 +465,7 @@ public class WindowHandler
                         for (int i=0;i<game.menus[game.scene].Length;i++)
                         {
                             string itm = game.menus[game.scene][i];
-                            if (!nohighlight)
+                            if (!nohighlight || Game.getModifier(itm) == 'o')
                             {
                                 itm = itm.Split("|")[0];
                             }

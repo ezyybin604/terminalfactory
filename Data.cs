@@ -150,7 +150,7 @@ public class TopBar
     public string returnScene = "";
     public int areyousure = 0;
     public string[] header = []; // only in menu
-    public string subscene = "";
+    public List<string> subscenestack = [];
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)

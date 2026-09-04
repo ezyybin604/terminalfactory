@@ -29,6 +29,8 @@ class Runner {
 }
 
 /*
+use moby monospace for constyl?
+
 Save select
 
 Title screen
@@ -50,6 +52,7 @@ Options
     - Mouse Sensitivity
     - Volume
     - Mode Change
+    - Threading Options (SDL+Driver/Factory, Driver+Factory/SDL, Driver+Factory/Input, Driver/Factory/SDL+Input)
 */
 
 public enum WindowSizes : ushort

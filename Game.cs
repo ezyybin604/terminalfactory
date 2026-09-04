@@ -13,17 +13,16 @@ namespace E604terminalfactory;
     - renember that changeProg exists (fit some functions that dont use it where it should be used)
     - fix bug where machines dont start immedieatly after they finish
     - make laser purifer lens consume chance
-    - add color flags to menu sdl graphics
+    - fix colored text anti-aliasing bug graphics mode
     
     orgn/maint/everything else
     - EXTREMELY LOW PRIORITY add multivalues to gamedata (and add function to address them) (map keys to multiple other keys) (key_1,key_2) / add function for amount of keys contained within
-    - make adjustCamera not a disaster (extra low priority) (dont make it use weird while loops)
+    - make adjustCamera not a disaster (dont make it use weird while loops)
     - impliment the datadriven worldgen specified in main gamedata (@SPEC-WG > gamedata/main)
     - move important centerialized data to central data structure
     - Move machine logic into its own file
     - see if i can make displayLine a little less messy
     - impliment demo stuff for new menu system
-    - add scrollbar (graphics)
 
     gameplay changes
     - finish dragon.putscale (dragon shedding)
@@ -41,6 +40,7 @@ namespace E604terminalfactory;
     - delete key goes back in manual scene, max 50 queue
     - add quit to main menu
     - impliment manual navigation
+    - add controls menu to pause/title menu
 */
 
 public class Game
@@ -273,7 +273,7 @@ public class Game
             si = TopBar.CleanHeader(txt);
         } else if (headeridx == topbar.header.Length && hasHeader) {} else
         {
-            si = menus[scene][i].Split("|")[0];
+            si = menus[scene][i];
         }
         // print header content here
         int gi = i+2-topbar.menuScroll+headeroff;
@@ -298,29 +298,13 @@ public class Game
                 Console.ForegroundColor = factory.charColor[flagchar];
                 break;
         }
-        if (si[0] == '/' && si.Length > 2)
-        {
-            flagchar = si[1];
-            si = si.Substring(2);
-        }
-        switch  (flagchar)
-        {
-            case '\0':
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                break;
-            case 'o':
-                nohighlight = false; // idk if this works
-                break; // override flag for nohighlight
-            default:
-                Console.ForegroundColor = factory.charColor[flagchar];
-                break;
-        }
         if (nohighlight)
         {
             menuprefix = "";
         } else
         {
             menuprefix = "- ";
+            si = si.Split("|")[0];
         }
         if (i == topbar.menuSelection && !nohighlight)
         {
@@ -451,7 +435,7 @@ public class Game
                         break;
                     case "manual":
                         scene = "manual";
-                        topbar.subscene = "start";
+                        subscene = "start";
                         break;
                 }
                 break;
@@ -820,6 +804,7 @@ public class Game
                         topbar.returnScene = "game";
                         subscene = page;
                         scene = "manual";
+                        forceDisplay = true;
                         initManualPage();
                         if (factory.tutorial != null)
                         {
@@ -851,14 +836,31 @@ public class Game
                                 selectItemMenuCustom(menus["customopt"][topbar.menuSelection]);
                                 break;
                             case "manual":
-                                // add stuff later
+                                string menuitem = menus["manual"][topbar.menuSelection];
+                                if (getModifier(menuitem) == 'o')
+                                {
+                                    topbar.subscenestack.Add(subscene);
+                                    subscene = menuitem.Split("|")[1];
+                                    initManualPage();
+                                    forceDisplay = true;
+                                }
                                 break;
                         }
                         break;
                     case 'x':
                         if (scene == "manual")
                         {
-                            scene = topbar.returnScene;
+                            if (topbar.subscenestack.Count > 0)
+                            {
+                                subscene = topbar.subscenestack.Last();
+                                topbar.subscenestack.RemoveAt(topbar.subscenestack.Count-1);
+                                initManualPage();
+                                forceDisplay = true;
+                            } else
+                            {
+                                scene = topbar.returnScene;
+                                forceDisplay = true;
+                            }
                         }
                         break;
                     default:
@@ -1026,9 +1028,15 @@ public class Game
     }
     void initManualPage()
     {
-        TileConsole.Log("Opened manual entry: " + subscene);
+        //TileConsole.Log("Opened manual entry: " + subscene);
         menus["manual"] = [];
-        printToMenu(factory.gd.getFromKey("manPages", subscene));
+        printToMenu(factory.gd.getFromKey("manPages", subscene)+"\n\n");
+        string[] refs = factory.gd.getFromKey("manPages", subscene + ".refs").Split(",");
+        for (int i=0;i<refs.Length;i++)
+        {
+            refs[i] = "/o" + factory.gd.getFromKey("manPages", refs[i] + ".name") + "|" + refs[i];
+        }
+        printToMenu(string.Join('\n', refs));
     }
     public void unnessaryFunctionForDecidingTips()
     {

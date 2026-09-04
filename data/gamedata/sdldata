@@ -32,11 +32,12 @@ inv-lc-valid=z
 pause-lc-valid=z
 custom-lc-valid=z
 craft-lc-valid=z
+manual-lc-valid=z
 
 craft-ui-back=x
-manual-ui-back=x
 intro-ac=a
 prompt-return-valid=enter
+manual-ui-back=x
 
 # why
 end-lc=que?
