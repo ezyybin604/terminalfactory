@@ -5,7 +5,7 @@
 
 start.name=Manual Start
 start.refs=machines,food,watert
-start=Welcome to the manual! Here is a bunch of important information about the game.
+start=/gHello!\nWelcome to the manual! Here is a bunch of important information about the game.
 
 machines.name=Introduction To Machines
 machines.refs=watert
