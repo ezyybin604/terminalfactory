@@ -506,7 +506,7 @@ public class WindowHandler
                         }
                         // width 8px
                         float maxHeight = lowerRect.H-16;
-                        float barSize = 64; // unfinished
+                        float barSize = maxHeight*(maxscroll/lowerRect.H);
                         drawRect(createRectF(lowerRect.W-16, (maxHeight-barSize)*menuscroll/maxscroll+8, 8, barSize), colors["blackPartial"], copytexture:menusurf);
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
