@@ -147,9 +147,9 @@ public class TopBar
     public int menuScroll = 0;
     public bool manualTip;
     public int tipPriority;
-    public string returnScene = "";
+    public string returnScene = ""; // deprecate this please
     public int areyousure = 0;
-    public string[] header = []; // only in menu
+    public string[] header = []; // only in menu (deprecated maybe)
     public List<string> subscenestack = [];
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
@@ -241,6 +241,7 @@ public class Dragon
             fedFood -= dragonHunger;
             dragonThirst = 1000 * (long)Math.Pow(1.04, age); // 1000^(1.04^x) val
             dragonHunger = 1000 * (long)Math.Pow(1.03, age);
+            // Shedscale goes here i think
         }
     }
     public bool Feed(Slot slt)

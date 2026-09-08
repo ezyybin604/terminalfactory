@@ -1049,7 +1049,7 @@ public class Factory // factory data / big verbose stuff related to factory
                             if (tile.amount > 0 && tile.subtype == consumed && outputTile.amount < 1)
                             {
                                 startMachine(mach, core.subtype); // no energy requirement :)
-                                tile.amount--;
+                                if (specialModeFact != "tutorial") tile.amount--;
                                 setTile(mach.inputs[0], tile);
                             }
                         }
