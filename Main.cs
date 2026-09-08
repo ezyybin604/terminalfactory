@@ -103,7 +103,7 @@ public class TileConsole
                 case WindowSizes.TEXT: case WindowSizes.WINDOW:
                     return new Point(Console.WindowWidth, Console.WindowHeight);
                 case WindowSizes.BOARD:
-                    return new Point(Console.WindowWidth, Console.WindowHeight-2);
+                    return new Point(Console.WindowWidth-1, Console.WindowHeight-2);
             }
         } else if (theGame != null)
         {
@@ -179,7 +179,7 @@ public class TileConsole
                     game.factory.savefile = game.gdm.getOption("defaultsave");
                     sf = game.gdm.savefileExists(game.factory.savefile);
                 }
-                game.topbar.header = [misctext["name"], misctext["quote"]];
+                game.menus["header"] = [misctext["name"], misctext["quote"]];
                 List<string> menu = [
                     "New Game|nameprompt",
                     "Options|opt",
@@ -195,7 +195,7 @@ public class TileConsole
             case "worldlist":
                 string[] saves = Directory.GetDirectories(game.gdm.worldFolder);
                 List<string> wlist = ["Back|back"];
-                game.topbar.header = ["Save Selected: " + game.factory.savefile];
+                game.menus["header"] = ["Save Selected: " + game.factory.savefile];
                 foreach (string save in saves)
                 {
                     wlist.Add(JPI.getFilename(save) + "|selectworl");

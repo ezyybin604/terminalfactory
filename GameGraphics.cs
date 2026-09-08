@@ -57,9 +57,9 @@ public class GameGraphics
     }
     public void drawHeader()
     { // add splash
-        for (int i=0;i<game.topbar.header.Length;i++)
+        for (int i=0;i<game.menus["header"].Length;i++)
         {
-            string[] intp = game.topbar.header[i].Split("|");
+            string[] intp = game.menus["header"][i].Split("|");
             string mode = intp[0];
 
             bool alternate = true;
@@ -89,7 +89,7 @@ public class GameGraphics
             }
             if (!alternate)
             {
-                WindowHandler.writeText(TopBar.CleanHeader(game.topbar.header[i]), 15, 15+(30*i), font, WindowHandler.black, Algn.leftupper);
+                WindowHandler.writeText(TopBar.CleanHeader(game.menus["header"][i]), 15, 15+(30*i), font, WindowHandler.black, Algn.leftupper);
             }
         }
     }

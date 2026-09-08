@@ -147,10 +147,10 @@ public class TopBar
     public int menuScroll = 0;
     public bool manualTip;
     public int tipPriority;
-    public string returnScene = ""; // deprecate this please
+    //public string returnScene = ""; // deprecate this please
     public int areyousure = 0;
-    public string[] header = []; // only in menu (deprecated maybe)
     public List<string> subscenestack = [];
+    public List<string> scenestack = [];
     public void changeTip(string tipi, int priority, int extrams=0, bool forced=false)
     {
         if (priority >= tipPriority || forced)

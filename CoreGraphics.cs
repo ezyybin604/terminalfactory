@@ -421,7 +421,7 @@ public class WindowHandler
                                     id = 0,
                                     window = this,
                                     type = "input",
-                                    dynrect = createRectF(20, 45+(30*game.topbar.header.Length), 200, 50),
+                                    dynrect = createRectF(20, 45+(30*game.menus["header"].Length), 200, 50),
                                     // button color, outline color, text color, highlight tint, selected tint, selecting tint
                                     color = [createColor(255, 249, 135), black, black, grey, darkergrey, darkgrey],
                                     font = "sans_15"
@@ -433,7 +433,7 @@ public class WindowHandler
                     case "menu":
                         menuscroll += menuscrollvel * (float)deltaTime*300;
                         menuscrollvel *= 0.7f;
-                        lowerRect = createRectF(10, 45+(30*game.topbar.header.Length), windowSize.x-20, windowSize.y-55);
+                        lowerRect = createRectF(10, 45+(30*game.menus["header"].Length), windowSize.x-20, windowSize.y-55);
                         lowerRect.H -= lowerRect.Y;
                         float maxscroll = Math.Max(0, (game.menus[game.scene].Length*25)+20-lowerRect.H);
                         menuscroll = Math.Clamp(menuscroll, 0, maxscroll);

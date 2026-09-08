@@ -165,6 +165,7 @@ public class Game
         menus.Add("customopt", []);
         menus.Add("nohighlight", ["prompt", "intro", "manual"]);
         menus.Add("game", ["no"]);
+        menus.Add("header", []);
         
         
         menus.Add("intro", []);
@@ -241,11 +242,11 @@ public class Game
     }
     void displayMenuLine(int i)
     {
-        bool hasHeader = topbar.header.Length > 0;
+        bool hasHeader = menus["header"].Length > 0;
         int headeroff = 0;
         if (hasHeader)
         {
-            headeroff = topbar.header.Length+1;
+            headeroff = menus["header"].Length+1;
         }
         int headeridx = i+headeroff;
         // header end
@@ -264,16 +265,16 @@ public class Game
         if (lowerScreen)
         {
             si = menus[scene + "_info"][lowerIndex].Split("|")[0];
-        } else if (headeridx < topbar.header.Length && hasHeader)
+        } else if (headeridx < menus["header"].Length && hasHeader)
         {
-            string txt = topbar.header[headeridx];
+            string txt = menus["header"][headeridx];
             string[] spl = txt.Split("|");
             if (spl[0] == "logo")
             {
                 txt = spl[1] + spl[2];
             }
             si = TopBar.CleanHeader(txt);
-        } else if (headeridx == topbar.header.Length && hasHeader) {} else
+        } else if (headeridx == menus["header"].Length && hasHeader) {} else
         {
             si = menus[scene][i];
         }
@@ -333,7 +334,7 @@ public class Game
         {
             menuLength = Console.WindowHeight-2;
         }
-        for (int i=-topbar.header.Length-1;i<menuLength;i++)
+        for (int i=-menus["header"].Length-1;i<menuLength;i++)
         {
             displayMenuLine(i+topbar.menuScroll);
         }
@@ -343,7 +344,7 @@ public class Game
         if (scene == "inv") menus["inv"] = inventory.invmenud;
         if (cusc.runnerType != "sdl")
         { // (this is the fix in question in commit msg, wrapping this in a if statement instead of skipping over it)
-            for (int i=-topbar.header.Length-1;i<menus[scene].Length;i++)
+            for (int i=-menus["header"].Length-1;i<menus[scene].Length;i++)
             {
                 if (factory.linesToUpdate.Contains(i))
                 {
@@ -352,6 +353,16 @@ public class Game
             }
         }
         factory.linesToUpdate.Clear();
+    }
+    void returnToSubscene()
+    {
+        subscene = topbar.subscenestack.Last();
+        topbar.subscenestack.RemoveAt(topbar.subscenestack.Count-1);
+    }
+    void returnToScene()
+    {
+        scene = topbar.scenestack.Last();
+        topbar.scenestack.RemoveAt(topbar.scenestack.Count-1);
     }
     void selectItemMenuCustom(string opt)
     {
@@ -362,7 +373,7 @@ public class Game
                 { // new
                     scene = "prompt";
                     menus["prompt"] = [""];
-                    topbar.returnScene = "intro";
+                    topbar.scenestack.Add("intro");
                     displayStuff();
                 } else
                 { // default (only if have def)
@@ -385,7 +396,7 @@ public class Game
                 break;
             case "start":
                 loadData();
-                topbar.header = [];
+                menus["header"] = [];
                 if (supportedModes.Contains(factory.savefile))
                 {
                     specialMode = factory.savefile;
@@ -540,7 +551,7 @@ public class Game
         if (scene != "game")
         {
             scrollnum = topbar.menuScroll;
-            if (topbar.header.Length > 0) scrollnum-=topbar.header.Length+1;
+            if (menus["header"].Length > 0) scrollnum-=menus["header"].Length+1;
         }
         for (int i=0;i<Console.WindowHeight-2;i++)
         {
@@ -706,6 +717,7 @@ public class Game
                             {
                                 sendAction("inventoryopen");
                                 scene = "inv";
+                                topbar.scenestack.Add("game");
                                 forceDisplay = true;
                             } else
                             {
@@ -785,7 +797,7 @@ public class Game
                         } else if (tic.type == 'M' && factory.gd.getSplit("tags", "macWrecipe").Contains(tic.subtype))
                         {
                             scene = "craft";
-                            topbar.returnScene = "game";
+                            topbar.scenestack.Add("game");
                             topbar.menuSelection = 0;
                             updateRecipeMenu(tic.subtype + "Recipes");
                             forceDisplay = true;
@@ -803,7 +815,7 @@ public class Game
                         {
                             page = "start";
                         }
-                        topbar.returnScene = "game";
+                        topbar.scenestack.Add("game");
                         subscene = page;
                         scene = "manual";
                         forceDisplay = true;
@@ -854,13 +866,12 @@ public class Game
                         {
                             if (topbar.subscenestack.Count > 0)
                             {
-                                subscene = topbar.subscenestack.Last();
-                                topbar.subscenestack.RemoveAt(topbar.subscenestack.Count-1);
+                                returnToSubscene();
                                 initManualPage();
                                 forceDisplay = true;
                             } else
                             {
-                                scene = topbar.returnScene;
+                                returnToScene();
                                 forceDisplay = true;
                             }
                         }
@@ -885,19 +896,19 @@ public class Game
                     case 'z':
                         sendAction("invselect-" + inventory.data[topbar.menuSelection].item);
                         usingItem = topbar.menuSelection;
-                        scene = "game";
+                        returnToScene();
                         forceDisplay = true;
                         break;
                     case 'a':
                         sendAction("invcraft");
                         scene = "craft";
-                        topbar.returnScene = "inv";
+                        topbar.scenestack.Add("inv");
                         topbar.menuSelection = 0;
                         updateRecipeMenu();
                         forceDisplay = true;
                         break;
                     case 'x':
-                        scene = "game";
+                        returnToScene();
                         forceDisplay = true;
                         sendAction("backgen");
                         break;
@@ -932,7 +943,7 @@ public class Game
                         topbar.menuSelection++;
                         break;
                     case 'x':
-                        scene = topbar.returnScene;
+                        returnToScene();
                         forceDisplay = true;
                         inventory.updateMenu(factory);
                         sendAction("backgen");
@@ -940,13 +951,14 @@ public class Game
                     case 'z':
                         // craft process goes here (doit)
                         string result = menus["craft_raw"][topbar.menuSelection];
-                        if (topbar.returnScene == "game")
+                        string ret = topbar.scenestack.Last();
+                        if (ret == "game")
                         {
                             factory.machines[cursor].selectedRecipe = result;
-                            scene = topbar.returnScene;
+                            returnToScene();
                             forceDisplay = true;
                             sendAction("craftdoselect");
-                        } else if (topbar.returnScene == "inv")
+                        } else if (ret == "inv")
                         {
                             Slot[] recipe = inventory.getRecipe("craftingRecipe", result);
                             if (inventory.verifyRecipe(recipe) || specialMode == "creative")
@@ -981,7 +993,7 @@ public class Game
                     } else
                     {
                         factory.savefile = menus["prompt"][0];
-                        scene = topbar.returnScene;
+                        returnToScene();
                         if (scene == "intro")
                         {
                             TileConsole.startSceneSelect(this, "intro");
@@ -1060,7 +1072,7 @@ public class Game
                 topbar.manualTip = true;
                 topbar.changeTip(1, info, force);
             }
-        } else if (scene == "craft" && topbar.returnScene == "inv")
+        } else if (scene == "craft" && topbar.scenestack.Last() == "inv")
         {
             topbar.manualTip = false;
             if (factory.linesToUpdate.Count > 0)
@@ -1116,7 +1128,7 @@ public class Game
         switch (scene)
         {
             case "intro":
-                topbar.header = [];
+                menus["header"] = [];
                 displayStuff();
                 Thread.Sleep(1000);
                 printToMenu(@"Your town was taken by a DRAGON.
@@ -1144,9 +1156,9 @@ Nobody follows, so to keep secrecy while you travel.
                 break;
             case "prompt":
                 menus["prompt"] = [""];
-                if (topbar.returnScene == "intro")
+                if (topbar.scenestack.Last() == "intro")
                 {
-                    topbar.header = ["Name the world"];
+                    menus["header"] = ["Name the world"];
                 }
                 forceUpdateAll();
                 break;

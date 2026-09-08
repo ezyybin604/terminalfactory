@@ -1218,7 +1218,7 @@ public class Factory // factory data / big verbose stuff related to factory
                         case "cgen": case "ogen":
                             mac.runningRecipe = false;
                             output.subtype = "energy";
-                            output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype)) * multiplier;
+                            if (specialModeFact != "tutorial") output.amount += JPI.parseInt(gd.getFromKey("generatorOutput", core.subtype)) * multiplier;
                             setTile(mac.output, output);
                             tickMachIO(macp[i]);
                             break;
