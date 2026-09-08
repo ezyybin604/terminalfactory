@@ -590,8 +590,22 @@ public class Factory // factory data / big verbose stuff related to factory
         int invertedColor = 0;
         int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
         int initali = 0;
-        if (tileConsole.runnerType == "sdl") tileWidth++; initali--;
+        if (tileConsole.runnerType == "sdl")
+        {
+            tileWidth++; initali--;
+        }
         if (scroll.x+initali < 0) initali = 0;
+        if (exposeDisplay)
+        {
+            List<Tile> ts = new List<Tile>();
+            Point startp = new Point(scroll.x, y);
+            for (int i=initali;i<tileWidth;i++)
+            {
+                ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
+            }
+            tileConsole.sendTiles(startp, ts.ToArray());
+            return;
+        }
         lineResult = new string[(tileWidth*2)+2];
         for (int x=initali;x<tileWidth;x++)
         {
@@ -606,7 +620,7 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 t.subtype = "";
             }
-            if (t.type == ']')
+            /*if (t.type == ']')
             {
                 if (continueText && !color)
                 {
@@ -614,7 +628,7 @@ public class Factory // factory data / big verbose stuff related to factory
                 }
                 color = true;
                 colorNow = false;
-            }
+            }*/
             if ("+-p".Contains(t.type))
             {
                 string arrowmap = "?v^><";
@@ -717,17 +731,6 @@ public class Factory // factory data / big verbose stuff related to factory
         for (int o=0;lineResult[o] != "/end";o++)
         {
             string yes = lineResult[o];
-            if (exposeDisplay)
-            {
-                List<Tile> ts = new List<Tile>();
-                Point startp = new Point(scroll.x, y);
-                for (int i=initali;i<tileWidth;i++)
-                {
-                    ts.Add(giveMeTheTile(startp.getTransform(new Point(i, 0))));
-                }
-                tileConsole.sendTiles(startp, ts.ToArray());
-                return;
-            }
             if (yes[0] == '/' && yes.Length > 1)
             {
                 yes = yes.Substring(1);

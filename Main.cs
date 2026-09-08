@@ -98,12 +98,12 @@ public class TileConsole
         // window, board, text
         if (runnerType != "sdl")
         {
-            switch (type)
+            switch (type) // CONSOLE STUFF SGVFSDBBSFGBCFGF
             {
                 case WindowSizes.TEXT: case WindowSizes.WINDOW:
                     return new Point(Console.WindowWidth, Console.WindowHeight);
                 case WindowSizes.BOARD:
-                    return new Point(Console.WindowWidth-1, Console.WindowHeight-2);
+                    return new Point(Console.WindowWidth, Console.WindowHeight-2);
             }
         } else if (theGame != null)
         {

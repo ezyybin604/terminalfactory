@@ -23,8 +23,6 @@ namespace E604terminalfactory;
     - Move machine logic into its own file
     - see if i can make displayLine a little less messy
     - impliment demo stuff for new menu system
-    - deprecate returnScene for subscenestack instead
-    - concider shoving the header into a menu key
 
     gameplay changes
     - finish dragon.putscale (dragon shedding)
