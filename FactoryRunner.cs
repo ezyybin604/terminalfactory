@@ -580,15 +580,9 @@ public class Factory // factory data / big verbose stuff related to factory
     }
     public void displayLine(int y, Point? cursor, Point scroll, TileConsole tileConsole)
     {
-        string[] lineResult;
-        int idx = 0;
-        bool continueText = false;
-        bool color = false;
-        bool colorNow;
-        string currentColor = "";
-        string prevColor;
-        int invertedColor = 0;
+        int idx = 0; // index in LineResult
         int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
+        string[] lineResult = new string[(tileWidth*2)+2];
         int initali = 0;
         if (tileConsole.runnerType == "sdl")
         {
@@ -606,29 +600,20 @@ public class Factory // factory data / big verbose stuff related to factory
             tileConsole.sendTiles(startp, ts.ToArray());
             return;
         }
-        lineResult = new string[(tileWidth*2)+2];
+        string color = "";
+        bool inverted = false;
+        string evalmod = "";
+        string lastmod = "";
         for (int x=initali;x<tileWidth;x++)
         {
-            colorNow = color;
-            prevColor = currentColor;
             Point cur = new Point(x+scroll.x, y);
             Tile t = giveMeTheTile(cur);
             char addChar = t.type;
             string newChar = gd.autoTilePick(t, 0, "tileRemaps");
             if (newChar != "") addChar = newChar[0];
-            if (t.subtype == null)
-            {
-                t.subtype = "";
-            }
-            /*if (t.type == ']')
-            {
-                if (continueText && !color)
-                {
-                    idx++;
-                }
-                color = true;
-                colorNow = false;
-            }*/
+            t.subtype = t.subtype == null ? "" : t.subtype;
+            // generate evalmod
+            color = gd.autoTilePick(t, 0, "tileRecolors");
             if ("+-p".Contains(t.type))
             {
                 string arrowmap = "?v^><";
@@ -642,13 +627,7 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 if (!machines[cur].isFormed)
                 {
-                    if (continueText && !color)
-                    {
-                        idx++;
-                    }
-                    currentColor = "red";
-                    color = true;
-                    colorNow = false;
+                    color = "red";
                 }
                 addChar = t.subtype.ToUpper()[0];
             }
@@ -656,73 +635,30 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 addChar = "+|-"[t.prog];
             }
-            string subtc = gd.autoTilePick(t, 0, "tileRecolors");
-            if (subtc != "")
+            inverted = cursor != null && y == ((Point)cursor).y && x+scroll.x == ((Point)cursor).x;
+            List<string> mods = [];
+            if (color != "")
             {
-                if (continueText && !color)
-                {
-                    idx++;
-                }
-                currentColor = subtc;
-                color = true;
-                colorNow = false;
+                mods.Add(color);
             }
-            bool colorLoop = false;
-            if (color && !colorNow && (prevColor == "" || prevColor != currentColor))
+            if (inverted)
+            {
+                mods.Add("invert");
+            }
+            evalmod = "/" + string.Join(',', mods);
+            if (evalmod == "/") evalmod = "";
+            // evalmod evaled uhhhhhhhhhhhhhhhh
+            if (evalmod != lastmod && evalmod != "")
             {
                 if (lineResult[idx] != null)
                 {
                     idx++;
                 }
-                colorLoop = true;
-                lineResult[idx] = "/" + currentColor;
+                lineResult[idx] = evalmod;
                 idx++;
+                lineResult[idx] = "-";
             }
-            if (cursor != null && y == ((Point)cursor).y && x+scroll.x == ((Point)cursor).x)
-            {
-                if (lineResult[idx] != null)
-                {
-                    idx++;
-                }
-                if (!colorLoop && currentColor != "" && color && !colorNow)
-                {
-                    lineResult[idx] = "/" + currentColor;
-                    idx++;
-                }
-                invertedColor = 2;
-                lineResult[idx] = "/invert";
-            }
-            if (colorNow && color)
-            {
-                color = false;
-                currentColor = "";
-                idx++;
-            }
-            if (lineResult[idx] == null || invertedColor > 0)
-            {
-                if (lineResult[idx] != null)
-                {
-                    idx++;
-                }
-                if (invertedColor > 0)
-                {
-                    invertedColor--;
-                }
-                lineResult[idx] = addChar.ToString();
-            } else
-            {
-                lineResult[idx] += addChar.ToString();
-            }
-            continueText = true;
-            invertedColor = Math.Max(invertedColor, 0);
-            if (invertedColor > 0)
-            {
-                currentColor = "";
-            }
-        }
-        if (lineResult[idx] != null)
-        {
-            idx++;
+            lineResult[idx] += addChar.ToString();
         }
         lineResult[idx] = "/end";
         Console.ResetColor();
@@ -734,19 +670,25 @@ public class Factory // factory data / big verbose stuff related to factory
             if (yes[0] == '/' && yes.Length > 1)
             {
                 yes = yes.Substring(1);
-                if (yes == "invert")
+                foreach (string s in yes.Split(","))
                 {
-                    invertColors();
-                } else
-                {
-                    Console.ForegroundColor = strColor[yes];
+                    if (s == "invert")
+                    {
+                        invertColors();
+                    } else
+                    {
+                        Console.ForegroundColor = strColor[s];
+                    }
                 }
-            } else
+            } else if (yes[0] == '-')
             {
-                Console.Write(lineResult[o]);
+                Console.Write(lineResult[o].Substring(1));
                 //Thread.Sleep(100); // debug
                 Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Green;
+            } else
+            {
+                TileConsole.Error("DisplayLine (console) format error");
             }
         }
     }
