@@ -648,14 +648,17 @@ public class Factory // factory data / big verbose stuff related to factory
             evalmod = "/" + string.Join(',', mods);
             if (evalmod == "/") evalmod = "";
             // evalmod evaled uhhhhhhhhhhhhhhhh
-            if (evalmod != lastmod && evalmod != "")
+            if (evalmod != lastmod)
             {
                 if (lineResult[idx] != null)
                 {
                     idx++;
                 }
-                lineResult[idx] = evalmod;
-                idx++;
+                if (evalmod != "")
+                {
+                    lineResult[idx] = evalmod;
+                    idx++;
+                }
                 lineResult[idx] = "-";
             }
             lineResult[idx] += addChar.ToString();
