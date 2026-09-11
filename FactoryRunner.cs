@@ -578,11 +578,25 @@ public class Factory // factory data / big verbose stuff related to factory
         }
         return direction;
     }
+    public void useModifier(string modf)
+    {
+        Console.ResetColor();
+        Console.ForegroundColor = ConsoleColor.Green;
+        if (modf == "") return;
+        foreach (string s in modf.Split(","))
+        {
+            if (s == "invert")
+            {
+                invertColors();
+            } else
+            {
+                Console.ForegroundColor = strColor[s];
+            }
+        }
+    }
     public void displayLine(int y, Point? cursor, Point scroll, TileConsole tileConsole)
     {
-        int idx = 0; // index in LineResult
         int tileWidth = tileConsole.getWindowSize(WindowSizes.BOARD).x;
-        string[] lineResult = new string[(tileWidth*2)+2];
         int initali = 0;
         if (tileConsole.runnerType == "sdl")
         {
@@ -600,10 +614,11 @@ public class Factory // factory data / big verbose stuff related to factory
             tileConsole.sendTiles(startp, ts.ToArray());
             return;
         }
-        string color = "";
-        bool inverted = false;
-        string evalmod = "";
+        string color;
+        bool inverted;
+        string evalmod;
         string lastmod = "";
+        string text = "";
         for (int x=initali;x<tileWidth;x++)
         {
             Point cur = new Point(x+scroll.x, y);
@@ -645,55 +660,19 @@ public class Factory // factory data / big verbose stuff related to factory
             {
                 mods.Add("invert");
             }
-            evalmod = "/" + string.Join(',', mods);
-            if (evalmod == "/") evalmod = "";
+            evalmod = string.Join(',', mods);
             // evalmod evaled uhhhhhhhhhhhhhhhh
             if (evalmod != lastmod)
             {
-                if (lineResult[idx] != null)
-                {
-                    idx++;
-                }
-                if (evalmod != "")
-                {
-                    lineResult[idx] = evalmod;
-                    idx++;
-                }
-                lineResult[idx] = "-";
+                useModifier(lastmod);
+                Console.Write(text);
+                lastmod = evalmod;
+                text = "";
             }
-            lineResult[idx] += addChar.ToString();
+            text += addChar.ToString();
         }
-        lineResult[idx] = "/end";
-        Console.ResetColor();
-        //Console.WriteLine(String.Join(",", lineResult)); // displayLine:debug
-        Console.ForegroundColor = ConsoleColor.Green;
-        for (int o=0;lineResult[o] != "/end";o++)
-        {
-            string yes = lineResult[o];
-            if (yes[0] == '/' && yes.Length > 1)
-            {
-                yes = yes.Substring(1);
-                foreach (string s in yes.Split(","))
-                {
-                    if (s == "invert")
-                    {
-                        invertColors();
-                    } else
-                    {
-                        Console.ForegroundColor = strColor[s];
-                    }
-                }
-            } else if (yes[0] == '-')
-            {
-                Console.Write(lineResult[o].Substring(1));
-                //Thread.Sleep(100); // debug
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.Green;
-            } else
-            {
-                TileConsole.Error("DisplayLine (console) format error");
-            }
-        }
+        useModifier(lastmod);
+        Console.Write(text);
     }
     public TileBroken breakTile(Point cursor)
     {

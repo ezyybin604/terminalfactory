@@ -19,9 +19,8 @@ namespace E604terminalfactory;
     - EXTREMELY LOW PRIORITY add multivalues to gamedata (and add function to address them) (map keys to multiple other keys) (key_1,key_2) / add function for amount of keys contained within
     - make adjustCamera not a disaster (dont make it use weird while loops)
     - impliment the datadriven worldgen specified in main gamedata (@SPEC-WG > gamedata/main)
-    - move important centerialized data to central data structure
+    - move important centerialized data to central data structure (what does this mean)
     - Move machine logic into its own file
-    - see if i can make displayLine a little less messy
     - impliment demo stuff for new menu system
 
     gameplay changes
