@@ -22,6 +22,7 @@ namespace E604terminalfactory;
     - move important centerialized data to central data structure (what does this mean)
     - Move machine logic into its own file
     - impliment demo stuff for new menu system
+    - add general interpeter for interpeting gamedata/menu data strings
 
     gameplay changes
     - finish dragon.putscale (dragon shedding)
@@ -33,12 +34,8 @@ namespace E604terminalfactory;
     - add sfx to certain actions in graphics
     - add back button to prompt screen
     - add recipes to splitter (round robin, split, forced round robin, etc, default: round robin)
-    - make a "manual" with help topics and stuff
     - way to unlock recipes to introduce them slower
-    - add key button to view manual/manual option in menu
-    - delete key goes back in manual scene, max 50 queue
-    - add quit to main menu
-    - impliment manual navigation
+    - add quit to main menu on pause screen
     - add controls menu to pause/title menu
 */
 
@@ -144,6 +141,9 @@ public class Game
             "Press Z to select",
             "Press X to go back"
         ]);
+        topbar.tips.Add("intro", [
+            "The story so far.."
+        ]);
         topbar.tips.Add("custom", topbar.tips["pause"]);
         topbar.tips.Add("prompt", ["Press ENTER to continue"]);
         topbar.tips.Add("end", ["now go away"]);
@@ -166,7 +166,6 @@ public class Game
         
         
         menus.Add("intro", []);
-        topbar.tips.Add("intro", [" "]);
         if (specialMode == "demo")
         {
             if (factory.savefile == "")
@@ -1126,6 +1125,7 @@ public class Game
         {
             case "intro":
                 menus["header"] = [];
+                unnessaryFunctionForDecidingTips();
                 displayStuff();
                 Thread.Sleep(1000);
                 printToMenu(@"Your town was taken by a DRAGON.
@@ -1268,7 +1268,7 @@ Nobody follows, so to keep secrecy while you travel.
             Console.ResetColor();
             cusc.Clear();
             Console.WriteLine("bye");
-            Thread.Sleep(1000);
+            Thread.Sleep(1);
         }
         Environment.Exit(0);
     }

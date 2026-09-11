@@ -441,6 +441,7 @@ public class WindowHandler
                         drawRect(lowerRect, grey, black);
                         bool nohighlight = game.menus["nohighlight"].Contains(game.scene);
                         nint menusurf = SDL.CreateSurface((int)lowerRect.W, (int)lowerRect.H, defaultFormat); // SDL.Surface
+                        SDL.SetSurfaceBlendMode(menusurf, SDL.BlendMode.BlendPremultiplied);
                         // menusurf start
                         if (!nohighlight ||
                             (JPI.idxInRange(game.menus[game.scene].Length, game.topbar.menuSelection) &&
@@ -505,9 +506,12 @@ public class WindowHandler
                             writeText(itm, 10, 10+(i*25)-menuscroll, "sans_15", texcol, copytexture:menusurf);
                         }
                         // width 8px
-                        float maxHeight = lowerRect.H-16;
-                        float barSize = maxHeight*(maxscroll/lowerRect.H);
-                        drawRect(createRectF(lowerRect.W-16, (maxHeight-barSize)*menuscroll/maxscroll+8, 8, barSize), colors["blackPartial"], copytexture:menusurf);
+                        if (maxscroll > 0)
+                        {
+                            float maxHeight = lowerRect.H-16;
+                            float barSize = maxHeight/((maxscroll+lowerRect.H)/lowerRect.H);
+                            drawRect(createRectF(lowerRect.W-16, (maxHeight-barSize)*menuscroll/maxscroll+8, 8, barSize), colors["blackPartial"], copytexture:menusurf);
+                        }
                         // menusurf end
                         SDL.RenderTexture(renderer, SDL.CreateTextureFromSurface(renderer, menusurf), NULL, lowerRect);
                         SDL.DestroySurface(menusurf);
